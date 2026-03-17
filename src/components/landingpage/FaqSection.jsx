@@ -1,0 +1,156 @@
+import CircuitLineUngu from "../../assets/images/Circuit_Ungu_Kiri.png";
+import { useState } from "react";
+import circleBlue from "../../assets/images/Bulat_Biru.png";
+import { ChevronDown } from "lucide-react";
+
+export default function FaqSection() {
+  const faqs = [
+    {
+      question: "Lorem Ipsum is simply dummy text of th,",
+      answer:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+    },
+    {
+      question: "Lorem Ipsum is simply dummy text of th,",
+      answer:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+    },
+    {
+      question: "Lorem Ipsum is simply dummy text of th,",
+      answer:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+    },
+    {
+      question: "Lorem Ipsum is simply dummy text of th,",
+      answer:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+    },
+    {
+      question: "Lorem Ipsum is simply dummy text of th,",
+      answer:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+    },
+  ];
+
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const toggle = (i) => setOpenIndex(openIndex === i ? null : i);
+  return (
+    <section id="faq" className="relative  py-16 ">
+      <div className="relative mb-32">
+        <img
+          src={CircuitLineUngu}
+          alt=""
+          className="absolute left-0 top-1/2 -translate-y-1/2  pointer-events-none select-none z-0"
+          style={{
+            filter:
+              "invert(20%) sepia(100%) saturate(5000%) hue-rotate(270deg) brightness(0.8)",
+            maxWidth: "45%",
+            objectFit: "cover",
+            objectPosition: "left center",
+          }}
+        />
+
+        {/* ===== CIRCUIT KANAN (flip horizontal) ===== */}
+        <img
+          src={CircuitLineUngu}
+          alt=""
+          className="absolute right-0 top-1/2  pointer-events-none select-none z-0"
+          style={{
+            filter:
+              "invert(20%) sepia(100%) saturate(5000%) hue-rotate(270deg) brightness(0.8)",
+            maxWidth: "45%",
+            objectFit: "cover",
+            objectPosition: "right center",
+            transform: "translateY(-50%) scaleX(-1)", 
+          }}
+        />
+
+        {/* ===== KONTEN TENGAH ===== */}
+        <div className="relative z-10 flex flex-col items-center gap-8 px-6 text-center">
+          <h2 className="text-white text-2xl md:text-3xl font-semibold max-w-[600px] leading-snug">
+            Tertarik untuk menjadi bagian dari Neo Telemetri?
+          </h2>
+
+          <a
+            href="/register"
+            className="px-10 py-3 rounded-full text-white font-semibold text-base tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-[0_0_32px_4px_#FF00FF55]"
+            style={{
+              background: "linear-gradient(135deg, #FF00FF 0%, #990099 100%)",
+              boxShadow:
+                "0 4px 24px 0 #FF00FF44, inset 0 1px 0 rgba(255,255,255,0.15)",
+              border: "1.5px solid rgba(255,0,255,0.4)",
+            }}
+          >
+            Ayo Daftar !
+          </a>
+        </div>
+      </div>
+
+      <div className="relative">
+        <img
+          src={circleBlue}
+          alt=""
+          className="absolute -top-10 -right-10  pointer-events-none select-none z-0"
+        />
+
+        {/* ===== CIRCLE KIRI BAWAH ===== */}
+        <img
+          src={circleBlue}
+          alt=""
+          className="absolute -bottom-10 -left-10 pointer-events-none select-none z-0"
+        />
+
+        {/* ===== TITLE ===== */}
+        <h2 className="relative z-10 text-center text-3xl md:text-4xl font-bold text-white mb-12">
+          <span className="font-extrabold">Frequently</span>{" "}
+          <span className="font-light text-white/80">Asked Question</span>
+        </h2>
+
+        {/* ===== FAQ LIST ===== */}
+        <div className="relative z-10 max-w-[900px] mx-auto px-6 flex flex-col gap-0">
+          {faqs.map((faq, i) => (
+            <div
+              key={i}
+              className="border-b-3 border-[#01FFFF]"
+              
+            >
+              {/* QUESTION ROW */}
+              <button
+                onClick={() => toggle(i)}
+                className="w-full flex items-center justify-between py-5 text-left group"
+              >
+                <span className="text-white text-base pr-4">
+                  {faq.question}
+                </span>
+
+                <ChevronDown
+                  size={22}
+                  className="shrink-0 transition-transform duration-500"
+                  style={{
+                    color: "#01FFFF",
+                    transform:
+                      openIndex === i ? "rotate(180deg)" : "rotate(0deg)",
+                  }}
+                />
+              </button>
+
+              {/* ANSWER */}
+              <div
+                className="overflow-hidden transition-all duration-500"
+                style={{
+                  maxHeight: openIndex === i ? "200px" : "0px",
+                  opacity: openIndex === i ? 1 : 0,
+                }}
+              >
+                <p className="text-white/55 text-sm pb-5 leading-relaxed">
+                  {faq.answer}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

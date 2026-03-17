@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'poppins', sans-serif;
+}
+
+@font-face {
+  font-family: "LandepzGlitch";
+  src: url("./assets/fonts/LANDEPZ\ GLITCH.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
