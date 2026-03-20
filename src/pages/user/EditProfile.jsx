@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { User, Pencil } from "lucide-react";
-import { ChevronDown } from "lucide-react";
+import { User, Pencil, ChevronDown } from "lucide-react";
 import UserLayout from "../../components/user/LayoutUser";
 
 const inputStyle = {
@@ -27,10 +26,7 @@ function InputField({ label, placeholder, value, onChange, type = "text" }) {
           className="w-full px-4 py-3 pr-10 text-sm placeholder-white/30 outline-none focus:border-[#FF00FF]/60 transition-colors"
           style={inputStyle}
         />
-        <Pencil
-          size={13}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30"
-        />
+        <Pencil size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30" />
       </div>
     </div>
   );
@@ -50,23 +46,14 @@ function SelectField({ label, options, value, onChange }) {
             color: value ? "white" : "rgba(255,255,255,0.3)",
           }}
         >
-          <option value="" disabled hidden>
-            {options[0]}
-          </option>
+          <option value="" disabled hidden>{options[0]}</option>
           {options.slice(1).map((opt) => (
-            <option
-              key={opt}
-              value={opt}
-              style={{ background: "#2d0045", color: "white" }}
-            >
+            <option key={opt} value={opt} style={{ background: "#2d0045", color: "white" }}>
               {opt}
             </option>
           ))}
         </select>
-        <ChevronDown
-          size={14}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
-        />
+        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
       </div>
     </div>
   );
@@ -90,17 +77,14 @@ export default function EditProfile() {
   const set = (key) => (e) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
-  const handleSave = () => {
-    console.log("Simpan:", form);
-  };
-
   return (
     <UserLayout>
-      <div className="min-h-screen px-8 py-8 flex flex-col gap-6">
-        {/* ===== TITLE ===== */}
-        <h1 className="text-white text-xl font-bold">Edit Profile</h1>
+      <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
 
-        {/* ===== AVATAR ===== */}
+        {/* TITLE */}
+        <h1 className="text-white text-lg md:text-xl font-bold">Edit Profile</h1>
+
+        {/* AVATAR */}
         <div className="flex justify-center">
           <div className="relative">
             <div
@@ -124,97 +108,61 @@ export default function EditProfile() {
           </div>
         </div>
 
-        {/* ===== FORM GRID ===== */}
+        {/* FORM */}
         <div className="flex flex-col gap-4">
+
           {/* ROW 1 */}
-          <div className="grid grid-cols-2 gap-4">
-            <InputField
-              label="Nama Lengkap"
-              placeholder="Masukan Nama Lengkap"
-              value={form.namaLengkap}
-              onChange={set("namaLengkap")}
-            />
-            <InputField
-              label="Panggilan"
-              placeholder="Masukan Nama panggilan"
-              value={form.panggilan}
-              onChange={set("panggilan")}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField label="Nama Lengkap" placeholder="Masukan Nama Lengkap"
+              value={form.namaLengkap} onChange={set("namaLengkap")} />
+            <InputField label="Panggilan" placeholder="Masukan Nama panggilan"
+              value={form.panggilan} onChange={set("panggilan")} />
           </div>
 
           {/* ROW 2 */}
-          <div className="grid grid-cols-2 gap-4">
-            <InputField
-              label="NIM"
-              placeholder="Masukan NIM"
-              value={form.nim}
-              onChange={set("nim")}
-            />
-            <InputField
-              label="Email"
-              placeholder="neotelemetri@example.com"
-              value={form.email}
-              onChange={set("email")}
-              type="email"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField label="NIM" placeholder="Masukan NIM"
+              value={form.nim} onChange={set("nim")} />
+            <InputField label="Email" placeholder="neotelemetri@example.com"
+              value={form.email} onChange={set("email")} type="email" />
           </div>
 
           {/* ROW 3 */}
-          <div className="grid grid-cols-2 gap-4">
-            <InputField
-              label="No Whatsapp"
-              placeholder="Masukan no WA"
-              value={form.noWa}
-              onChange={set("noWa")}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField label="No Whatsapp" placeholder="Masukan no WA"
+              value={form.noWa} onChange={set("noWa")} />
             <SelectField
               label="Program Studi"
-              options={[
-                "Pilih Program Studi",
-                "Teknik Informatika",
-                "Sistem Informasi",
-                "Teknik Elektro",
-                "Lainnya",
-              ]}
-              value={form.programStudi}
-              onChange={set("programStudi")}
+              options={["Pilih Program Studi", "Teknik Informatika", "Sistem Informasi", "Teknik Elektro", "Lainnya"]}
+              value={form.programStudi} onChange={set("programStudi")}
             />
           </div>
 
           {/* ROW 4 */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SelectField
-              label="Departemen yang Diminati"
+              label="Departemen yang Diminati 1"
               options={["Organisasi", "Operasional", "Lainnya"]}
-              value={form.departemenDiminati1}
-              onChange={set("departemenDiminati1")}
+              value={form.departemenDiminati1} onChange={set("departemenDiminati1")}
             />
             <SelectField
-              label="Departemen yang Diminati"
+              label="Departemen yang Diminati 2"
               options={["Operasional", "Organisasi", "Lainnya"]}
-              value={form.departemenDiminati2}
-              onChange={set("departemenDiminati2")}
+              value={form.departemenDiminati2} onChange={set("departemenDiminati2")}
             />
           </div>
 
           {/* ROW 5 */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SelectField
               label="Divisi"
               options={["Pilih Divisi", "Programming", "MMD", "SKJ"]}
-              value={form.divisi}
-              onChange={set("divisi")}
+              value={form.divisi} onChange={set("divisi")}
             />
             <SelectField
               label="Sub Divisi"
-              options={[
-                "Pilih Sub Divisi",
-                "Machine Learning",
-                "Web Dev",
-                "Mobile Dev",
-              ]}
-              value={form.subDivisi}
-              onChange={set("subDivisi")}
+              options={["Pilih Sub Divisi", "Machine Learning", "Web Dev", "Mobile Dev"]}
+              value={form.subDivisi} onChange={set("subDivisi")}
             />
           </div>
 
@@ -222,13 +170,12 @@ export default function EditProfile() {
           <InputField
             label="Link Twibbon"
             placeholder="Masukkan Link Twibbon"
-            value={form.linkTwibbon}
-            onChange={set("linkTwibbon")}
+            value={form.linkTwibbon} onChange={set("linkTwibbon")}
           />
 
           {/* TOMBOL SIMPAN */}
           <button
-            onClick={handleSave}
+            onClick={() => console.log("Simpan:", form)}
             className="w-full py-4 rounded-2xl text-white font-semibold text-base mt-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_32px_#FF00FF55]"
             style={{
               background: "linear-gradient(90deg, #FF00FF 0%, #CC00CC 100%)",

@@ -8,14 +8,11 @@ const divisiOptions = [
   "Multimedia & Desain",
   "Sistem Komputer dan Jaringan",
 ];
+
 const subDivisiMap = {
   Programming: ["Web Development", "Mobile Development", "Machine Learning"],
   "Multimedia & Desain": ["UI/UX", "Motion Graphic", "Fotografi & Videografi"],
-  "Sistem Komputer dan Jaringan": [
-    "Jaringan",
-    "Sistem Operasi",
-    "Keamanan Siber",
-  ],
+  "Sistem Komputer dan Jaringan": ["Jaringan", "Sistem Operasi", "Keamanan Siber"],
 };
 
 const inputStyle = {
@@ -47,7 +44,6 @@ export default function TugasKumpul() {
     setForm((prev) => ({
       ...prev,
       [key]: val,
-      // reset subDivisi kalau divisi berubah
       ...(key === "divisi" ? { subDivisi: "" } : {}),
     }));
   };
@@ -61,11 +57,12 @@ export default function TugasKumpul() {
 
   return (
     <UserLayout>
-      <div className="min-h-screen flex items-center justify-center px-8 py-8">
-        {/* ===== CARD ===== */}
-        <div className="absolute inset-0 backdrop-blur-xl bg-black/30 z-0" />
+      {/* flex items-start agar card tidak terpotong di mobile saat konten panjang */}
+      <div className="min-h-screen flex items-start lg:items-center justify-center top-0 left-0 ">
+
+        {/* CARD */}
         <div
-          className="relative z-10 w-full max-w-[500px] rounded-2xl overflow-hidden"
+          className="relative z-10 w-full  rounded-2xl overflow-hidden"
           style={{
             background: "rgba(255,255,255,0.97)",
             boxShadow: "0 8px 48px rgba(180,0,255,0.25)",
@@ -73,14 +70,15 @@ export default function TugasKumpul() {
         >
           {/* HEADER */}
           <div
-            className="px-8 py-5 text-center border-b"
+            className="px-6 md:px-8 py-5 text-center border-b"
             style={{ borderColor: "rgba(0,0,0,0.10)" }}
           >
             <h2 className="text-gray-800 font-bold text-lg">Kumpul Tugas</h2>
           </div>
 
           {/* BODY */}
-          <div className="px-8 py-6 flex flex-col gap-4">
+          <div className="px-6 md:px-8 py-6 flex flex-col gap-4">
+
             {/* JUDUL TUGAS */}
             <p className="text-gray-800 font-bold text-sm">Tugas {id}</p>
 
@@ -110,19 +108,12 @@ export default function TugasKumpul() {
                     paddingRight: "36px",
                   }}
                 >
-                  <option value="" disabled hidden>
-                    Pilih Divisi
-                  </option>
+                  <option value="" disabled hidden>Pilih Divisi</option>
                   {divisiOptions.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
+                    <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
-                <ChevronDown
-                  size={15}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
+                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </div>
 
@@ -141,19 +132,12 @@ export default function TugasKumpul() {
                     paddingRight: "36px",
                   }}
                 >
-                  <option value="" disabled hidden>
-                    Pilih Sub Divisi
-                  </option>
+                  <option value="" disabled hidden>Pilih Sub Divisi</option>
                   {subOptions.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
+                    <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
-                <ChevronDown
-                  size={15}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
+                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </div>
 
@@ -173,10 +157,9 @@ export default function TugasKumpul() {
             <div className="flex justify-end mt-1">
               <button
                 onClick={handleSubmit}
-                className="px-7 py-[10px] rounded-full text-white text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(120,0,200,0.4)]"
+                className="w-full md:w-auto px-7 py-[10px] rounded-full text-white text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(120,0,200,0.4)]"
                 style={{
-                  background:
-                    "linear-gradient(135deg, #7B2FBE 0%, #501A5E 100%)",
+                  background: "linear-gradient(135deg, #7B2FBE 0%, #501A5E 100%)",
                   boxShadow: "0 3px 16px rgba(120,0,200,0.30)",
                 }}
               >

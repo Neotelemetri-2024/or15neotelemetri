@@ -22,7 +22,6 @@ import UjianHasil from "./pages/user/UjianHasil";
 import Absensi from "./pages/user/Absensi";
 import Materi from "./pages/user/Materi";
 import Tugas from "./pages/user/Tugas";
-import TugasDetail from "./pages/user/TugasDetail";
 import TugasKumpul from "./pages/user/TugasKumpul";
 import TugasCek from "./pages/user/TugasCek";
 
@@ -52,7 +51,7 @@ function App() {
       {/* user */}
       <Route>
         <Route path="/dashboard" element={<DashboardUser />} />
-        <Route path="/editprofile" element={<EditProfile />} />
+        <Route path="/editprofil" element={<EditProfile />} />
         <Route path="/verifikasi" element={<Verifikasi />} />
         <Route path="/pembayaran" element={<Pembayaran />} />
         <Route path="/ujian" element={<Ujian />} />
@@ -61,7 +60,7 @@ function App() {
         <Route path="/absensi" element={<Absensi />} />
         <Route path="/materi" element={<Materi />} />
         <Route path="/tugas" element={<Tugas />} /> 
-        <Route path="/tugasdetail" element={<TugasDetail />} /> 
+        
         <Route path="/pengumpulan" element={<TugasKumpul />} />
         <Route path="/listtugas" element={<TugasCek />} />
       </Route>

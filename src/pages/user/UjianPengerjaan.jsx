@@ -4,7 +4,7 @@ import UserLayout from "../../components/user/LayoutUser";
 
 const dummyQuestions = Array.from({ length: 5 }, (_, i) => ({
   id: i + 1,
-  question: `Pertanyaan ${i + 1} :\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu massa arcu. Aliquam`,
+  question: `Pertanyaan ${i + 1}`,
   options: [
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu massa arcu. Aliquam",
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu massa arcu. Aliquam",
@@ -13,7 +13,7 @@ const dummyQuestions = Array.from({ length: 5 }, (_, i) => ({
   ],
 }));
 
-const TOTAL_SECONDS = 60 * 60; // 60 menit
+const TOTAL_SECONDS = 60 * 60;
 
 function formatTime(secs) {
   const h = String(Math.floor(secs / 3600)).padStart(2, "0");
@@ -30,14 +30,12 @@ export default function UjianPengerjaan() {
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(TOTAL_SECONDS);
 
-  const divisiLabel =
-    {
-      programming: "Programming",
-      mmd: "Multimedia & Desain",
-      skj: "Sistem Komputer dan Jaringan",
-    }[divisi] ?? "Ujian";
+  const divisiLabel = {
+    programming: "Programming",
+    mmd: "Multimedia & Desain",
+    skj: "Sistem Komputer dan Jaringan",
+  }[divisi] ?? "Ujian";
 
-  // ===== TIMER =====
   useEffect(() => {
     if (timeLeft <= 0) return;
     const t = setInterval(() => setTimeLeft((p) => p - 1), 1000);
@@ -50,22 +48,14 @@ export default function UjianPengerjaan() {
     setAnswers((prev) => ({ ...prev, [currentQ.id]: optIndex }));
   };
 
-  const handleNext = () => {
-    if (currentIndex < dummyQuestions.length - 1) setCurrentIndex((p) => p + 1);
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) setCurrentIndex((p) => p - 1);
-  };
-
   return (
     <UserLayout>
-      <div className="min-h-screen px-8 py-8 flex flex-col gap-6">
-        {/* ===== TOP BAR ===== */}
-        <div className="flex items-center justify-between">
-          {/* JUDUL DIVISI */}
+      <div className="min-h-screen flex flex-col gap-5 pt-10 md:pt-4">
+
+        {/* TOP BAR: divisi + timer */}
+        <div className="flex items-center justify-between gap-3">
           <div
-            className="px-10 py-3 rounded-full text-white font-semibold text-base"
+            className="px-5 md:px-10 py-2.5 md:py-3 rounded-full text-white font-semibold text-sm md:text-base truncate max-w-[55%]"
             style={{
               background: "rgba(180,60,220,0.25)",
               border: "1.5px solid rgba(255,0,255,0.4)",
@@ -76,9 +66,8 @@ export default function UjianPengerjaan() {
             {divisiLabel}
           </div>
 
-          {/* TIMER */}
           <div
-            className="px-8 py-3 rounded-full text-white font-semibold text-base tracking-widest"
+            className="px-5 md:px-8 py-2.5 md:py-3 rounded-full font-semibold text-sm md:text-base tracking-widest shrink-0"
             style={{
               background: "rgba(180,60,220,0.20)",
               border: "1.5px solid rgba(255,0,255,0.35)",
@@ -91,8 +80,8 @@ export default function UjianPengerjaan() {
           </div>
         </div>
 
-        {/* ===== NOMOR SOAL ===== */}
-        <div className="flex gap-3">
+        {/* NOMOR SOAL */}
+        <div className="flex flex-wrap gap-2 md:gap-3">
           {dummyQuestions.map((q, i) => {
             const isActive = i === currentIndex;
             const isAnswered = answers[q.id] !== undefined;
@@ -100,7 +89,7 @@ export default function UjianPengerjaan() {
               <button
                 key={i}
                 onClick={() => setCurrentIndex(i)}
-                className="w-10 h-10 rounded-lg text-sm font-bold transition-all duration-200 hover:scale-110"
+                className="w-9 h-9 md:w-10 md:h-10 rounded-lg text-sm font-bold transition-all duration-200 hover:scale-110"
                 style={{
                   background: isActive
                     ? "linear-gradient(135deg,#FF00FF,#990099)"
@@ -112,8 +101,7 @@ export default function UjianPengerjaan() {
                     : isAnswered
                       ? "1px solid rgba(255,0,255,0.5)"
                       : "1px solid rgba(255,255,255,0.2)",
-                  color:
-                    isActive || isAnswered ? "white" : "rgba(255,255,255,0.6)",
+                  color: isActive || isAnswered ? "white" : "rgba(255,255,255,0.6)",
                   boxShadow: isActive ? "0 0 12px #FF00FF55" : "none",
                 }}
               >
@@ -123,9 +111,9 @@ export default function UjianPengerjaan() {
           })}
         </div>
 
-        {/* ===== SOAL BOX ===== */}
+        {/* SOAL BOX */}
         <div
-          className="flex-1 rounded-2xl px-8 py-7 flex flex-col gap-6"
+          className="flex-1 rounded-2xl px-5 md:px-8 py-6 md:py-7 flex flex-col gap-5 md:gap-6"
           style={{
             background: "rgba(255,255,255,0.05)",
             border: "1.5px solid rgba(255,0,255,0.25)",
@@ -139,8 +127,8 @@ export default function UjianPengerjaan() {
               Pertanyaan {currentQ.id} :
             </p>
             <p className="text-white/90 text-sm leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-              eu massa arcu. Aliquam
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Aliquam eu massa arcu. Aliquam
             </p>
           </div>
 
@@ -152,7 +140,7 @@ export default function UjianPengerjaan() {
                 <button
                   key={oi}
                   onClick={() => handleAnswer(oi)}
-                  className="flex items-center gap-4 px-5 py-4 rounded-full text-left text-sm transition-all duration-200 hover:scale-[1.01]"
+                  className="flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3 md:py-4 rounded-full text-left text-sm transition-all duration-200 hover:scale-[1.01]"
                   style={{
                     background: isChosen
                       ? "rgba(255,0,255,0.25)"
@@ -161,12 +149,10 @@ export default function UjianPengerjaan() {
                       ? "1.5px solid #FF00FF"
                       : "1.5px solid rgba(255,255,255,0.12)",
                     color: isChosen ? "white" : "rgba(255,255,255,0.70)",
-                    boxShadow: isChosen
-                      ? "0 0 16px rgba(255,0,255,0.2)"
-                      : "none",
+                    boxShadow: isChosen ? "0 0 16px rgba(255,0,255,0.2)" : "none",
                   }}
                 >
-                  {/* RADIO INDICATOR */}
+                  {/* RADIO */}
                   <span
                     className="w-4 h-4 rounded-full shrink-0 flex items-center justify-center"
                     style={{
@@ -176,37 +162,29 @@ export default function UjianPengerjaan() {
                     }}
                   >
                     {isChosen && (
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: "#FF00FF" }}
-                      />
+                      <span className="w-2 h-2 rounded-full" style={{ background: "#FF00FF" }} />
                     )}
                   </span>
-                  {opt}
+                  <span className="leading-snug">{opt}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* ===== BOTTOM NAV ===== */}
-        <div className="flex justify-between items-center">
+        {/* BOTTOM NAV */}
+        <div className="flex justify-between items-center gap-3">
           <button
-            onClick={handlePrev}
+            onClick={() => setCurrentIndex((p) => p - 1)}
             disabled={currentIndex === 0}
-            className="px-10 py-3 rounded-full text-white font-semibold text-sm transition-all duration-200 hover:scale-105"
+            className="flex-1 md:flex-none md:px-10 py-3 rounded-full text-white font-semibold text-sm transition-all duration-200 hover:scale-105"
             style={{
-              background:
-                currentIndex === 0
-                  ? "rgba(255,255,255,0.08)"
-                  : "linear-gradient(90deg,#FF00FF,#990099)",
-              border:
-                currentIndex === 0
-                  ? "1px solid rgba(255,255,255,0.15)"
-                  : "none",
+              background: currentIndex === 0
+                ? "rgba(255,255,255,0.08)"
+                : "linear-gradient(90deg,#FF00FF,#990099)",
+              border: currentIndex === 0 ? "1px solid rgba(255,255,255,0.15)" : "none",
               opacity: currentIndex === 0 ? 0.4 : 1,
-              boxShadow:
-                currentIndex === 0 ? "none" : "0 3px 16px rgba(255,0,255,0.3)",
+              boxShadow: currentIndex === 0 ? "none" : "0 3px 16px rgba(255,0,255,0.3)",
               cursor: currentIndex === 0 ? "not-allowed" : "pointer",
             }}
           >
@@ -214,27 +192,20 @@ export default function UjianPengerjaan() {
           </button>
 
           <button
-            onClick={handleNext}
+            onClick={() => setCurrentIndex((p) => p + 1)}
             disabled={currentIndex === dummyQuestions.length - 1}
-            className="px-10 py-3 rounded-full text-white font-semibold text-sm transition-all duration-200 hover:scale-105"
+            className="flex-1 md:flex-none md:px-10 py-3 rounded-full text-white font-semibold text-sm transition-all duration-200 hover:scale-105"
             style={{
-              background:
-                currentIndex === dummyQuestions.length - 1
-                  ? "rgba(255,255,255,0.08)"
-                  : "linear-gradient(90deg,#FF00FF,#990099)",
-              border:
-                currentIndex === dummyQuestions.length - 1
-                  ? "1px solid rgba(255,255,255,0.15)"
-                  : "none",
+              background: currentIndex === dummyQuestions.length - 1
+                ? "rgba(255,255,255,0.08)"
+                : "linear-gradient(90deg,#FF00FF,#990099)",
+              border: currentIndex === dummyQuestions.length - 1
+                ? "1px solid rgba(255,255,255,0.15)" : "none",
               opacity: currentIndex === dummyQuestions.length - 1 ? 0.4 : 1,
-              boxShadow:
-                currentIndex === dummyQuestions.length - 1
-                  ? "none"
-                  : "0 3px 16px rgba(255,0,255,0.3)",
-              cursor:
-                currentIndex === dummyQuestions.length - 1
-                  ? "not-allowed"
-                  : "pointer",
+              boxShadow: currentIndex === dummyQuestions.length - 1
+                ? "none" : "0 3px 16px rgba(255,0,255,0.3)",
+              cursor: currentIndex === dummyQuestions.length - 1
+                ? "not-allowed" : "pointer",
             }}
           >
             Selanjutnya

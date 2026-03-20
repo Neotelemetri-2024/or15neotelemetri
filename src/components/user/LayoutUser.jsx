@@ -1,134 +1,124 @@
 import circlePurple from "../../assets/images/Bulat_Ungu.png";
 import logoORWhite from "../../assets/images/Logo_OR_White.png";
-import { Link } from "react-router-dom";
 import SidebarUser from "./SidebarItem";
-import { useState } from "react";
-import { Menu } from "lucide-react";
+import { useState, useEffect } from "react";
 import {
-  Home,
-  ShieldCheck,
-  CreditCard,
-  FileText,
-  ClipboardCheck,
-  BookOpen,
-  ListTodo,
-  LogOut,
+  Menu, X, Home, Users,  ShieldCheck, CreditCard,
+  FileText, ClipboardCheck, BookOpen, ListTodo, LogOut,
 } from "lucide-react";
+
+const menuItems = [
+  { to: "/dashboard", icon: <Home size={18} />, label: "Dashboard" },
+  { to: "/editprofil", icon: <Users size={18} />, label: "Profil" },
+  { to: "/verifikasi", icon: <ShieldCheck size={18} />, label: "Verifikasi" },
+  { to: "/pembayaran", icon: <CreditCard size={18} />, label: "Pembayaran" },
+  { to: "/ujian", icon: <FileText size={18} />, label: "Ujian" },
+  { to: "/absensi", icon: <ClipboardCheck size={18} />, label: "Absensi" },
+  { to: "/materi", icon: <BookOpen size={18} />, label: "Materi" },
+  { to: "/tugas", icon: <ListTodo size={18} />, label: "Tugas" },
+];
 
 export default function UserLayout({ children }) {
   const [isOpen, setIsOpen] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   return (
-    <div className="flex min-h-screen bg-[#1a0023] text-white overflow-hidden relative">
-      {/* ================= BACKGROUND ================= */}
+    <div className="flex min-h-screen bg-[#1a0023] text-white relative overflow-hidden">
 
-      {/* Circle Ungu */}
-      <img
-        src={circlePurple}
-        alt=""
-        className="absolute -top-20 left-1/3 w-[300px] "
-      />
-      <img
-        src={circlePurple}
-        alt=""
-        className="absolute -bottom-20 left-1/4 "
-      />
-      <img src={circlePurple} alt="" className="absolute top-1/3 -right-10" />
+      {/* BACKGROUND */}
+      <img src={circlePurple} alt="" className="absolute -top-20 left-1/3 w-[300px] pointer-events-none" />
+      <img src={circlePurple} alt="" className="absolute -bottom-20 left-1/4 pointer-events-none" />
+      <img src={circlePurple} alt="" className="absolute top-1/3 -right-10 pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 w-[300px] h-[300px] bg-[#01FFFF] blur-[80px] rounded-full pointer-events-none" />
 
-      {/* Glow Biru kanan bawah */}
-      <div className="absolute -bottom-40 -right-40 w-[300px] h-[300px] bg-[#01FFFF] blur-[80px] rounded-full" />
+      {/* OVERLAY — mobile only */}
+      {isMobile && isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-[25]"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
 
-      {/* ================= SIDEBAR ================= */}
+      {/* SIDEBAR */}
       <aside
-        className={`fixed top-0 left-0 h-screen w-[260px] bg-[#501A5E] flex flex-col justify-between py-8 px-6 z-20 shadow-xl transition-transform duration-300
-  ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`
+          fixed top-0 left-0 h-screen bg-[#501A5E]
+          flex flex-col justify-between py-6 px-3
+          transition-all duration-300 z-[30]
+          ${!isMobile
+            ? isOpen ? "w-[240px]" : "w-[72px]"
+            : isMobileOpen ? "w-[240px] translate-x-0" : "-translate-x-full w-[240px]"
+          }
+        `}
       >
-        {/* Logo */}
+        {/* LOGO */}
         <div>
-          <div className="mb-10">
-            <img src={logoORWhite} alt="logo" className="w-[160px]" />
+          <div className="mb-8 flex justify-center items-center min-h-[40px]">
+            {!isMobile && !isOpen ? (
+              <img src={logoORWhite} alt="logo" className="w-[32px] h-[32px] object-contain" />
+            ) : (
+              <img src={logoORWhite} alt="logo" className="w-[140px]" />
+            )}
           </div>
 
-          {/* Menu */}
-          <nav className="flex flex-col gap-4 text-sm">
-            <SidebarUser
-              to="/dashboard"
-              icon={<Home size={18} />}
-              label="Dashboard"
-            />
-
-            <SidebarUser
-              to="/verifikasi"
-              icon={<ShieldCheck size={18} />}
-              label="Verifikasi"
-            />
-            <SidebarUser
-              to="/pembayaran"
-              icon={<CreditCard size={18} />}
-              label="Pembayaran"
-            />
-            <SidebarUser
-              to="/ujian"
-              icon={<FileText size={18} />}
-              label="Ujian"
-            />
-            <SidebarUser
-              to="/absensi"
-              icon={<ClipboardCheck size={18} />}
-              label="Absensi"
-            />
-            <SidebarUser
-              to="/materi"
-              icon={<BookOpen size={18} />}
-              label="Materi"
-            />
-            <SidebarUser
-              to="/tugas"
-              icon={<ListTodo size={18} />}
-              label="Tugas"
-            />
+          {/* MENU */}
+          <nav className="flex flex-col gap-3 text-sm">
+            {menuItems.map((item) => (
+              <SidebarUser
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                isOpen={isMobile ? true : isOpen}
+              />
+            ))}
           </nav>
         </div>
 
-        {/* Logout */}
-        <button className="flex items-center gap-3 text-sm opacity-80 hover:opacity-100 transition">
-          <LogOut size={18} />
-          Keluar
+        {/* LOGOUT */}
+        <button className={`flex items-center gap-3 text-sm opacity-80 hover:opacity-100 transition px-2
+          ${(!isMobile && !isOpen) ? "justify-center" : "justify-start"}`}
+        >
+          <LogOut size={20} className="shrink-0" />
+          {(isMobile || isOpen) && <span>Keluar</span>}
         </button>
       </aside>
 
-      {/* ================= CONTENT ================= */}
-      <main
-        className={`flex-1 relative z-10 transition-all duration-300
-  ${isOpen ? "ml-[260px]" : "ml-0"}`}
+      {/* HAMBURGER — floating, tidak mengambil space konten */}
+      <button
+        onClick={() => isMobile ? setIsMobileOpen((p) => !p) : setIsOpen((p) => !p)}
+        className="fixed z-[35] top-4 bg-white/10 backdrop-blur p-2 rounded-lg hover:bg-white/20 transition"
+        style={{
+          // Ikut bergeser bersama sidebar di desktop, selalu di pojok kiri di mobile
+          left: !isMobile
+            ? isOpen ? "256px" : "88px"
+            : "16px",
+          transition: "left 0.3s ease",
+        }}
       >
-        {/* ===== TOP BAR ===== */}
-        <div className="flex items-center gap-4 px-6 py-4">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="bg-white/10 backdrop-blur px-3 py-2 rounded-lg hover:bg-white/20 transition"
-          >
-            <Menu size={18} />
-          </button>
+        {isMobile && isMobileOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
 
-          
-        </div>
-
-        {/* ===== CONTENT ===== */}
-        <div className="p-6">{children}</div>
+      
+      <main
+        className={`
+          flex-1 relative z-10 transition-all duration-300 min-w-0
+          ${!isMobile
+            ? isOpen ? "ml-[240px]" : "ml-[72px]"
+            : "ml-0"
+          }
+        `}
+      >
+        <div className="p-4 md:p-6">{children}</div>
       </main>
-    </div>
-  );
-}
-
-/* ================= COMPONENT ITEM ================= */
-function SidebarItem({ icon, label, active }) {
-  return (
-    <div
-      className={`flex items-center gap-3 px-4 py-2 rounded-lg cursor-pointer transition
-      ${active ? "bg-[#6A1B7A]" : "hover:bg-[#5c206b]"}`}
-    >
-      {icon}
-      <span>{label}</span>
     </div>
   );
 }
