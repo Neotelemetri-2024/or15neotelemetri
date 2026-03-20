@@ -35,7 +35,7 @@ export default function UserLayout({ children }) {
       <div className="absolute -bottom-40 -right-40 w-[300px] h-[300px] bg-[#01FFFF] blur-[80px] rounded-full" />
 
       {/* ================= SIDEBAR ================= */}
-      <aside className="w-[260px] bg-[#501A5E] flex flex-col justify-between py-8 px-6 z-10 shadow-xl">
+      <aside className="fixed left-0 top-0 h-screen w-[260px] bg-[#501A5E] flex flex-col justify-between py-8 px-6 z-20 shadow-xl">
         {/* Logo */}
         <div>
           <div className="mb-10">
@@ -91,7 +91,7 @@ export default function UserLayout({ children }) {
       </aside>
 
       {/* ================= CONTENT ================= */}
-      <main className="flex-1 relative z-10 p-10">{children}</main>
+      <main className="ml-[260px] flex-1 relative z-10 p-10">{children}</main>
     </div>
   );
 }
