@@ -4,18 +4,18 @@ import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 
 const dummyData = [
-  { id: 1, nama: "Bahlil", subDivisi: "UI/UX",         tugas: "Title 1", linkTugas: "Link 1", deadline: "DD/MM/YYY" },
-  { id: 2, nama: "Bahlil", subDivisi: "UI/UX",         tugas: "Title 1", linkTugas: "Link 1", deadline: "DD/MM/YYY" },
-  { id: 3, nama: "Bahlil", subDivisi: "Video Editing",  tugas: "Title 3", linkTugas: "Link 2", deadline: "DD/MM/YYY" },
-  { id: 4, nama: "Bahlil", subDivisi: "Video Editing",  tugas: "Title 3", linkTugas: "Link 2", deadline: "DD/MM/YYY" },
-  { id: 5, nama: "Bahlil", subDivisi: "Video Editing",  tugas: "Title 2", linkTugas: "Link 1", deadline: "DD/MM/YYY" },
+  { id: 1, nama: "Bahlil", subDivisi: "UI/UX",        tugas: "Title 1", linkTugas: "Link 1", deadline: "DD/MM/YYY" },
+  { id: 2, nama: "Bahlil", subDivisi: "UI/UX",        tugas: "Title 1", linkTugas: "Link 1", deadline: "DD/MM/YYY" },
+  { id: 3, nama: "Bahlil", subDivisi: "Video Editing", tugas: "Title 3", linkTugas: "Link 2", deadline: "DD/MM/YYY" },
+  { id: 4, nama: "Bahlil", subDivisi: "Video Editing", tugas: "Title 3", linkTugas: "Link 2", deadline: "DD/MM/YYY" },
+  { id: 5, nama: "Bahlil", subDivisi: "Video Editing", tugas: "Title 2", linkTugas: "Link 1", deadline: "DD/MM/YYY" },
 ];
 
 const columns = ["No", "Nama", "Sub Divisi", "Tugas", "Link Tugas", "Deadline"];
 
 export default function PengumpulanTugasAdmin() {
   const [activeDivision, setActiveDivision] = useState(0);
-  const [search, setSearch]                 = useState("");
+  const [search, setSearch] = useState("");
 
   const filtered = dummyData.filter((row) =>
     [row.nama, row.subDivisi, row.tugas, row.linkTugas]
@@ -24,13 +24,13 @@ export default function PengumpulanTugasAdmin() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen px-8 py-8 flex flex-col gap-4">
+      <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
 
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">NamaUser</span>
           <div
-            className="w-10 h-10 rounded-md flex items-center justify-center"
+            className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
             style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
           >
             <User size={18} className="text-white/70" />
@@ -44,7 +44,6 @@ export default function PengumpulanTugasAdmin() {
             setActiveDivision={setActiveDivision}
           />
 
-          {/* CARD PUTIH */}
           <div
             className="flex flex-col"
             style={{
@@ -57,11 +56,11 @@ export default function PengumpulanTugasAdmin() {
           >
             {/* FILTER + SEARCH */}
             <div
-              className="flex items-center gap-3 px-5 py-3 border-b"
+              className="flex items-center gap-3 px-4 py-3 border-b"
               style={{ borderColor: "rgba(0,0,0,0.06)" }}
             >
               <button
-                className="flex items-center gap-2 px-4 py-[7px] rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
+                className="flex items-center gap-2 px-4 py-[7px] rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 shrink-0"
                 style={{
                   background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
                   boxShadow: "0 2px 10px rgba(120,0,200,0.25)",
@@ -72,7 +71,7 @@ export default function PengumpulanTugasAdmin() {
               </button>
 
               <div
-                className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1 max-w-[220px]"
+                className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
                 style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" }}
               >
                 <input
@@ -82,19 +81,19 @@ export default function PengumpulanTugasAdmin() {
                   onChange={(e) => setSearch(e.target.value)}
                   className="bg-transparent text-xs text-gray-600 outline-none flex-1 placeholder-gray-400"
                 />
-                <Search size={13} className="text-gray-400" />
+                <Search size={13} className="text-gray-400 shrink-0" />
               </div>
             </div>
 
             {/* TABLE */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[540px]">
                 <thead>
                   <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
                     {columns.map((col) => (
                       <th
                         key={col}
-                        className="px-4 py-3 text-xs font-bold text-gray-700"
+                        className="p-5 text-xs font-bold text-gray-700 whitespace-nowrap"
                         style={{ textAlign: col === "No" ? "center" : "left" }}
                       >
                         {col}
@@ -102,10 +101,10 @@ export default function PengumpulanTugasAdmin() {
                     ))}
                   </tr>
                 </thead>
+
                 <tbody>
                   {filtered.map((row, i) => (
                     <tr
-                    
                       key={row.id}
                       className="transition-colors duration-150 hover:bg-purple-50"
                       style={{
@@ -114,11 +113,11 @@ export default function PengumpulanTugasAdmin() {
                           : "none",
                       }}
                     >
-                      <td className="px-4 py-3 text-gray-500 text-xs text-center">{row.id}</td>
-                      <td className="px-4 py-3 text-gray-800 text-xs">{row.nama}</td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">{row.subDivisi}</td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">{row.tugas}</td>
-                      <td className="px-4 py-3 text-xs">
+                      <td className="p-5 text-gray-500 text-xs text-center">{row.id}</td>
+                      <td className="p-5 text-gray-800 text-xs whitespace-nowrap">{row.nama}</td>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.subDivisi}</td>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.tugas}</td>
+                      <td className="p-5 text-xs whitespace-nowrap">
                         <a
                           href="#"
                           className="text-purple-600 hover:text-purple-800 hover:underline transition-colors"
@@ -126,7 +125,7 @@ export default function PengumpulanTugasAdmin() {
                           {row.linkTugas}
                         </a>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs">{row.deadline}</td>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.deadline}</td>
                     </tr>
                   ))}
 

@@ -1,26 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Search, SlidersHorizontal } from "lucide-react";
+import { User, Plus } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 
 const dummyData = [
-  { id: 1, namaKegiatan: "wawancara",         tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 2, namaKegiatan: "Opening Ceremony",  tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 3, namaKegiatan: "gatau",             tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 4, namaKegiatan: "Chapstone project", tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 5, namaKegiatan: "Get Investor",      tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
+  { id: 1, title: "Materi 1", subDivisi: "UI/UX", fileUrl: "#" },
+  { id: 2, title: "Materi 2", subDivisi: "UI/UX", fileUrl: "#" },
+  { id: 3, title: "Materi 3", subDivisi: "Video Editing", fileUrl: "#" },
+  { id: 4, title: "Materi 4", subDivisi: "Video Editing", fileUrl: "#" },
+  { id: 5, title: "Materi 5", subDivisi: "Video Editing", fileUrl: "#" },
 ];
 
-const columns = ["No", "Nama Kegiatan", "Tanggal", "Hadir", "Alfa", "Sakit", "Izin", "Action"];
+const columns = ["No", "Title", "Sub Divisi", "File", "Action"];
 
-export default function ListAbsensiAdmin() {
+export default function MateriAdmin() {
   const navigate = useNavigate();
   const [activeDivision, setActiveDivision] = useState(0);
   const [search, setSearch] = useState("");
 
   const filtered = dummyData.filter((row) =>
-    row.namaKegiatan.toLowerCase().includes(search.toLowerCase())
+    [row.title, row.subDivisi]
+      .some((v) => v.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -55,47 +56,37 @@ export default function ListAbsensiAdmin() {
               zIndex: 15,
             }}
           >
-            {/* FILTER + SEARCH */}
-            <div
-              className="flex items-center gap-3 px-4 py-3 border-b"
-              style={{ borderColor: "rgba(0,0,0,0.06)" }}
-            >
+            {/* ADD MATERI BUTTON */}
+            <div className="px-4 pt-4 pb-2">
               <button
-                className="flex items-center gap-2 px-4 py-[7px] rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 shrink-0"
+                onClick={() => navigate("/admin/materi/add")}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:brightness-110"
                 style={{
                   background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
                   boxShadow: "0 2px 10px rgba(120,0,200,0.25)",
                 }}
               >
-                <SlidersHorizontal size={13} />
-                Filter
+                <Plus size={13} />
+                Add Materi
               </button>
-
-              <div
-                className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
-                style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" }}
-              >
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="bg-transparent text-xs text-gray-600 outline-none flex-1 placeholder-gray-400"
-                />
-                <Search size={13} className="text-gray-400 shrink-0" />
-              </div>
             </div>
 
-            {/* TABLE — 8 kolom, min-w lebih besar */}
+            {/* DIVIDER */}
+            <div className="w-full h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
+
+            {/* TABLE */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[640px]">
+              <table className="w-full text-sm min-w-[500px]">
                 <thead>
                   <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
                     {columns.map((col) => (
                       <th
                         key={col}
                         className="p-5 text-xs font-bold text-gray-700 whitespace-nowrap"
-                        style={{ textAlign: col === "Nama Kegiatan" ? "left" : "center" }}
+                        style={{
+                          textAlign: col === "No" || col === "Action" || col === "File"
+                            ? "center" : "left",
+                        }}
                       >
                         {col}
                       </th>
@@ -115,37 +106,47 @@ export default function ListAbsensiAdmin() {
                       }}
                     >
                       <td className="p-5 text-gray-500 text-xs text-center">{row.id}</td>
-                      <td className="p-5 text-gray-800 text-xs whitespace-nowrap">{row.namaKegiatan}</td>
-                      <td className="p-5 text-gray-500 text-xs text-center whitespace-nowrap">{row.tanggal}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.hadir}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.alfa}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.sakit}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.izin}</td>
+                      <td className="p-5 text-gray-800 text-xs whitespace-nowrap">{row.title}</td>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.subDivisi}</td>
+
+                      {/* FILE */}
+                      <td className="p-5 text-center">
+                        <a
+                          href={row.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap inline-block"
+                          style={{
+                            background: "linear-gradient(135deg,#0077CC,#004499)",
+                            boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
+                          }}
+                        >
+                          Lihat
+                        </a>
+                      </td>
 
                       {/* ACTION */}
-                      <td className="p-5 text-center">
+                      <td className="p-5">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => navigate(`/admin/absensi/${row.id}/edit`)}
-                            className="px-4 py-1 rounded-full text-xs font-semibold transition-all hover:brightness-110 whitespace-nowrap"
+                            onClick={() => navigate(`/admin/materi/${row.id}/edit`)}
+                            className="px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
                             style={{
                               background: "#F0C000",
-                              color: "white",
                               boxShadow: "0 2px 8px rgba(200,160,0,0.3)",
                             }}
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => navigate(`/admin/absensi/${row.id}/scan`)}
-                            className="px-4 py-1 rounded-full text-xs font-semibold transition-all hover:brightness-110 whitespace-nowrap"
+                            onClick={() => console.log("Delete materi:", row.id)}
+                            className="px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
                             style={{
-                              background: "linear-gradient(135deg,#00BB66,#007744)",
-                              color: "white",
-                              boxShadow: "0 2px 8px rgba(0,150,80,0.3)",
+                              background: "linear-gradient(135deg,#EE2222,#AA0000)",
+                              boxShadow: "0 2px 8px rgba(200,0,0,0.3)",
                             }}
                           >
-                            Scan
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -154,7 +155,7 @@ export default function ListAbsensiAdmin() {
 
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="text-center py-10 text-gray-400 text-sm">
+                      <td colSpan={6} className="text-center py-10 text-gray-400 text-sm">
                         Tidak ada data ditemukan.
                       </td>
                     </tr>

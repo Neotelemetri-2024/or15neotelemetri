@@ -1,26 +1,44 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { User, Search, SlidersHorizontal } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 
 const dummyData = [
-  { id: 1, namaKegiatan: "wawancara",         tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 2, namaKegiatan: "Opening Ceremony",  tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 3, namaKegiatan: "gatau",             tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 4, namaKegiatan: "Chapstone project", tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
-  { id: 5, namaKegiatan: "Get Investor",      tanggal: "DD/MM/YYY", hadir: 0, alfa: 0, sakit: 0, izin: 0 },
+  { id: 1, tanggal: "13 Juni 2026, 21:00", orderId: "INV 99999999", jenis: "Pembayaran", channel: "Qris",    status: "settlement", nilai: "Rp40.000", email: "yunus@g." },
+  { id: 2, tanggal: "13 Juni 2026, 21:00", orderId: "INV 99999999", jenis: "Pembayaran", channel: "Mandiri", status: "settlement", nilai: "Rp40.000", email: "yunus@g." },
+  { id: 3, tanggal: "13 Juni 2026, 21:00", orderId: "INV 99999999", jenis: "Pembayaran", channel: "Mandiri", status: "Tertunda",   nilai: "Rp40.000", email: "yunus@g." },
+  { id: 4, tanggal: "13 Juni 2026, 21:00", orderId: "INV 99999999", jenis: "Pembayaran", channel: "Mandiri", status: "Tertunda",   nilai: "Rp40.000", email: "yunus@g." },
+  { id: 5, tanggal: "13 Juni 2026, 21:00", orderId: "INV 99999999", jenis: "Pembayaran", channel: "Mandiri", status: "Tertunda",   nilai: "Rp40.000", email: "yunus@g." },
+  { id: 6, tanggal: "13 Juni 2026, 21:00", orderId: "INV 99999999", jenis: "Pembayaran", channel: "Mandiri", status: "Kadaluarsa", nilai: "Rp40.000", email: "yunus@g." },
 ];
 
-const columns = ["No", "Nama Kegiatan", "Tanggal", "Hadir", "Alfa", "Sakit", "Izin", "Action"];
+const columns = ["Tanggal & Waktu", "Order ID", "Jenis Transaksi", "Channel", "Status", "Nilai", "Email"];
 
-export default function ListAbsensiAdmin() {
-  const navigate = useNavigate();
+const statusConfig = {
+  settlement: { bg: "#D1FAE5", color: "#065F46" },
+  Tertunda:   { bg: "#EDE9FE", color: "#5B21B6" },
+  Kadaluarsa: { bg: "#FEE2E2", color: "#991B1B" },
+};
+
+function StatusBadge({ status }) {
+  const cfg = statusConfig[status] ?? { bg: "#F3F4F6", color: "#374151" };
+  return (
+    <span
+      className="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
+      style={{ background: cfg.bg, color: cfg.color }}
+    >
+      {status}
+    </span>
+  );
+}
+
+export default function PembayaranAdmin() {
   const [activeDivision, setActiveDivision] = useState(0);
   const [search, setSearch] = useState("");
 
   const filtered = dummyData.filter((row) =>
-    row.namaKegiatan.toLowerCase().includes(search.toLowerCase())
+    [row.tanggal, row.orderId, row.jenis, row.channel, row.status, row.email]
+      .some((v) => v.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -86,16 +104,15 @@ export default function ListAbsensiAdmin() {
               </div>
             </div>
 
-            {/* TABLE — 8 kolom, min-w lebih besar */}
+            {/* TABLE */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[640px]">
+              <table className="w-full text-sm min-w-[680px]">
                 <thead>
                   <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
                     {columns.map((col) => (
                       <th
                         key={col}
-                        className="p-5 text-xs font-bold text-gray-700 whitespace-nowrap"
-                        style={{ textAlign: col === "Nama Kegiatan" ? "left" : "center" }}
+                        className="p-5 text-xs font-bold text-gray-700 text-left whitespace-nowrap"
                       >
                         {col}
                       </th>
@@ -114,47 +131,21 @@ export default function ListAbsensiAdmin() {
                           : "none",
                       }}
                     >
-                      <td className="p-5 text-gray-500 text-xs text-center">{row.id}</td>
-                      <td className="p-5 text-gray-800 text-xs whitespace-nowrap">{row.namaKegiatan}</td>
-                      <td className="p-5 text-gray-500 text-xs text-center whitespace-nowrap">{row.tanggal}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.hadir}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.alfa}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.sakit}</td>
-                      <td className="p-5 text-gray-600 text-xs text-center">{row.izin}</td>
-
-                      {/* ACTION */}
-                      <td className="p-5 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => navigate(`/admin/absensi/${row.id}/edit`)}
-                            className="px-4 py-1 rounded-full text-xs font-semibold transition-all hover:brightness-110 whitespace-nowrap"
-                            style={{
-                              background: "#F0C000",
-                              color: "white",
-                              boxShadow: "0 2px 8px rgba(200,160,0,0.3)",
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => navigate(`/admin/absensi/${row.id}/scan`)}
-                            className="px-4 py-1 rounded-full text-xs font-semibold transition-all hover:brightness-110 whitespace-nowrap"
-                            style={{
-                              background: "linear-gradient(135deg,#00BB66,#007744)",
-                              color: "white",
-                              boxShadow: "0 2px 8px rgba(0,150,80,0.3)",
-                            }}
-                          >
-                            Scan
-                          </button>
-                        </div>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.tanggal}</td>
+                      <td className="p-5 text-gray-800 text-xs whitespace-nowrap">{row.orderId}</td>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.jenis}</td>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.channel}</td>
+                      <td className="p-5 text-xs">
+                        <StatusBadge status={row.status} />
                       </td>
+                      <td className="p-5 text-gray-800 text-xs font-medium whitespace-nowrap">{row.nilai}</td>
+                      <td className="p-5 text-gray-600 text-xs whitespace-nowrap">{row.email}</td>
                     </tr>
                   ))}
 
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="text-center py-10 text-gray-400 text-sm">
+                      <td colSpan={7} className="text-center py-10 text-gray-400 text-sm">
                         Tidak ada data ditemukan.
                       </td>
                     </tr>

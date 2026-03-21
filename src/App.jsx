@@ -28,12 +28,13 @@ import TugasCek from "./pages/user/TugasCek";
 //admin
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import VerifikasiAdmin from "./pages/admin/VerifikasiAdmin";
-import PembayaranAdmin from "./pages/admin/Pembayaran";
+import PembayaranAdmin from "./pages/admin/PembayaranAdmin";
 import UjianAdmin from "./pages/admin/UjianAdmin";
 import HasilUjianAdmin from "./pages/admin/PengumpulanUjianAdmin";
 import AbsensiAdmin from "./pages/admin/Absensi";
 import ListAbsensiAdmin from "./pages/admin/ListAbsensiAdmin";
-import MateriAdmin from "./pages/admin/MateriAdmin";
+import MateriAdmin from "./pages/admin/Materi";
+import AddMateriAdmin from "./pages/admin/AddMateriAdmin";
 import TugasAdmin from "./pages/admin/TugasAdmin";
 import AddTugasAdmin from "./pages/admin/TambahTugasAdmin";
 import PengumpulanTugasAdmin from "./pages/admin/PengumpulanTugasAdmin";
@@ -70,11 +71,13 @@ function App() {
         <Route path="dashboard" element={<DashboardAdmin />} />
         <Route path="verifikasi" element={<VerifikasiAdmin />} />
         <Route path="pembayaran" element={<PembayaranAdmin />} />
+        <Route path="pembayaran" element={<PembayaranAdmin />} />
         <Route path="ujian" element={<UjianAdmin />} />
         <Route path="pengumpulanujian" element={<HasilUjianAdmin />} />
         <Route path="listabsensi" element={<AbsensiAdmin />} />
         <Route path="absensi" element={<ListAbsensiAdmin />} />
         <Route path="materi" element={<MateriAdmin />} />
+        <Route path="materi/add" element={<AddMateriAdmin />} />
         <Route path="tugas" element={<TugasAdmin />} />
         <Route path="tugas/add" element={<AddTugasAdmin />} />
         <Route path="kumpultugas" element={<PengumpulanTugasAdmin />} />

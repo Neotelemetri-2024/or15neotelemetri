@@ -17,8 +17,6 @@ export default function AddTugasAdmin() {
 
   const set = (key) => (e) => setForm((p) => ({ ...p, [key]: e.target.value }));
 
-  const handleKirim = () => console.log("Kirim tugas:", { division: activeDivision, ...form });
-
   const inputStyle = {
     width: "100%",
     padding: "10px 14px",
@@ -32,13 +30,13 @@ export default function AddTugasAdmin() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen px-8 py-8 flex flex-col gap-4">
+      <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
 
         {/* TOP ROW */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors"
+            className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors shrink-0"
           >
             <ArrowLeft size={16} />
             Back
@@ -46,7 +44,7 @@ export default function AddTugasAdmin() {
           <div className="flex items-center gap-3">
             <span className="text-white font-semibold text-sm">NamaUser</span>
             <div
-              className="w-10 h-10 rounded-md flex items-center justify-center"
+              className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
               style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
             >
               <User size={18} className="text-white/70" />
@@ -63,7 +61,7 @@ export default function AddTugasAdmin() {
 
           {/* CARD PUTIH */}
           <div
-            className="flex flex-col gap-5 px-8 py-7"
+            className="flex flex-col gap-5 px-5 md:px-8 py-6 md:py-7"
             style={{
               background: "white",
               borderRadius: "0 0 16px 16px",
@@ -94,11 +92,7 @@ export default function AddTugasAdmin() {
                 value={form.description}
                 onChange={set("description")}
                 rows={4}
-                style={{
-                  ...inputStyle,
-                  resize: "none",
-                  lineHeight: "1.6",
-                }}
+                style={{ ...inputStyle, resize: "none", lineHeight: "1.6" }}
               />
             </div>
 
@@ -116,7 +110,9 @@ export default function AddTugasAdmin() {
                     color: form.subDivisi ? "#333" : "#aaa",
                   }}
                 >
-                  <option value="" disabled hidden>Pilih satu diantara beberapa Sub Divisi</option>
+                  <option value="" disabled hidden>
+                    Pilih satu diantara beberapa Sub Divisi
+                  </option>
                   {subDivisiOptions[activeDivision].map((s) => (
                     <option key={s} value={s} style={{ color: "#333" }}>{s}</option>
                   ))}
@@ -140,8 +136,8 @@ export default function AddTugasAdmin() {
             {/* KIRIM */}
             <div className="flex justify-end">
               <button
-                onClick={handleKirim}
-                className="px-8 py-3 rounded-full text-white text-sm font-semibold transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(120,0,200,0.4)]"
+                onClick={() => console.log("Kirim tugas:", { division: activeDivision, ...form })}
+                className="w-full md:w-auto px-8 py-3 rounded-full text-white text-sm font-semibold transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(120,0,200,0.4)]"
                 style={{
                   background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
                   boxShadow: "0 3px 16px rgba(120,0,200,0.30)",
