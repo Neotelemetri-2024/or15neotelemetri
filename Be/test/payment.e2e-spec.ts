@@ -1,37 +1,30 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/common/services/prisma.service';
-import { VerificationStatus } from '../prisma/generated-client/client';
+import { VerificationStatus, PaymentStatus, UserRole } from '../prisma/generated-client/client';
 
-// Mock midtrans-client globally for E2E
-jest.mock('midtrans-client', () => ({
-  Snap: jest.fn().mockImplementation(() => ({
-    createTransaction: jest.fn().mockResolvedValue({
-      token: 'mock-e2e-token',
-      redirect_url: 'http://mock-e2e-redirect.url',
-    }),
-  })),
-}));
+jest.setTimeout(120000);
 
 describe('Payment (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let userToken: string;
+  let adminToken: string;
   let userId: string;
   const userEmail = `user-pay-${Date.now()}@test.com`;
+  const adminEmail = `admin-pay-${Date.now()}@test.com`;
   const password = 'Password123!';
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider('IStorageService')
-      .useValue({ uploadFile: jest.fn().mockResolvedValue('http://mock.url') })
+      .overrideProvider('CloudinaryStorageService')
+      .useValue({ uploadFile: jest.fn().mockResolvedValue('http://mock.url/proof.jpg') })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -60,75 +53,82 @@ describe('Payment (e2e)', () => {
     const userLogin = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: userEmail, password });
-
     userToken = userLogin.body.access_token as string;
 
-    // Initially NOT approved - should fail payment creation
+    // Create and Login Admin
+    await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({
+        email: adminEmail,
+        password,
+        fullName: 'Admin Pay',
+        nim: `NIM-ADM-${Date.now()}`,
+      });
+    await prisma.user.update({ where: { email: adminEmail }, data: { role: UserRole.ADMIN } });
+    const adminLogin = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: adminEmail, password });
+    adminToken = adminLogin.body.access_token as string;
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email: userEmail } });
+    await prisma.payment.deleteMany({ where: { userId } });
+    await prisma.submissionVerification.deleteMany({ where: { userId } });
+    await prisma.user.deleteMany({ where: { email: { in: [userEmail, adminEmail] } } });
     await prisma.$disconnect();
     await app.close();
   });
 
   describe('Payment Controller', () => {
-    it('/api/payments/create (POST) - Fail if not approved', async () => {
+    it('/api/payments/upload-proof (POST) - Fail if not approved', async () => {
       await request(app.getHttpServer())
-        .post('/api/payments/create')
+        .post('/api/payments/upload-proof')
         .set('Authorization', `Bearer ${userToken}`)
+        .field('amount', '50000')
+        .attach('file', Buffer.from('test'), 'proof.jpg')
         .expect(400);
     });
 
-    it('/api/payments/create (POST) - Success after approval', async () => {
-      // Approve user
+    it('/api/payments/upload-proof (POST) - Success after approval', async () => {
+      // Approve user verification
       await prisma.submissionVerification.create({
         data: {
           userId,
           status: VerificationStatus.APPROVED,
-          twibbonLink: 'http://twibbon.url',
         },
       });
 
       const response = await request(app.getHttpServer())
-        .post('/api/payments/create')
+        .post('/api/payments/upload-proof')
         .set('Authorization', `Bearer ${userToken}`)
+        .field('amount', '50000')
+        .attach('file', Buffer.from('test'), 'proof.jpg')
         .expect(201);
 
-      expect(response.body).toHaveProperty('paymentUrl');
-      expect(response.body.paymentUrl).toBe('http://mock-e2e-redirect.url');
+      expect(response.body.status).toBe(PaymentStatus.PENDING);
+      expect(response.body.amount).toBe("50000");
     });
 
-    it('/api/payments/webhook (POST) - Should handle settlement', async () => {
+    it('/api/payments/my-payment (GET) - Success', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/payments/my-payment')
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(200);
+      
+      expect(response.body.status).toBe(PaymentStatus.PENDING);
+    });
+
+    it('/api/payments/:id/review (PATCH) - Admin Success', async () => {
       const payment = await prisma.payment.findFirst({ where: { userId } });
       if (!payment) throw new Error('Payment not found');
 
-      const status_code = '200';
-      const gross_amount = payment.amount.toString();
-      const serverKey = process.env.MIDTRANS_SERVER_KEY || '';
-      
-      const crypto = require('crypto');
-      const signature_key = crypto
-        .createHash('sha512')
-        .update(`${payment.id}${status_code}${gross_amount}${serverKey}`)
-        .digest('hex');
+      const response = await request(app.getHttpServer())
+        .patch(`/api/payments/${payment.id}/review`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ status: PaymentStatus.APPROVED })
+        .expect(200);
 
-      await request(app.getHttpServer())
-        .post('/api/payments/webhook')
-        .send({
-          order_id: payment.id,
-          transaction_status: 'settlement',
-          fraud_status: 'accept',
-          status_code,
-          gross_amount,
-          signature_key,
-        })
-        .expect(201);
-
-      const updatedPayment = await prisma.payment.findUnique({
-        where: { id: payment.id },
-      });
-      expect(updatedPayment?.status).toBe('PAID');
+      expect(response.body.status).toBe(PaymentStatus.APPROVED);
     });
   });
 });

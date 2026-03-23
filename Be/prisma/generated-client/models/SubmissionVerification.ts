@@ -583,10 +583,6 @@ export type EnumVerificationStatusFieldUpdateOperationsInput = {
   set?: $Enums.VerificationStatus
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type SubmissionVerificationCreateWithoutUserInput = {
   id?: string
   krsScanUrl?: string | null

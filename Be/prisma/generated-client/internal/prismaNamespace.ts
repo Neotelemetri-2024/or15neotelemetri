@@ -387,6 +387,7 @@ export const ModelName = {
   User: 'User',
   Department: 'Department',
   RecruitmentTimeline: 'RecruitmentTimeline',
+  Activity: 'Activity',
   Attendance: 'Attendance',
   Division: 'Division',
   SubDivision: 'SubDivision',
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "department" | "recruitmentTimeline" | "attendance" | "division" | "subDivision" | "profile" | "submissionVerification" | "payment" | "exam" | "question" | "choice" | "examAttempt" | "examAnswer" | "learningModule" | "assignment" | "assignmentSubmission"
+    modelProps: "user" | "department" | "recruitmentTimeline" | "activity" | "attendance" | "division" | "subDivision" | "profile" | "submissionVerification" | "payment" | "exam" | "question" | "choice" | "examAttempt" | "examAnswer" | "learningModule" | "assignment" | "assignmentSubmission"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -639,6 +640,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.RecruitmentTimelineCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.RecruitmentTimelineCountAggregateOutputType> | number
+        }
+      }
+    }
+    Activity: {
+      payload: Prisma.$ActivityPayload<ExtArgs>
+      fields: Prisma.ActivityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ActivityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ActivityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>
+        }
+        findFirst: {
+          args: Prisma.ActivityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ActivityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>
+        }
+        findMany: {
+          args: Prisma.ActivityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>[]
+        }
+        create: {
+          args: Prisma.ActivityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>
+        }
+        createMany: {
+          args: Prisma.ActivityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ActivityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>[]
+        }
+        delete: {
+          args: Prisma.ActivityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>
+        }
+        update: {
+          args: Prisma.ActivityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>
+        }
+        deleteMany: {
+          args: Prisma.ActivityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ActivityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ActivityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>[]
+        }
+        upsert: {
+          args: Prisma.ActivityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ActivityPayload>
+        }
+        aggregate: {
+          args: Prisma.ActivityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateActivity>
+        }
+        groupBy: {
+          args: Prisma.ActivityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActivityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ActivityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ActivityCountAggregateOutputType> | number
         }
       }
     }
@@ -1747,7 +1822,6 @@ export const RecruitmentTimelineScalarFieldEnum = {
   startAt: 'startAt',
   endAt: 'endAt',
   orderIndex: 'orderIndex',
-  attendancePasscode: 'attendancePasscode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1755,10 +1829,21 @@ export const RecruitmentTimelineScalarFieldEnum = {
 export type RecruitmentTimelineScalarFieldEnum = (typeof RecruitmentTimelineScalarFieldEnum)[keyof typeof RecruitmentTimelineScalarFieldEnum]
 
 
+export const ActivityScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  deadline: 'deadline',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ActivityScalarFieldEnum = (typeof ActivityScalarFieldEnum)[keyof typeof ActivityScalarFieldEnum]
+
+
 export const AttendanceScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  timelineId: 'timelineId',
+  activityId: 'activityId',
   checkInTime: 'checkInTime',
   status: 'status',
   notes: 'notes',
@@ -1833,13 +1918,12 @@ export type SubmissionVerificationScalarFieldEnum = (typeof SubmissionVerificati
 export const PaymentScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  provider: 'provider',
   amount: 'amount',
-  currency: 'currency',
+  proofUrl: 'proofUrl',
   status: 'status',
-  externalPaymentId: 'externalPaymentId',
-  paymentUrl: 'paymentUrl',
-  paidAt: 'paidAt',
+  rejectionReason: 'rejectionReason',
+  reviewedByAdminId: 'reviewedByAdminId',
+  reviewedAt: 'reviewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -2088,20 +2172,6 @@ export type ListEnumVerificationStatusFieldRefInput<$PrismaModel> = FieldRefInpu
 
 
 /**
- * Reference to a field of type 'PaymentProvider'
- */
-export type EnumPaymentProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProvider'>
-    
-
-
-/**
- * Reference to a field of type 'PaymentProvider[]'
- */
-export type ListEnumPaymentProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProvider[]'>
-    
-
-
-/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -2268,6 +2338,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   department?: Prisma.DepartmentOmit
   recruitmentTimeline?: Prisma.RecruitmentTimelineOmit
+  activity?: Prisma.ActivityOmit
   attendance?: Prisma.AttendanceOmit
   division?: Prisma.DivisionOmit
   subDivision?: Prisma.SubDivisionOmit

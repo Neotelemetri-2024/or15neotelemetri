@@ -27,7 +27,7 @@ export type AggregateAttendance = {
 export type AttendanceMinAggregateOutputType = {
   id: string | null
   userId: string | null
-  timelineId: string | null
+  activityId: string | null
   checkInTime: Date | null
   status: $Enums.AttendanceStatus | null
   notes: string | null
@@ -38,7 +38,7 @@ export type AttendanceMinAggregateOutputType = {
 export type AttendanceMaxAggregateOutputType = {
   id: string | null
   userId: string | null
-  timelineId: string | null
+  activityId: string | null
   checkInTime: Date | null
   status: $Enums.AttendanceStatus | null
   notes: string | null
@@ -49,7 +49,7 @@ export type AttendanceMaxAggregateOutputType = {
 export type AttendanceCountAggregateOutputType = {
   id: number
   userId: number
-  timelineId: number
+  activityId: number
   checkInTime: number
   status: number
   notes: number
@@ -62,7 +62,7 @@ export type AttendanceCountAggregateOutputType = {
 export type AttendanceMinAggregateInputType = {
   id?: true
   userId?: true
-  timelineId?: true
+  activityId?: true
   checkInTime?: true
   status?: true
   notes?: true
@@ -73,7 +73,7 @@ export type AttendanceMinAggregateInputType = {
 export type AttendanceMaxAggregateInputType = {
   id?: true
   userId?: true
-  timelineId?: true
+  activityId?: true
   checkInTime?: true
   status?: true
   notes?: true
@@ -84,7 +84,7 @@ export type AttendanceMaxAggregateInputType = {
 export type AttendanceCountAggregateInputType = {
   id?: true
   userId?: true
-  timelineId?: true
+  activityId?: true
   checkInTime?: true
   status?: true
   notes?: true
@@ -168,8 +168,8 @@ export type AttendanceGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type AttendanceGroupByOutputType = {
   id: string
   userId: string
-  timelineId: string
-  checkInTime: Date
+  activityId: string
+  checkInTime: Date | null
   status: $Enums.AttendanceStatus
   notes: string | null
   createdAt: Date
@@ -200,51 +200,51 @@ export type AttendanceWhereInput = {
   NOT?: Prisma.AttendanceWhereInput | Prisma.AttendanceWhereInput[]
   id?: Prisma.StringFilter<"Attendance"> | string
   userId?: Prisma.StringFilter<"Attendance"> | string
-  timelineId?: Prisma.StringFilter<"Attendance"> | string
-  checkInTime?: Prisma.DateTimeFilter<"Attendance"> | Date | string
+  activityId?: Prisma.StringFilter<"Attendance"> | string
+  checkInTime?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"Attendance"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  timeline?: Prisma.XOR<Prisma.RecruitmentTimelineScalarRelationFilter, Prisma.RecruitmentTimelineWhereInput>
+  activity?: Prisma.XOR<Prisma.ActivityScalarRelationFilter, Prisma.ActivityWhereInput>
 }
 
 export type AttendanceOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  timelineId?: Prisma.SortOrder
-  checkInTime?: Prisma.SortOrder
+  activityId?: Prisma.SortOrder
+  checkInTime?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
-  timeline?: Prisma.RecruitmentTimelineOrderByWithRelationInput
+  activity?: Prisma.ActivityOrderByWithRelationInput
 }
 
 export type AttendanceWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  userId_timelineId?: Prisma.AttendanceUserIdTimelineIdCompoundUniqueInput
+  userId_activityId?: Prisma.AttendanceUserIdActivityIdCompoundUniqueInput
   AND?: Prisma.AttendanceWhereInput | Prisma.AttendanceWhereInput[]
   OR?: Prisma.AttendanceWhereInput[]
   NOT?: Prisma.AttendanceWhereInput | Prisma.AttendanceWhereInput[]
   userId?: Prisma.StringFilter<"Attendance"> | string
-  timelineId?: Prisma.StringFilter<"Attendance"> | string
-  checkInTime?: Prisma.DateTimeFilter<"Attendance"> | Date | string
+  activityId?: Prisma.StringFilter<"Attendance"> | string
+  checkInTime?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"Attendance"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  timeline?: Prisma.XOR<Prisma.RecruitmentTimelineScalarRelationFilter, Prisma.RecruitmentTimelineWhereInput>
-}, "id" | "userId_timelineId">
+  activity?: Prisma.XOR<Prisma.ActivityScalarRelationFilter, Prisma.ActivityWhereInput>
+}, "id" | "userId_activityId">
 
 export type AttendanceOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  timelineId?: Prisma.SortOrder
-  checkInTime?: Prisma.SortOrder
+  activityId?: Prisma.SortOrder
+  checkInTime?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -260,8 +260,8 @@ export type AttendanceScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AttendanceScalarWhereWithAggregatesInput | Prisma.AttendanceScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Attendance"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Attendance"> | string
-  timelineId?: Prisma.StringWithAggregatesFilter<"Attendance"> | string
-  checkInTime?: Prisma.DateTimeWithAggregatesFilter<"Attendance"> | Date | string
+  activityId?: Prisma.StringWithAggregatesFilter<"Attendance"> | string
+  checkInTime?: Prisma.DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
   status?: Prisma.EnumAttendanceStatusWithAggregatesFilter<"Attendance"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableWithAggregatesFilter<"Attendance"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Attendance"> | Date | string
@@ -270,20 +270,20 @@ export type AttendanceScalarWhereWithAggregatesInput = {
 
 export type AttendanceCreateInput = {
   id?: string
-  checkInTime?: Date | string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAttendancesInput
-  timeline: Prisma.RecruitmentTimelineCreateNestedOneWithoutAttendancesInput
+  activity: Prisma.ActivityCreateNestedOneWithoutAttendancesInput
 }
 
 export type AttendanceUncheckedCreateInput = {
   id?: string
   userId: string
-  timelineId: string
-  checkInTime?: Date | string
+  activityId: string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
@@ -292,20 +292,20 @@ export type AttendanceUncheckedCreateInput = {
 
 export type AttendanceUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAttendancesNestedInput
-  timeline?: Prisma.RecruitmentTimelineUpdateOneRequiredWithoutAttendancesNestedInput
+  activity?: Prisma.ActivityUpdateOneRequiredWithoutAttendancesNestedInput
 }
 
 export type AttendanceUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  timelineId?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activityId?: Prisma.StringFieldUpdateOperationsInput | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -315,8 +315,8 @@ export type AttendanceUncheckedUpdateInput = {
 export type AttendanceCreateManyInput = {
   id?: string
   userId: string
-  timelineId: string
-  checkInTime?: Date | string
+  activityId: string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
@@ -325,7 +325,7 @@ export type AttendanceCreateManyInput = {
 
 export type AttendanceUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -335,8 +335,8 @@ export type AttendanceUpdateManyMutationInput = {
 export type AttendanceUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  timelineId?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activityId?: Prisma.StringFieldUpdateOperationsInput | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -353,15 +353,15 @@ export type AttendanceOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type AttendanceUserIdTimelineIdCompoundUniqueInput = {
+export type AttendanceUserIdActivityIdCompoundUniqueInput = {
   userId: string
-  timelineId: string
+  activityId: string
 }
 
 export type AttendanceCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  timelineId?: Prisma.SortOrder
+  activityId?: Prisma.SortOrder
   checkInTime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
@@ -372,7 +372,7 @@ export type AttendanceCountOrderByAggregateInput = {
 export type AttendanceMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  timelineId?: Prisma.SortOrder
+  activityId?: Prisma.SortOrder
   checkInTime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
@@ -383,7 +383,7 @@ export type AttendanceMaxOrderByAggregateInput = {
 export type AttendanceMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  timelineId?: Prisma.SortOrder
+  activityId?: Prisma.SortOrder
   checkInTime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
@@ -433,46 +433,50 @@ export type AttendanceUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.AttendanceScalarWhereInput | Prisma.AttendanceScalarWhereInput[]
 }
 
-export type AttendanceCreateNestedManyWithoutTimelineInput = {
-  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutTimelineInput, Prisma.AttendanceUncheckedCreateWithoutTimelineInput> | Prisma.AttendanceCreateWithoutTimelineInput[] | Prisma.AttendanceUncheckedCreateWithoutTimelineInput[]
-  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutTimelineInput | Prisma.AttendanceCreateOrConnectWithoutTimelineInput[]
-  createMany?: Prisma.AttendanceCreateManyTimelineInputEnvelope
+export type AttendanceCreateNestedManyWithoutActivityInput = {
+  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutActivityInput, Prisma.AttendanceUncheckedCreateWithoutActivityInput> | Prisma.AttendanceCreateWithoutActivityInput[] | Prisma.AttendanceUncheckedCreateWithoutActivityInput[]
+  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutActivityInput | Prisma.AttendanceCreateOrConnectWithoutActivityInput[]
+  createMany?: Prisma.AttendanceCreateManyActivityInputEnvelope
   connect?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
 }
 
-export type AttendanceUncheckedCreateNestedManyWithoutTimelineInput = {
-  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutTimelineInput, Prisma.AttendanceUncheckedCreateWithoutTimelineInput> | Prisma.AttendanceCreateWithoutTimelineInput[] | Prisma.AttendanceUncheckedCreateWithoutTimelineInput[]
-  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutTimelineInput | Prisma.AttendanceCreateOrConnectWithoutTimelineInput[]
-  createMany?: Prisma.AttendanceCreateManyTimelineInputEnvelope
+export type AttendanceUncheckedCreateNestedManyWithoutActivityInput = {
+  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutActivityInput, Prisma.AttendanceUncheckedCreateWithoutActivityInput> | Prisma.AttendanceCreateWithoutActivityInput[] | Prisma.AttendanceUncheckedCreateWithoutActivityInput[]
+  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutActivityInput | Prisma.AttendanceCreateOrConnectWithoutActivityInput[]
+  createMany?: Prisma.AttendanceCreateManyActivityInputEnvelope
   connect?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
 }
 
-export type AttendanceUpdateManyWithoutTimelineNestedInput = {
-  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutTimelineInput, Prisma.AttendanceUncheckedCreateWithoutTimelineInput> | Prisma.AttendanceCreateWithoutTimelineInput[] | Prisma.AttendanceUncheckedCreateWithoutTimelineInput[]
-  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutTimelineInput | Prisma.AttendanceCreateOrConnectWithoutTimelineInput[]
-  upsert?: Prisma.AttendanceUpsertWithWhereUniqueWithoutTimelineInput | Prisma.AttendanceUpsertWithWhereUniqueWithoutTimelineInput[]
-  createMany?: Prisma.AttendanceCreateManyTimelineInputEnvelope
+export type AttendanceUpdateManyWithoutActivityNestedInput = {
+  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutActivityInput, Prisma.AttendanceUncheckedCreateWithoutActivityInput> | Prisma.AttendanceCreateWithoutActivityInput[] | Prisma.AttendanceUncheckedCreateWithoutActivityInput[]
+  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutActivityInput | Prisma.AttendanceCreateOrConnectWithoutActivityInput[]
+  upsert?: Prisma.AttendanceUpsertWithWhereUniqueWithoutActivityInput | Prisma.AttendanceUpsertWithWhereUniqueWithoutActivityInput[]
+  createMany?: Prisma.AttendanceCreateManyActivityInputEnvelope
   set?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
   disconnect?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
   delete?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
   connect?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
-  update?: Prisma.AttendanceUpdateWithWhereUniqueWithoutTimelineInput | Prisma.AttendanceUpdateWithWhereUniqueWithoutTimelineInput[]
-  updateMany?: Prisma.AttendanceUpdateManyWithWhereWithoutTimelineInput | Prisma.AttendanceUpdateManyWithWhereWithoutTimelineInput[]
+  update?: Prisma.AttendanceUpdateWithWhereUniqueWithoutActivityInput | Prisma.AttendanceUpdateWithWhereUniqueWithoutActivityInput[]
+  updateMany?: Prisma.AttendanceUpdateManyWithWhereWithoutActivityInput | Prisma.AttendanceUpdateManyWithWhereWithoutActivityInput[]
   deleteMany?: Prisma.AttendanceScalarWhereInput | Prisma.AttendanceScalarWhereInput[]
 }
 
-export type AttendanceUncheckedUpdateManyWithoutTimelineNestedInput = {
-  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutTimelineInput, Prisma.AttendanceUncheckedCreateWithoutTimelineInput> | Prisma.AttendanceCreateWithoutTimelineInput[] | Prisma.AttendanceUncheckedCreateWithoutTimelineInput[]
-  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutTimelineInput | Prisma.AttendanceCreateOrConnectWithoutTimelineInput[]
-  upsert?: Prisma.AttendanceUpsertWithWhereUniqueWithoutTimelineInput | Prisma.AttendanceUpsertWithWhereUniqueWithoutTimelineInput[]
-  createMany?: Prisma.AttendanceCreateManyTimelineInputEnvelope
+export type AttendanceUncheckedUpdateManyWithoutActivityNestedInput = {
+  create?: Prisma.XOR<Prisma.AttendanceCreateWithoutActivityInput, Prisma.AttendanceUncheckedCreateWithoutActivityInput> | Prisma.AttendanceCreateWithoutActivityInput[] | Prisma.AttendanceUncheckedCreateWithoutActivityInput[]
+  connectOrCreate?: Prisma.AttendanceCreateOrConnectWithoutActivityInput | Prisma.AttendanceCreateOrConnectWithoutActivityInput[]
+  upsert?: Prisma.AttendanceUpsertWithWhereUniqueWithoutActivityInput | Prisma.AttendanceUpsertWithWhereUniqueWithoutActivityInput[]
+  createMany?: Prisma.AttendanceCreateManyActivityInputEnvelope
   set?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
   disconnect?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
   delete?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
   connect?: Prisma.AttendanceWhereUniqueInput | Prisma.AttendanceWhereUniqueInput[]
-  update?: Prisma.AttendanceUpdateWithWhereUniqueWithoutTimelineInput | Prisma.AttendanceUpdateWithWhereUniqueWithoutTimelineInput[]
-  updateMany?: Prisma.AttendanceUpdateManyWithWhereWithoutTimelineInput | Prisma.AttendanceUpdateManyWithWhereWithoutTimelineInput[]
+  update?: Prisma.AttendanceUpdateWithWhereUniqueWithoutActivityInput | Prisma.AttendanceUpdateWithWhereUniqueWithoutActivityInput[]
+  updateMany?: Prisma.AttendanceUpdateManyWithWhereWithoutActivityInput | Prisma.AttendanceUpdateManyWithWhereWithoutActivityInput[]
   deleteMany?: Prisma.AttendanceScalarWhereInput | Prisma.AttendanceScalarWhereInput[]
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type EnumAttendanceStatusFieldUpdateOperationsInput = {
@@ -481,18 +485,18 @@ export type EnumAttendanceStatusFieldUpdateOperationsInput = {
 
 export type AttendanceCreateWithoutUserInput = {
   id?: string
-  checkInTime?: Date | string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  timeline: Prisma.RecruitmentTimelineCreateNestedOneWithoutAttendancesInput
+  activity: Prisma.ActivityCreateNestedOneWithoutAttendancesInput
 }
 
 export type AttendanceUncheckedCreateWithoutUserInput = {
   id?: string
-  timelineId: string
-  checkInTime?: Date | string
+  activityId: string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
@@ -531,17 +535,17 @@ export type AttendanceScalarWhereInput = {
   NOT?: Prisma.AttendanceScalarWhereInput | Prisma.AttendanceScalarWhereInput[]
   id?: Prisma.StringFilter<"Attendance"> | string
   userId?: Prisma.StringFilter<"Attendance"> | string
-  timelineId?: Prisma.StringFilter<"Attendance"> | string
-  checkInTime?: Prisma.DateTimeFilter<"Attendance"> | Date | string
+  activityId?: Prisma.StringFilter<"Attendance"> | string
+  checkInTime?: Prisma.DateTimeNullableFilter<"Attendance"> | Date | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"Attendance"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Attendance"> | Date | string
 }
 
-export type AttendanceCreateWithoutTimelineInput = {
+export type AttendanceCreateWithoutActivityInput = {
   id?: string
-  checkInTime?: Date | string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
@@ -549,46 +553,46 @@ export type AttendanceCreateWithoutTimelineInput = {
   user: Prisma.UserCreateNestedOneWithoutAttendancesInput
 }
 
-export type AttendanceUncheckedCreateWithoutTimelineInput = {
+export type AttendanceUncheckedCreateWithoutActivityInput = {
   id?: string
   userId: string
-  checkInTime?: Date | string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
-export type AttendanceCreateOrConnectWithoutTimelineInput = {
+export type AttendanceCreateOrConnectWithoutActivityInput = {
   where: Prisma.AttendanceWhereUniqueInput
-  create: Prisma.XOR<Prisma.AttendanceCreateWithoutTimelineInput, Prisma.AttendanceUncheckedCreateWithoutTimelineInput>
+  create: Prisma.XOR<Prisma.AttendanceCreateWithoutActivityInput, Prisma.AttendanceUncheckedCreateWithoutActivityInput>
 }
 
-export type AttendanceCreateManyTimelineInputEnvelope = {
-  data: Prisma.AttendanceCreateManyTimelineInput | Prisma.AttendanceCreateManyTimelineInput[]
+export type AttendanceCreateManyActivityInputEnvelope = {
+  data: Prisma.AttendanceCreateManyActivityInput | Prisma.AttendanceCreateManyActivityInput[]
   skipDuplicates?: boolean
 }
 
-export type AttendanceUpsertWithWhereUniqueWithoutTimelineInput = {
+export type AttendanceUpsertWithWhereUniqueWithoutActivityInput = {
   where: Prisma.AttendanceWhereUniqueInput
-  update: Prisma.XOR<Prisma.AttendanceUpdateWithoutTimelineInput, Prisma.AttendanceUncheckedUpdateWithoutTimelineInput>
-  create: Prisma.XOR<Prisma.AttendanceCreateWithoutTimelineInput, Prisma.AttendanceUncheckedCreateWithoutTimelineInput>
+  update: Prisma.XOR<Prisma.AttendanceUpdateWithoutActivityInput, Prisma.AttendanceUncheckedUpdateWithoutActivityInput>
+  create: Prisma.XOR<Prisma.AttendanceCreateWithoutActivityInput, Prisma.AttendanceUncheckedCreateWithoutActivityInput>
 }
 
-export type AttendanceUpdateWithWhereUniqueWithoutTimelineInput = {
+export type AttendanceUpdateWithWhereUniqueWithoutActivityInput = {
   where: Prisma.AttendanceWhereUniqueInput
-  data: Prisma.XOR<Prisma.AttendanceUpdateWithoutTimelineInput, Prisma.AttendanceUncheckedUpdateWithoutTimelineInput>
+  data: Prisma.XOR<Prisma.AttendanceUpdateWithoutActivityInput, Prisma.AttendanceUncheckedUpdateWithoutActivityInput>
 }
 
-export type AttendanceUpdateManyWithWhereWithoutTimelineInput = {
+export type AttendanceUpdateManyWithWhereWithoutActivityInput = {
   where: Prisma.AttendanceScalarWhereInput
-  data: Prisma.XOR<Prisma.AttendanceUpdateManyMutationInput, Prisma.AttendanceUncheckedUpdateManyWithoutTimelineInput>
+  data: Prisma.XOR<Prisma.AttendanceUpdateManyMutationInput, Prisma.AttendanceUncheckedUpdateManyWithoutActivityInput>
 }
 
 export type AttendanceCreateManyUserInput = {
   id?: string
-  timelineId: string
-  checkInTime?: Date | string
+  activityId: string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
@@ -597,18 +601,18 @@ export type AttendanceCreateManyUserInput = {
 
 export type AttendanceUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  timeline?: Prisma.RecruitmentTimelineUpdateOneRequiredWithoutAttendancesNestedInput
+  activity?: Prisma.ActivityUpdateOneRequiredWithoutAttendancesNestedInput
 }
 
 export type AttendanceUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  timelineId?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activityId?: Prisma.StringFieldUpdateOperationsInput | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -617,27 +621,27 @@ export type AttendanceUncheckedUpdateWithoutUserInput = {
 
 export type AttendanceUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  timelineId?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activityId?: Prisma.StringFieldUpdateOperationsInput | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type AttendanceCreateManyTimelineInput = {
+export type AttendanceCreateManyActivityInput = {
   id?: string
   userId: string
-  checkInTime?: Date | string
+  checkInTime?: Date | string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
-export type AttendanceUpdateWithoutTimelineInput = {
+export type AttendanceUpdateWithoutActivityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -645,20 +649,20 @@ export type AttendanceUpdateWithoutTimelineInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutAttendancesNestedInput
 }
 
-export type AttendanceUncheckedUpdateWithoutTimelineInput = {
+export type AttendanceUncheckedUpdateWithoutActivityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type AttendanceUncheckedUpdateManyWithoutTimelineInput = {
+export type AttendanceUncheckedUpdateManyWithoutActivityInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
-  checkInTime?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  checkInTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -670,46 +674,46 @@ export type AttendanceUncheckedUpdateManyWithoutTimelineInput = {
 export type AttendanceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  timelineId?: boolean
+  activityId?: boolean
   checkInTime?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  timeline?: boolean | Prisma.RecruitmentTimelineDefaultArgs<ExtArgs>
+  activity?: boolean | Prisma.ActivityDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
 
 export type AttendanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  timelineId?: boolean
+  activityId?: boolean
   checkInTime?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  timeline?: boolean | Prisma.RecruitmentTimelineDefaultArgs<ExtArgs>
+  activity?: boolean | Prisma.ActivityDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
 
 export type AttendanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   userId?: boolean
-  timelineId?: boolean
+  activityId?: boolean
   checkInTime?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  timeline?: boolean | Prisma.RecruitmentTimelineDefaultArgs<ExtArgs>
+  activity?: boolean | Prisma.ActivityDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendance"]>
 
 export type AttendanceSelectScalar = {
   id?: boolean
   userId?: boolean
-  timelineId?: boolean
+  activityId?: boolean
   checkInTime?: boolean
   status?: boolean
   notes?: boolean
@@ -717,31 +721,31 @@ export type AttendanceSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "timelineId" | "checkInTime" | "status" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["attendance"]>
+export type AttendanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "activityId" | "checkInTime" | "status" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["attendance"]>
 export type AttendanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  timeline?: boolean | Prisma.RecruitmentTimelineDefaultArgs<ExtArgs>
+  activity?: boolean | Prisma.ActivityDefaultArgs<ExtArgs>
 }
 export type AttendanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  timeline?: boolean | Prisma.RecruitmentTimelineDefaultArgs<ExtArgs>
+  activity?: boolean | Prisma.ActivityDefaultArgs<ExtArgs>
 }
 export type AttendanceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  timeline?: boolean | Prisma.RecruitmentTimelineDefaultArgs<ExtArgs>
+  activity?: boolean | Prisma.ActivityDefaultArgs<ExtArgs>
 }
 
 export type $AttendancePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Attendance"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
-    timeline: Prisma.$RecruitmentTimelinePayload<ExtArgs>
+    activity: Prisma.$ActivityPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     userId: string
-    timelineId: string
-    checkInTime: Date
+    activityId: string
+    checkInTime: Date | null
     status: $Enums.AttendanceStatus
     notes: string | null
     createdAt: Date
@@ -1141,7 +1145,7 @@ readonly fields: AttendanceFieldRefs;
 export interface Prisma__AttendanceClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  timeline<T extends Prisma.RecruitmentTimelineDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RecruitmentTimelineDefaultArgs<ExtArgs>>): Prisma.Prisma__RecruitmentTimelineClient<runtime.Types.Result.GetResult<Prisma.$RecruitmentTimelinePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  activity<T extends Prisma.ActivityDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ActivityDefaultArgs<ExtArgs>>): Prisma.Prisma__ActivityClient<runtime.Types.Result.GetResult<Prisma.$ActivityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1173,7 +1177,7 @@ export interface Prisma__AttendanceClient<T, Null = never, ExtArgs extends runti
 export interface AttendanceFieldRefs {
   readonly id: Prisma.FieldRef<"Attendance", 'String'>
   readonly userId: Prisma.FieldRef<"Attendance", 'String'>
-  readonly timelineId: Prisma.FieldRef<"Attendance", 'String'>
+  readonly activityId: Prisma.FieldRef<"Attendance", 'String'>
   readonly checkInTime: Prisma.FieldRef<"Attendance", 'DateTime'>
   readonly status: Prisma.FieldRef<"Attendance", 'AttendanceStatus'>
   readonly notes: Prisma.FieldRef<"Attendance", 'String'>

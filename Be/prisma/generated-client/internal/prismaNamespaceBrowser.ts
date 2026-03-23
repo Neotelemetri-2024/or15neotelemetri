@@ -54,6 +54,7 @@ export const ModelName = {
   User: 'User',
   Department: 'Department',
   RecruitmentTimeline: 'RecruitmentTimeline',
+  Activity: 'Activity',
   Attendance: 'Attendance',
   Division: 'Division',
   SubDivision: 'SubDivision',
@@ -116,7 +117,6 @@ export const RecruitmentTimelineScalarFieldEnum = {
   startAt: 'startAt',
   endAt: 'endAt',
   orderIndex: 'orderIndex',
-  attendancePasscode: 'attendancePasscode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -124,10 +124,21 @@ export const RecruitmentTimelineScalarFieldEnum = {
 export type RecruitmentTimelineScalarFieldEnum = (typeof RecruitmentTimelineScalarFieldEnum)[keyof typeof RecruitmentTimelineScalarFieldEnum]
 
 
+export const ActivityScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  deadline: 'deadline',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ActivityScalarFieldEnum = (typeof ActivityScalarFieldEnum)[keyof typeof ActivityScalarFieldEnum]
+
+
 export const AttendanceScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  timelineId: 'timelineId',
+  activityId: 'activityId',
   checkInTime: 'checkInTime',
   status: 'status',
   notes: 'notes',
@@ -202,13 +213,12 @@ export type SubmissionVerificationScalarFieldEnum = (typeof SubmissionVerificati
 export const PaymentScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
-  provider: 'provider',
   amount: 'amount',
-  currency: 'currency',
+  proofUrl: 'proofUrl',
   status: 'status',
-  externalPaymentId: 'externalPaymentId',
-  paymentUrl: 'paymentUrl',
-  paidAt: 'paidAt',
+  rejectionReason: 'rejectionReason',
+  reviewedByAdminId: 'reviewedByAdminId',
+  reviewedAt: 'reviewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

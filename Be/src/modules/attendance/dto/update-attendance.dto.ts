@@ -1,19 +1,20 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { AttendanceStatus } from '../../../../prisma/generated-client/client';
 
 export class UpdateAttendanceDto {
   @ApiProperty({
     enum: AttendanceStatus,
-    description: 'The updated attendance status of the user',
+    description: 'New attendance status',
     example: AttendanceStatus.PRESENT,
   })
+  @IsOptional()
   @IsEnum(AttendanceStatus)
-  status: AttendanceStatus;
+  status?: AttendanceStatus;
 
   @ApiProperty({
+    description: 'Notes for attendance',
     example: 'Sakit dengan surat dokter',
-    description: 'Additional notes or remarks regarding the attendance status',
     required: false,
   })
   @IsOptional()

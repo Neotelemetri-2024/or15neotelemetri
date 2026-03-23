@@ -2,110 +2,67 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import 'dotenv/config';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
-import { PrismaClient, UserRole } from './generated-client/client';
+import { 
+  PrismaClient, 
+  UserRole, 
+  VerificationStatus, 
+  PaymentStatus, 
+  ExamType, 
+  AttemptStatus, 
+  AttendanceStatus 
+} from './generated-client/client';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('Start seeding...');
+  console.log('Cleaning database...');
+  // Delete in order to respect constraints
+  await prisma.attendance.deleteMany();
+  await prisma.activity.deleteMany();
+  await prisma.assignmentSubmission.deleteMany();
+  await prisma.assignment.deleteMany();
+  await prisma.learningModule.deleteMany();
+  await prisma.examAnswer.deleteMany();
+  await prisma.examAttempt.deleteMany();
+  await prisma.choice.deleteMany();
+  await prisma.question.deleteMany();
+  await prisma.exam.deleteMany();
+  await prisma.payment.deleteMany();
+  await prisma.submissionVerification.deleteMany();
+  await prisma.profile.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.recruitmentTimeline.deleteMany();
+  await prisma.subDivision.deleteMany();
+  await prisma.division.deleteMany();
+  await prisma.department.deleteMany();
 
-  // 1. Departments
-  const operasional = await prisma.department.upsert({
-    where: { name: 'Operasional' },
-    update: {},
-    create: { name: 'Operasional' },
+  console.log('Start seeding all features...');
+
+  const passwordHash = await bcrypt.hash('password', 10);
+
+  // 1. Departments, Divisions, SubDivisions
+  const operasional = await prisma.department.create({ data: { name: 'Operasional' } });
+  const organisasi = await prisma.department.create({ data: { name: 'Organisasi' } });
+
+  const programming = await prisma.division.create({ 
+    data: { departmentId: operasional.id, name: 'Programming' } 
+  });
+  const skj = await prisma.division.create({ 
+    data: { departmentId: operasional.id, name: 'Sistem Komputer Jaringan' } 
   });
 
-  const organisasi = await prisma.department.upsert({
-    where: { name: 'Organisasi' },
-    update: {},
-    create: { name: 'Organisasi' },
+  const webProg = await prisma.subDivision.create({ 
+    data: { divisionId: programming.id, name: 'Web Programming' } 
+  });
+  const machineLearning = await prisma.subDivision.create({ 
+    data: { divisionId: programming.id, name: 'Machine Learning' } 
   });
 
-  // 2. Divisions for Operasional
-  const programming = await prisma.division.upsert({
-    where: { departmentId_name: { departmentId: operasional.id, name: 'Programming' } },
-    update: {},
-    create: { departmentId: operasional.id, name: 'Programming' },
-  });
-
-  const skj = await prisma.division.upsert({
-    where: { departmentId_name: { departmentId: operasional.id, name: 'Sistem Komputer Jaringan' } },
-    update: {},
-    create: { departmentId: operasional.id, name: 'Sistem Komputer Jaringan' },
-  });
-
-  const multimedia = await prisma.division.upsert({
-    where: { departmentId_name: { departmentId: operasional.id, name: 'Multimedia dan Design' } },
-    update: {},
-    create: { departmentId: operasional.id, name: 'Multimedia dan Design' },
-  });
-
-  // 3. Divisions for Organisasi
-  await prisma.division.upsert({
-    where: { departmentId_name: { departmentId: organisasi.id, name: 'Organizing Committee' } },
-    update: {},
-    create: { departmentId: organisasi.id, name: 'Organizing Committee' },
-  });
-
-  await prisma.division.upsert({
-    where: { departmentId_name: { departmentId: organisasi.id, name: 'Public Relation' } },
-    update: {},
-    create: { departmentId: organisasi.id, name: 'Public Relation' },
-  });
-
-  await prisma.division.upsert({
-    where: { departmentId_name: { departmentId: organisasi.id, name: 'Marketing' } },
-    update: {},
-    create: { departmentId: organisasi.id, name: 'Marketing' },
-  });
-
-  await prisma.division.upsert({
-    where: { departmentId_name: { departmentId: organisasi.id, name: 'HRD' } },
-    update: {},
-    create: { departmentId: organisasi.id, name: 'HRD' },
-  });
-
-  // 4. SubDivisions for Programming
-  const subDivisionsProgramming = ['Web Programming', 'Machine Learning', 'Mobile Programming'];
-  for (const name of subDivisionsProgramming) {
-    await prisma.subDivision.upsert({
-      where: { divisionId_name: { divisionId: programming.id, name } },
-      update: {},
-      create: { divisionId: programming.id, name },
-    });
-  }
-
-  // 5. SubDivisions for Multimedia dan Design
-  const subDivisionsMultimedia = ['UI/UX', 'Video Editing', '3D Design'];
-  for (const name of subDivisionsMultimedia) {
-    await prisma.subDivision.upsert({
-      where: { divisionId_name: { divisionId: multimedia.id, name } },
-      update: {},
-      create: { divisionId: multimedia.id, name },
-    });
-  }
-
-  // 6. SubDivisions for Sistem Komputer Jaringan
-  const subDivisionsSkj = ['Sistem', 'Network'];
-  for (const name of subDivisionsSkj) {
-    await prisma.subDivision.upsert({
-      where: { divisionId_name: { divisionId: skj.id, name } },
-      update: {},
-      create: { divisionId: skj.id, name },
-    });
-  }
-
-  // 7. Users
-  const passwordHash = await bcrypt.hash('password!', 10);
-
-  // Admin User
-  await prisma.user.upsert({
-    where: { email: 'adminneo@gmail.com' },
-    update: {},
-    create: {
+  // 2. Users (Admin & 3 Regular Users)
+  const admin = await prisma.user.create({
+    data: {
       email: 'adminneo@gmail.com',
       passwordHash,
       role: UserRole.ADMIN,
@@ -119,25 +76,232 @@ async function main() {
     },
   });
 
-  // Regular User
-  await prisma.user.upsert({
-    where: { email: 'userneo@gmail.com' },
-    update: {},
-    create: {
-      email: 'userneo@gmail.com',
+  const userApproved = await prisma.user.create({
+    data: {
+      email: 'user.approved@gmail.com',
       passwordHash,
       role: UserRole.USER,
       profile: {
         create: {
-          fullName: 'Regular User',
+          fullName: 'User Approved',
           nim: 'USER001',
           whatsappNumber: '081234567891',
+          departmentId: operasional.id,
+          divisionId: programming.id,
+          subDivisionId: webProg.id,
         },
       },
     },
   });
 
-  console.log('Seeding finished.');
+  const userPending = await prisma.user.create({
+    data: {
+      email: 'user.pending@gmail.com',
+      passwordHash,
+      role: UserRole.USER,
+      profile: {
+        create: {
+          fullName: 'User Pending',
+          nim: 'USER002',
+          whatsappNumber: '081234567892',
+        },
+      },
+    },
+  });
+
+  const userRejected = await prisma.user.create({
+    data: {
+      email: 'user.rejected@gmail.com',
+      passwordHash,
+      role: UserRole.USER,
+      profile: {
+        create: {
+          fullName: 'User Rejected',
+          nim: 'USER003',
+          whatsappNumber: '081234567893',
+        },
+      },
+    },
+  });
+
+  // 3. Submission Verifications
+  await prisma.submissionVerification.create({
+    data: {
+      userId: userApproved.id,
+      status: VerificationStatus.APPROVED,
+      krsScanUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
+      formalPhotoUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
+      reviewedByAdminId: admin.id,
+      reviewedAt: new Date(),
+    },
+  });
+
+  await prisma.submissionVerification.create({
+    data: {
+      userId: userPending.id,
+      status: VerificationStatus.PENDING,
+      krsScanUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
+    },
+  });
+
+  await prisma.submissionVerification.create({
+    data: {
+      userId: userRejected.id,
+      status: VerificationStatus.REJECTED,
+      rejectionReason: 'KRS tidak terbaca atau sudah kadaluarsa.',
+      reviewedByAdminId: admin.id,
+      reviewedAt: new Date(),
+    },
+  });
+
+  // 4. Payments (Manual Proof)
+  await prisma.payment.create({
+    data: {
+      userId: userApproved.id,
+      amount: 50000,
+      proofUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
+      status: PaymentStatus.APPROVED,
+      reviewedByAdminId: admin.id,
+      reviewedAt: new Date(),
+    },
+  });
+
+  await prisma.payment.create({
+    data: {
+      userId: userPending.id,
+      amount: 50000,
+      proofUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
+      status: PaymentStatus.PENDING,
+    },
+  });
+
+  // 5. Recruitment Timelines
+  const timelines = [
+    { title: 'Pendaftaran', startAt: new Date('2026-03-01'), endAt: new Date('2026-03-14'), orderIndex: 1 },
+    { title: 'Pembayaran', startAt: new Date('2026-03-15'), endAt: new Date('2026-03-20'), orderIndex: 2 },
+    { title: 'Opening Ceremony', startAt: new Date('2026-03-21'), endAt: new Date('2026-03-21'), orderIndex: 3 },
+  ];
+  await prisma.recruitmentTimeline.createMany({ data: timelines });
+
+  // 6. Activities & Attendance
+  const activity = await prisma.activity.create({
+    data: {
+      name: 'Workshop Web Programming',
+      deadline: new Date('2026-12-31'),
+    },
+  });
+
+  await prisma.attendance.createMany({
+    data: [
+      { userId: userApproved.id, activityId: activity.id, status: AttendanceStatus.PRESENT, checkInTime: new Date() },
+      { userId: userPending.id, activityId: activity.id, status: AttendanceStatus.ABSENT },
+      { userId: userRejected.id, activityId: activity.id, status: AttendanceStatus.SICK, notes: 'Demam tinggi' },
+    ],
+  });
+
+  // 7. Exams, Questions, Choices
+  const exam = await prisma.exam.create({
+    data: {
+      subDivisionId: webProg.id,
+      title: 'Ujian Dasar Web Programming',
+      durationMinutes: 60,
+      maxAttempts: 2,
+    },
+  });
+
+  // Question 1
+  const q1 = await prisma.question.create({
+    data: {
+      examId: exam.id,
+      type: ExamType.MCQ,
+      prompt: 'Apa kepanjangan dari HTML?',
+      orderIndex: 1,
+      points: 20,
+    },
+  });
+
+  await prisma.choice.createMany({
+    data: [
+      { questionId: q1.id, label: 'Hyper Text Markup Language', isCorrect: true, orderIndex: 1 },
+      { questionId: q1.id, label: 'High Tech Modern Language', isCorrect: false, orderIndex: 2 },
+      { questionId: q1.id, label: 'Hyper Transfer Markup Language', isCorrect: false, orderIndex: 3 },
+      { questionId: q1.id, label: 'Home Tool Markup Language', isCorrect: false, orderIndex: 4 },
+    ],
+  });
+
+  // Question 2
+  const q2 = await prisma.question.create({
+    data: {
+      examId: exam.id,
+      type: ExamType.MCQ,
+      prompt: 'Tag HTML mana yang digunakan untuk membuat baris baru?',
+      orderIndex: 2,
+      points: 20,
+    },
+  });
+
+  await prisma.choice.createMany({
+    data: [
+      { questionId: q2.id, label: '<br>', isCorrect: true, orderIndex: 1 },
+      { questionId: q2.id, label: '<lb>', isCorrect: false, orderIndex: 2 },
+      { questionId: q2.id, label: '<break>', isCorrect: false, orderIndex: 3 },
+      { questionId: q2.id, label: '<newline>', isCorrect: false, orderIndex: 4 },
+    ],
+  });
+
+  // Question 3
+  const q3 = await prisma.question.create({
+    data: {
+      examId: exam.id,
+      type: ExamType.MCQ,
+      prompt: 'Properti CSS mana yang digunakan untuk mengubah warna teks?',
+      orderIndex: 3,
+      points: 20,
+    },
+  });
+
+  await prisma.choice.createMany({
+    data: [
+      { questionId: q3.id, label: 'color', isCorrect: true, orderIndex: 1 },
+      { questionId: q3.id, label: 'text-color', isCorrect: false, orderIndex: 2 },
+      { questionId: q3.id, label: 'font-color', isCorrect: false, orderIndex: 3 },
+      { questionId: q3.id, label: 'fgcolor', isCorrect: false, orderIndex: 4 },
+    ],
+  });
+
+  // 8. Learning Modules
+  await prisma.learningModule.create({
+    data: {
+      subDivisionId: webProg.id,
+      title: 'Modul 1: Dasar HTML & CSS',
+      description: 'Mempelajari struktur dasar halaman web.',
+      fileUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.pdf',
+      createdByAdminId: admin.id,
+    },
+  });
+
+  // 9. Assignments & Submissions
+  const assignment = await prisma.assignment.create({
+    data: {
+      subDivisionId: webProg.id,
+      title: 'Tugas Membuat Landing Page',
+      description: 'Buatlah landing page sederhana menggunakan HTML & CSS.',
+      dueAt: new Date('2026-12-31'),
+      createdByAdminId: admin.id,
+    },
+  });
+
+  await prisma.assignmentSubmission.create({
+    data: {
+      assignmentId: assignment.id,
+      userId: userApproved.id,
+      fileUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.zip',
+      score: 95,
+      feedback: 'Bagus sekali, layout rapi.',
+    },
+  });
+
+  console.log('Seeding finished successfully!');
 }
 
 main()

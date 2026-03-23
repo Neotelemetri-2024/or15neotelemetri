@@ -49,7 +49,7 @@ export class DashboardService {
       currentStep = 2;
       if (verificationStatus === 'APPROVED') {
         currentStep = 3;
-        if (paymentStatus === 'PAID') {
+        if (paymentStatus === 'APPROVED') {
           currentStep = 4;
         }
       }
@@ -79,7 +79,7 @@ export class DashboardService {
         title: 'Pembayaran',
         description:
           'Lakukan pembayaran biaya pendaftaran untuk melanjutkan ke tahap ujian.',
-        isCompleted: paymentStatus === 'PAID',
+        isCompleted: paymentStatus === 'APPROVED',
         status: paymentStatus,
       },
       {

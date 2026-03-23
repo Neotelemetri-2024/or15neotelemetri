@@ -1,26 +1,21 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/common/services/prisma.service';
-import {
-  UserRole,
-  VerificationStatus,
-} from '../prisma/generated-client/client';
+import { UserRole, VerificationStatus, AttendanceStatus } from '../prisma/generated-client/client';
+
+jest.setTimeout(60000);
 
 describe('Attendance (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let userToken: string;
   let adminToken: string;
-  let timelineId: string;
   let userId: string;
+  let activityId: string;
   const userEmail = `user-att-${Date.now()}@test.com`;
   const adminEmail = `admin-att-${Date.now()}@test.com`;
   const password = 'Password123!';
@@ -28,10 +23,7 @@ describe('Attendance (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .overrideProvider('IStorageService')
-      .useValue({ uploadFile: jest.fn().mockResolvedValue('http://mock.url') })
-      .compile();
+    }).compile();
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
@@ -51,15 +43,18 @@ describe('Attendance (e2e)', () => {
         fullName: 'Att User',
         nim: `NIM-ATT-${Date.now()}`,
       });
-
     const user = await prisma.user.findUnique({ where: { email: userEmail } });
     if (!user) throw new Error('User not created');
     userId = user.id;
 
+    // Approve user to be eligible for attendance
+    await prisma.submissionVerification.create({
+      data: { userId: user.id, status: VerificationStatus.APPROVED },
+    });
+
     const userLogin = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: userEmail, password });
-
     userToken = userLogin.body.access_token as string;
 
     // Create and Login Admin
@@ -71,91 +66,67 @@ describe('Attendance (e2e)', () => {
         fullName: 'Admin Att',
         nim: `NIM-ADM-${Date.now()}`,
       });
-
-    await prisma.user.update({
-      where: { email: adminEmail },
-      data: { role: UserRole.ADMIN },
-    });
+    await prisma.user.update({ where: { email: adminEmail }, data: { role: UserRole.ADMIN } });
     const adminLogin = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: adminEmail, password });
-
     adminToken = adminLogin.body.access_token as string;
-
-    // Approve user verification
-    await prisma.submissionVerification.create({
-      data: {
-        userId: user.id,
-        status: VerificationStatus.APPROVED,
-        twibbonLink: 'http://twibbon.url',
-      },
-    });
-
-    // Create timeline
-    const timeline = await prisma.recruitmentTimeline.create({
-      data: {
-        title: 'Attendance Event',
-        startAt: new Date(Date.now() - 3600000),
-        endAt: new Date(Date.now() + 3600000),
-        orderIndex: 1,
-        attendancePasscode: 'SECRET123',
-      },
-    });
-    timelineId = timeline.id;
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({
-      where: { email: { in: [userEmail, adminEmail] } },
-    });
-    if (timelineId) {
-      await prisma.recruitmentTimeline
-        .delete({ where: { id: timelineId } })
-        .catch(() => {});
-    }
+    await prisma.attendance.deleteMany({ where: { userId } });
+    await prisma.activity.deleteMany({ where: { id: activityId } });
+    await prisma.submissionVerification.deleteMany({ where: { userId } });
+    await prisma.user.deleteMany({ where: { email: { in: [userEmail, adminEmail] } } });
     await prisma.$disconnect();
     await app.close();
   });
 
   describe('Attendance Controller', () => {
-    it('/api/attendance/check-in (POST) - Success', async () => {
-      await request(app.getHttpServer())
-        .post('/api/attendance/check-in')
-        .set('Authorization', `Bearer ${userToken}`)
+    it('/api/attendances/activities (POST) - Admin: Create Activity', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/attendances/activities')
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          timelineId,
-          passcode: 'SECRET123',
+          name: 'E2E Activity',
+          deadline: new Date(Date.now() + 3600000).toISOString(),
         })
         .expect(201);
-
-      const attendance = await prisma.attendance.findFirst({
-        where: { userId, timelineId },
-      });
-      expect(attendance?.status).toBe('PRESENT');
+      
+      activityId = response.body.id;
+      expect(response.body.name).toBe('E2E Activity');
     });
 
-    it('/api/attendance/timeline/:timelineId (GET) - Admin access', async () => {
+    it('/api/attendances/scan (POST) - Admin: Scan User', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/api/attendance/timeline/${timelineId}`)
+        .post('/api/attendances/scan')
         .set('Authorization', `Bearer ${adminToken}`)
-        .expect(200);
-
-      expect(Array.isArray(response.body)).toBe(true);
-
-      const userAtt = response.body.find((u: any) => u.userId === userId);
-
-      expect(userAtt.status).toBe('PRESENT');
+        .send({
+          userId: userId,
+          activityId: activityId,
+        })
+        .expect(201);
+      
+      expect(response.body.status).toBe(AttendanceStatus.PRESENT);
     });
 
-    it('/api/attendance/me (GET) - User access', async () => {
+    it('/api/attendances/me (GET) - User: Get My Attendance', async () => {
       const response = await request(app.getHttpServer())
-        .get('/api/attendance/me')
+        .get('/api/attendances/me')
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
-
+      
       expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0].status).toBe(AttendanceStatus.PRESENT);
+    });
 
-      expect(response.body[0].timeline.title).toBe('Attendance Event');
+    it('/api/attendances/activities/:id (GET) - Admin: Get Activity Details', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/attendances/activities/${activityId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200);
+      
+      expect(response.body.attendances.length).toBeGreaterThan(0);
     });
   });
 });

@@ -11,6 +11,7 @@
 export type * from './models/User'
 export type * from './models/Department'
 export type * from './models/RecruitmentTimeline'
+export type * from './models/Activity'
 export type * from './models/Attendance'
 export type * from './models/Division'
 export type * from './models/SubDivision'

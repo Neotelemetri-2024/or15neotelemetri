@@ -28,22 +28,11 @@ export type VerificationStatus = (typeof VerificationStatus)[keyof typeof Verifi
 
 export const PaymentStatus = {
   PENDING: 'PENDING',
-  PAID: 'PAID',
-  FAILED: 'FAILED',
-  EXPIRED: 'EXPIRED',
-  REFUNDED: 'REFUNDED'
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
 } as const
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
-
-
-export const PaymentProvider = {
-  MIDTRANS: 'MIDTRANS',
-  XENDIT: 'XENDIT',
-  OTHER: 'OTHER'
-} as const
-
-export type PaymentProvider = (typeof PaymentProvider)[keyof typeof PaymentProvider]
 
 
 export const ExamType = {
@@ -66,9 +55,9 @@ export type AttemptStatus = (typeof AttemptStatus)[keyof typeof AttemptStatus]
 
 export const AttendanceStatus = {
   PRESENT: 'PRESENT',
-  LATE: 'LATE',
+  ABSENT: 'ABSENT',
   EXCUSED: 'EXCUSED',
-  ABSENT: 'ABSENT'
+  SICK: 'SICK'
 } as const
 
 export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus]

@@ -186,7 +186,7 @@ export class ExamService {
 
     // Check payment status first
     const payment = await this.prisma.payment.findFirst({
-      where: { userId, status: 'PAID' },
+      where: { userId, status: 'APPROVED' },
     });
 
     if (!payment) {

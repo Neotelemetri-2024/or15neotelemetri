@@ -24,20 +24,10 @@ enum VerificationStatus {
 
 enum PaymentStatus {
   PENDING
-  PAID
-  FAILED
-  EXPIRED
-  REFUNDED
+  APPROVED
+  REJECTED
 
   @@map("payment_status")
-}
-
-enum PaymentProvider {
-  MIDTRANS
-  XENDIT
-  OTHER
-
-  @@map("payment_provider")
 }
 
 enum ExamType {
@@ -58,9 +48,9 @@ enum AttemptStatus {
 
 enum AttendanceStatus {
   PRESENT
-  LATE
-  EXCUSED
   ABSENT
+  EXCUSED
+  SICK
 
   @@map("attendance_status")
 }
@@ -81,6 +71,7 @@ model User {
   assignmentSubmissions AssignmentSubmission[]
   attendances           Attendance[]
   reviewedVerifications SubmissionVerification[] @relation("ReviewedByAdmin")
+  reviewedPayments      Payment[]                @relation("PaymentReviewedByAdmin")
   createdModules        LearningModule[]         @relation("CreatedByAdmin")
   createdAssignments    Assignment[]             @relation("CreatedByAdmin")
 
@@ -106,29 +97,38 @@ model RecruitmentTimeline {
   startAt            DateTime @map("start_at")
   endAt              DateTime @map("end_at")
   orderIndex         Int      @map("order_index")
-  attendancePasscode String?  @map("attendance_passcode") @db.VarChar(50)
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
 
+  @@map("recruitment_timelines")
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  deadline  DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
   attendances Attendance[]
 
-  @@map("recruitment_timelines")
+  @@map("activities")
 }
 
 model Attendance {
   id          String           @id @default(uuid())
   userId      String           @map("user_id")
-  timelineId  String           @map("timeline_id")
-  checkInTime DateTime         @default(now()) @map("check_in_time")
-  status      AttendanceStatus @default(PRESENT)
+  activityId  String           @map("activity_id")
+  checkInTime DateTime?        @map("check_in_time")
+  status      AttendanceStatus @default(ABSENT)
   notes       String?          @db.Text
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at")
 
-  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  timeline RecruitmentTimeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, timelineId])
+  @@unique([userId, activityId])
   @@map("attendances")
 }
 
@@ -210,19 +210,19 @@ model SubmissionVerification {
 }
 
 model Payment {
-  id                String          @id @default(uuid())
-  userId            String          @map("user_id")
-  provider          PaymentProvider
-  amount            Decimal         @db.Decimal(12, 2)
-  currency          String?         @default("IDR") @db.VarChar(10)
-  status            PaymentStatus   @default(PENDING)
-  externalPaymentId String?         @map("external_payment_id") @db.VarChar(255)
-  paymentUrl        String?         @map("payment_url") @db.Text
-  paidAt            DateTime?       @map("paid_at")
-  createdAt         DateTime        @default(now()) @map("created_at")
-  updatedAt         DateTime        @default(now()) @updatedAt @map("updated_at")
+  id                String        @id @default(uuid())
+  userId            String        @map("user_id")
+  amount            Decimal       @db.Decimal(12, 2)
+  proofUrl          String        @map("proof_url") @db.Text
+  status            PaymentStatus @default(PENDING)
+  rejectionReason   String?       @map("rejection_reason") @db.Text
+  reviewedByAdminId String?       @map("reviewed_by_admin_id")
+  reviewedAt        DateTime?     @map("reviewed_at")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedByAdmin User? @relation("PaymentReviewedByAdmin", fields: [reviewedByAdminId], references: [id], onDelete: SetNull)
 
   @@map("payments")
 }
