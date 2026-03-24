@@ -6,30 +6,33 @@ import { ChevronDown } from "lucide-react";
 export default function FaqSection() {
   const faqs = [
     {
-      question: "Lorem Ipsum is simply dummy text of th,",
+      question: "Apa itu Neo Telemetri?",
       answer:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+        "Neo Telemetri adalah organisasi yang berfokus pada pengembangan teknologi, riset, dan project berbasis engineering serta digital. Di sini kamu bisa belajar, berkembang, dan terlibat langsung dalam berbagai project nyata.",
     },
     {
-      question: "Lorem Ipsum is simply dummy text of th,",
+      question: "Siapa saja yang boleh mendaftar Open Recruitment ini?",
       answer:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+        "Open Recruitment Neo Telemetri 15 terbuka untuk seluruh mahasiswa aktif angkatan 2024 dan 2025 yang memiliki semangat belajar tinggi, komitmen, dan ketertarikan di bidang teknologi maupun organisasi, tanpa memandang jurusan.",
     },
     {
-      question: "Lorem Ipsum is simply dummy text of th,",
+      question: "Apakah harus punya skill atau pengalaman sebelumnya?",
       answer:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+        "Tidak harus. Kami membuka kesempatan bagi pemula maupun yang sudah berpengalaman. Yang terpenting adalah kemauan belajar, konsistensi, dan kesiapan untuk berkembang bersama.",
+    },
+    
+    
+    {
+      question: "Apa keuntungan bergabung dengan Neo Telemetri?",
+      answer:
+        "Kamu akan mendapatkan pengalaman mengerjakan project nyata, meningkatkan skill teknis dan soft skill, memperluas relasi, serta menjadi bagian dari tim yang suportif dan berkembang bersama.",
     },
     {
-      question: "Lorem Ipsum is simply dummy text of th,",
+      question: "Apakah kegiatan di Neo Telemetri akan mengganggu kuliah?",
       answer:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
+        "Tidak. Kegiatan dirancang fleksibel dan menyesuaikan dengan jadwal kuliah anggota. Justru kami mendorong anggota untuk tetap memprioritaskan akademik sambil tetap aktif berorganisasi.",
     },
-    {
-      question: "Lorem Ipsum is simply dummy text of th,",
-      answer:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.",
-    },
+    
   ];
 
   const [openIndex, setOpenIndex] = useState(null);
@@ -37,7 +40,6 @@ export default function FaqSection() {
 
   return (
     <section id="faq" className="relative py-16 overflow-hidden">
-
       {/* ===== CTA BLOCK ===== */}
       <div className="relative mb-20 lg:mb-32">
         {/* Circuit kiri — sembunyikan di mobile agar tidak mengganggu */}
@@ -46,7 +48,8 @@ export default function FaqSection() {
           alt=""
           className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none select-none z-0"
           style={{
-            filter: "invert(20%) sepia(100%) saturate(5000%) hue-rotate(270deg) brightness(0.8)",
+            filter:
+              "invert(20%) sepia(100%) saturate(5000%) hue-rotate(270deg) brightness(0.8)",
             maxWidth: "45%",
             objectFit: "cover",
             objectPosition: "left center",
@@ -59,7 +62,8 @@ export default function FaqSection() {
           alt=""
           className="hidden lg:block absolute right-0 top-1/2 pointer-events-none select-none z-0"
           style={{
-            filter: "invert(20%) sepia(100%) saturate(5000%) hue-rotate(270deg) brightness(0.8)",
+            filter:
+              "invert(20%) sepia(100%) saturate(5000%) hue-rotate(270deg) brightness(0.8)",
             maxWidth: "45%",
             objectFit: "cover",
             objectPosition: "right center",
@@ -78,7 +82,8 @@ export default function FaqSection() {
             className="px-8 lg:px-10 py-3 rounded-full text-white font-semibold text-base tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-[0_0_32px_4px_#FF00FF55]"
             style={{
               background: "linear-gradient(135deg, #FF00FF 0%, #990099 100%)",
-              boxShadow: "0 4px 24px 0 #FF00FF44, inset 0 1px 0 rgba(255,255,255,0.15)",
+              boxShadow:
+                "0 4px 24px 0 #FF00FF44, inset 0 1px 0 rgba(255,255,255,0.15)",
               border: "1.5px solid rgba(255,0,255,0.4)",
             }}
           >
@@ -122,7 +127,8 @@ export default function FaqSection() {
                   className="shrink-0 transition-transform duration-500"
                   style={{
                     color: "#01FFFF",
-                    transform: openIndex === i ? "rotate(180deg)" : "rotate(0deg)",
+                    transform:
+                      openIndex === i ? "rotate(180deg)" : "rotate(0deg)",
                   }}
                 />
               </button>

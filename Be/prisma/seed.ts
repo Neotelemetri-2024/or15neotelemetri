@@ -2,14 +2,14 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import 'dotenv/config';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
-import { 
-  PrismaClient, 
-  UserRole, 
-  VerificationStatus, 
-  PaymentStatus, 
-  ExamType, 
-  AttemptStatus, 
-  AttendanceStatus 
+import {
+  PrismaClient,
+  UserRole,
+  VerificationStatus,
+  PaymentStatus,
+  ExamType,
+  AttemptStatus,
+  AttendanceStatus,
 } from './generated-client/client';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -43,21 +43,46 @@ async function main() {
   const passwordHash = await bcrypt.hash('password', 10);
 
   // 1. Departments, Divisions, SubDivisions
-  const operasional = await prisma.department.create({ data: { name: 'Operasional' } });
-  const organisasi = await prisma.department.create({ data: { name: 'Organisasi' } });
-
-  const programming = await prisma.division.create({ 
-    data: { departmentId: operasional.id, name: 'Programming' } 
+  const operasional = await prisma.department.create({
+    data: { name: 'Operasional' },
   });
-  const skj = await prisma.division.create({ 
-    data: { departmentId: operasional.id, name: 'Sistem Komputer Jaringan' } 
+  const organisasi = await prisma.department.create({
+    data: { name: 'Organisasi' },
   });
 
-  const webProg = await prisma.subDivision.create({ 
-    data: { divisionId: programming.id, name: 'Web Programming' } 
+  const programming = await prisma.division.create({
+    data: { departmentId: operasional.id, name: 'Programming' },
   });
-  const machineLearning = await prisma.subDivision.create({ 
-    data: { divisionId: programming.id, name: 'Machine Learning' } 
+  const mmd = await prisma.division.create({
+    data: { departmentId: operasional.id, name: 'Multimedia dan Desain' },
+  });
+  const skj = await prisma.division.create({
+    data: { departmentId: operasional.id, name: 'Sistem Komputer Jaringan' },
+  });
+
+  const webProg = await prisma.subDivision.create({
+    data: { divisionId: programming.id, name: 'Web Programming' },
+  });
+  const mobileProg = await prisma.subDivision.create({
+    data: { divisionId: programming.id, name: 'Mobile Programming' },
+  });
+  const machineLearning = await prisma.subDivision.create({
+    data: { divisionId: programming.id, name: 'Machine Learning' },
+  });
+  const uiux = await prisma.subDivision.create({
+    data: { divisionId: mmd.id, name: 'Ui/Ux' },
+  });
+  const vidEdit = await prisma.subDivision.create({
+    data: { divisionId: mmd.id, name: 'Video Editing' },
+  });
+  const Design = await prisma.subDivision.create({
+    data: { divisionId: mmd.id, name: 'Design Grafis' },
+  });
+  const network = await prisma.subDivision.create({
+    data: { divisionId: skj.id, name: 'Network' },
+  });
+  const system = await prisma.subDivision.create({
+    data: { divisionId: skj.id, name: 'System' },
   });
 
   // 2. Users (Admin & 3 Regular Users)
@@ -130,7 +155,8 @@ async function main() {
       userId: userApproved.id,
       status: VerificationStatus.APPROVED,
       krsScanUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
-      formalPhotoUrl: 'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
+      formalPhotoUrl:
+        'https://res.cloudinary.com/demo/image/upload/v1/sample.jpg',
       reviewedByAdminId: admin.id,
       reviewedAt: new Date(),
     },
@@ -177,9 +203,24 @@ async function main() {
 
   // 5. Recruitment Timelines
   const timelines = [
-    { title: 'Pendaftaran', startAt: new Date('2026-03-01'), endAt: new Date('2026-03-14'), orderIndex: 1 },
-    { title: 'Pembayaran', startAt: new Date('2026-03-15'), endAt: new Date('2026-03-20'), orderIndex: 2 },
-    { title: 'Opening Ceremony', startAt: new Date('2026-03-21'), endAt: new Date('2026-03-21'), orderIndex: 3 },
+    {
+      title: 'Pendaftaran',
+      startAt: new Date('2026-03-01'),
+      endAt: new Date('2026-03-14'),
+      orderIndex: 1,
+    },
+    {
+      title: 'Pembayaran',
+      startAt: new Date('2026-03-15'),
+      endAt: new Date('2026-03-20'),
+      orderIndex: 2,
+    },
+    {
+      title: 'Opening Ceremony',
+      startAt: new Date('2026-03-21'),
+      endAt: new Date('2026-03-21'),
+      orderIndex: 3,
+    },
   ];
   await prisma.recruitmentTimeline.createMany({ data: timelines });
 
@@ -193,9 +234,23 @@ async function main() {
 
   await prisma.attendance.createMany({
     data: [
-      { userId: userApproved.id, activityId: activity.id, status: AttendanceStatus.PRESENT, checkInTime: new Date() },
-      { userId: userPending.id, activityId: activity.id, status: AttendanceStatus.ABSENT },
-      { userId: userRejected.id, activityId: activity.id, status: AttendanceStatus.SICK, notes: 'Demam tinggi' },
+      {
+        userId: userApproved.id,
+        activityId: activity.id,
+        status: AttendanceStatus.PRESENT,
+        checkInTime: new Date(),
+      },
+      {
+        userId: userPending.id,
+        activityId: activity.id,
+        status: AttendanceStatus.ABSENT,
+      },
+      {
+        userId: userRejected.id,
+        activityId: activity.id,
+        status: AttendanceStatus.SICK,
+        notes: 'Demam tinggi',
+      },
     ],
   });
 
@@ -222,10 +277,30 @@ async function main() {
 
   await prisma.choice.createMany({
     data: [
-      { questionId: q1.id, label: 'Hyper Text Markup Language', isCorrect: true, orderIndex: 1 },
-      { questionId: q1.id, label: 'High Tech Modern Language', isCorrect: false, orderIndex: 2 },
-      { questionId: q1.id, label: 'Hyper Transfer Markup Language', isCorrect: false, orderIndex: 3 },
-      { questionId: q1.id, label: 'Home Tool Markup Language', isCorrect: false, orderIndex: 4 },
+      {
+        questionId: q1.id,
+        label: 'Hyper Text Markup Language',
+        isCorrect: true,
+        orderIndex: 1,
+      },
+      {
+        questionId: q1.id,
+        label: 'High Tech Modern Language',
+        isCorrect: false,
+        orderIndex: 2,
+      },
+      {
+        questionId: q1.id,
+        label: 'Hyper Transfer Markup Language',
+        isCorrect: false,
+        orderIndex: 3,
+      },
+      {
+        questionId: q1.id,
+        label: 'Home Tool Markup Language',
+        isCorrect: false,
+        orderIndex: 4,
+      },
     ],
   });
 
@@ -245,7 +320,12 @@ async function main() {
       { questionId: q2.id, label: '<br>', isCorrect: true, orderIndex: 1 },
       { questionId: q2.id, label: '<lb>', isCorrect: false, orderIndex: 2 },
       { questionId: q2.id, label: '<break>', isCorrect: false, orderIndex: 3 },
-      { questionId: q2.id, label: '<newline>', isCorrect: false, orderIndex: 4 },
+      {
+        questionId: q2.id,
+        label: '<newline>',
+        isCorrect: false,
+        orderIndex: 4,
+      },
     ],
   });
 
@@ -263,8 +343,18 @@ async function main() {
   await prisma.choice.createMany({
     data: [
       { questionId: q3.id, label: 'color', isCorrect: true, orderIndex: 1 },
-      { questionId: q3.id, label: 'text-color', isCorrect: false, orderIndex: 2 },
-      { questionId: q3.id, label: 'font-color', isCorrect: false, orderIndex: 3 },
+      {
+        questionId: q3.id,
+        label: 'text-color',
+        isCorrect: false,
+        orderIndex: 2,
+      },
+      {
+        questionId: q3.id,
+        label: 'font-color',
+        isCorrect: false,
+        orderIndex: 3,
+      },
       { questionId: q3.id, label: 'fgcolor', isCorrect: false, orderIndex: 4 },
     ],
   });

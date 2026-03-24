@@ -28,6 +28,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { GetUser } from '../../common/decorators/get-user.decorator';
 import { UserRole } from '../../../prisma/generated-client/client';
+import { memoryStorage } from 'multer';
 
 @ApiTags('Assignment')
 @ApiBearerAuth('JWT-auth')
@@ -55,7 +56,11 @@ export class AssignmentController {
     status: 403,
     description: 'Forbidden - Insufficient permissions',
   })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+    }),
+  )
   create(
     @Body() dto: CreateAssignmentDto,
     @GetUser('id') adminId: string,
@@ -116,7 +121,11 @@ export class AssignmentController {
     description: 'Forbidden - Insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'Assignment not found' })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+    }),
+  )
   update(
     @Param('id') id: string,
     @Body() dto: UpdateAssignmentDto,
@@ -165,7 +174,11 @@ export class AssignmentController {
       required: ['file'],
     },
   })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+    }),
+  )
   submit(
     @Param('id') id: string,
     @GetUser('id') userId: string,

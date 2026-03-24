@@ -92,7 +92,7 @@ export default function FooterSection() {
               <h4 className="text-white font-bold text-sm tracking-widest uppercase mb-2">
                 Contact Us
               </h4>
-              <p className="text-white/50 text-sm">+62 800 0000 0000</p>
+              <p className="text-white/50 text-sm">+62-831-8195-9775</p>
               <p className="text-white/50 text-sm">or.neotelemetri@gmail.com</p>
             </div>
           </div>

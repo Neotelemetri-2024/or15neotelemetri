@@ -59,7 +59,7 @@ export default function CountdownSection() {
   }, []);
 
   return (
-    <section className="relative w-full min-h-screen py-12 md:py-24 flex flex-col items-center justify-center overflow-hidden">
+    <section className="relative w-full min-h-0 md:min-h-screen py-16 md:py-24 flex flex-col items-center justify-center overflow-hidden">
       
       {/* BACKGROUND */}
       <img

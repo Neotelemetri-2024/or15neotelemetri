@@ -18,6 +18,8 @@ import DashboardUser from "./pages/user/DashboardUser";
 import EditProfile from "./pages/user/EditProfile";
 import Verifikasi from "./pages/user/Verifikasi";
 import Pembayaran from "./pages/user/Pembayaran";
+import PembayaranQr from "./pages/user/PembayaranQr";
+import PembayaranBukti from "./pages/user/PembayaranBukti";
 import Ujian from "./pages/user/Ujian";
 import UjianPengerjaan from "./pages/user/UjianPengerjaan";
 import UjianHasil from "./pages/user/UjianHasil";
@@ -29,12 +31,16 @@ import TugasCek from "./pages/user/TugasCek";
 
 //admin
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
+import TimelineAdmin from "./pages/admin/TimelineAdmin";
 import VerifikasiAdmin from "./pages/admin/VerifikasiAdmin";
 import PembayaranAdmin from "./pages/admin/PembayaranAdmin";
 import UjianAdmin from "./pages/admin/UjianAdmin";
 import HasilUjianAdmin from "./pages/admin/PengumpulanUjianAdmin";
-import AbsensiAdmin from "./pages/admin/Absensi";
+import AbsensiAdmin from "./pages/admin/AbsensiAdmin";
 import ListAbsensiAdmin from "./pages/admin/ListAbsensiAdmin";
+import AddAbsensiAdmin from "./pages/admin/AddAbsensiAdmin";
+import AbsensiEditAdmin from "./pages/admin/AbsensiEditAdmin";
+import AbsensiScanAdmin from "./pages/admin/AbsensiScanAdmin";
 import MateriAdmin from "./pages/admin/Materi";
 import AddMateriAdmin from "./pages/admin/AddMateriAdmin";
 import TugasAdmin from "./pages/admin/TugasAdmin";
@@ -95,6 +101,22 @@ function App() {
         element={
           <ProtectedRoute allowedRoles={["USER"]}>
             <Pembayaran />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pembayaran/qr"
+        element={
+          <ProtectedRoute allowedRoles={["USER"]}>
+            <PembayaranQr />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pembayaran/bukti"
+        element={
+          <ProtectedRoute allowedRoles={["USER"]}>
+            <PembayaranBukti />
           </ProtectedRoute>
         }
       />
@@ -174,6 +196,14 @@ function App() {
           }
         />
         <Route
+          path="timeline"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <TimelineAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="verifikasi"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
@@ -209,7 +239,7 @@ function App() {
           path="listabsensi"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
-              <AbsensiAdmin />
+              <ListAbsensiAdmin />
             </ProtectedRoute>
           }
         />
@@ -217,7 +247,31 @@ function App() {
           path="absensi"
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
-              <ListAbsensiAdmin />
+              <AbsensiAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="addabsensi"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AddAbsensiAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="absensi/:id/edit"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AbsensiEditAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/absensi/:id/scan"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AbsensiScanAdmin />
             </ProtectedRoute>
           }
         />

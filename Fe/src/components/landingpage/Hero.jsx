@@ -2,8 +2,157 @@ import logoProgramming from "../../assets/images/Logo_Programming.png";
 import logoMmd from "../../assets/images/Logo_Mmd.svg";
 import logoSkj from "../../assets/images/logo_Skj.svg";
 import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
+
+function CircularCarousel({ logos, alts, radius, logoSize }) {
+  const containerRef = useRef(null);
+  const angleRef = useRef(0);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const count = logos.length;
+    const speed = 0.4;
+
+    const render = () => {
+      if (!containerRef.current) return;
+      angleRef.current = (angleRef.current + speed) % 360;
+
+      const items = containerRef.current.querySelectorAll(".orbit-item");
+      items.forEach((el, i) => {
+        const baseAngle = (angleRef.current + (360 / count) * i) % 360;
+        const rad = (baseAngle * Math.PI) / 180;
+
+        const x = radius * Math.cos(rad);
+        const y = radius * Math.sin(rad);
+
+        const cosVal = Math.cos(rad);
+        const t = (-cosVal + 1) / 2;
+        const scale = logoSize.min + (logoSize.max - logoSize.min) * t;
+        const opacity = 0.4 + 0.6 * t;
+        const zIndex = Math.round(10 + t * 20);
+        const glowSize = Math.round(t * 20);
+        const glow =
+          t > 0.75 ? `drop-shadow(0 0 ${glowSize}px #FF00FF)` : "none";
+
+        el.style.transform = `translate(${x}px, ${y}px)`;
+        el.style.width = `${scale}px`;
+        el.style.height = `${scale}px`;
+        el.style.opacity = opacity;
+        el.style.zIndex = zIndex;
+        el.style.filter = glow;
+      });
+
+      rafRef.current = requestAnimationFrame(render);
+    };
+
+    rafRef.current = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [logos, radius, logoSize]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 flex items-center justify-center"
+      style={{ pointerEvents: "none" }}
+    >
+      {logos.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt={alts[i]}
+          className="orbit-item absolute object-contain"
+          style={{
+            width: logoSize.min,
+            height: logoSize.min,
+            willChange: "transform, opacity, filter",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CircularCarousel3D({ logos, alts, radius, logoSize, layer }) {
+  const containerRef = useRef(null);
+  const angleRef = useRef(0);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const count = logos.length;
+    const speed = 0.4;
+
+    const render = () => {
+      if (!containerRef.current) return;
+      angleRef.current = (angleRef.current + speed) % 360;
+
+      const items = containerRef.current.querySelectorAll(".orbit-item-3d");
+      items.forEach((el, i) => {
+        const baseAngle = (angleRef.current + (360 / count) * i) % 360;
+        const rad = (baseAngle * Math.PI) / 180;
+
+        const x = radius * Math.cos(rad);
+        const y = radius * Math.sin(rad) * 0.35 + radius * Math.cos(rad) * 0.25;
+
+        const sinVal = Math.sin(rad);
+        const cosVal = Math.cos(rad);
+        const depth = sinVal - cosVal * 0.5;
+        const t = (-depth + 1.5) / 3;
+        const isFront = depth <= 0;
+        const scale = logoSize.min + (logoSize.max - logoSize.min) * t;
+        const opacity = 0.25 + 0.75 * t;
+        const glowSize = Math.round(t * 16);
+        const glow =
+          t > 0.8 ? `drop-shadow(0 0 ${glowSize}px #FF00FF)` : "none";
+
+        if (layer === "back") {
+          el.style.display = isFront ? "none" : "block";
+          el.style.zIndex = 5;
+        } else {
+          el.style.display = isFront ? "block" : "none";
+          el.style.zIndex = 20;
+        }
+
+        el.style.transform = `translate(${x}px, ${y}px)`;
+        el.style.width = `${scale}px`;
+        el.style.height = `${scale}px`;
+        el.style.opacity = opacity;
+        el.style.filter = glow;
+      });
+
+      rafRef.current = requestAnimationFrame(render);
+    };
+
+    rafRef.current = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [logos, radius, logoSize, layer]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 flex items-center justify-center"
+      style={{ pointerEvents: "none" }}
+    >
+      {logos.map((src, i) => (
+        <img
+          key={i}
+          src={src}
+          alt={alts[i]}
+          className="orbit-item-3d absolute object-contain"
+          style={{
+            width: logoSize.min,
+            height: logoSize.min,
+            willChange: "transform, opacity, filter",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function Hero() {
+  const logos = [logoProgramming, logoMmd, logoSkj];
+  const alts = ["Programming", "MMD", "SKJ"];
+
   return (
     <section
       id="home"
@@ -44,54 +193,42 @@ export default function Hero() {
         </div>
       </div>
 
+      {/* DESKTOP */}
       <div className="hidden lg:block absolute -right-75 top-1/2 -translate-y-1/2 w-155 h-155">
-        {/* BLACK CIRCLE */}
         <div className="absolute inset-0 rounded-full bg-black border-2 border-cyan-400 shadow-[0_0_35px_#00ffff]" />
-
-        {/* ORBIT SYSTEM */}
-        <div className="absolute inset-0 animate-[spin_10s_linear_infinite] flex items-center justify-center">
-          <div className="absolute rotate-0">
-            <div className="-translate-y-90">
-              <img src={logoProgramming} className="w-17.5" alt="Programming" />
-            </div>
-          </div>
-          <div className="absolute rotate-120">
-            <div className="-translate-y-90">
-              <img src={logoMmd} className="w-17.5" alt="MMD" />
-            </div>
-          </div>
-          <div className="absolute rotate-240">
-            <div className="-translate-y-90">
-              <img src={logoSkj} className="w-17.5" alt="SKJ" />
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* MOBILE — orbit kecil di bawah teks */}
+      <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 w-80 h-80 right-40">
+        <CircularCarousel
+          logos={logos}
+          alts={alts}
+          radius={180}
+          logoSize={{ max: 150, min: 70 }}
+        />
+      </div>
+
+      {/* MOBILE */}
       <div className="lg:hidden relative w-65 h-65 mt-10 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full bg-black border-2 border-cyan-400 shadow-[0_0_20px_#00ffff]" />
-        <div className="absolute inset-0 animate-[spin_20s_linear_infinite] flex items-center justify-center">
-          <div className="absolute rotate-0">
-            <div className="-translate-y-36.25">
-              <img
-                src={logoProgramming}
-                className="w-11.25"
-                alt="Programming"
-              />
-            </div>
-          </div>
-          <div className="absolute rotate-120">
-            <div className="-translate-y-36.25">
-              <img src={logoMmd} className="w-11.25" alt="MMD" />
-            </div>
-          </div>
-          <div className="absolute rotate-240">
-            <div className="-translate-y-36.25">
-              <img src={logoSkj} className="w-11.25" alt="SKJ" />
-            </div>
-          </div>
-        </div>
+        <CircularCarousel3D
+          logos={logos}
+          alts={alts}
+          radius={130}
+          logoSize={{ max: 52, min: 20 }}
+          layer="back"
+        />
+
+        <div
+          className="absolute inset-0 rounded-full bg-black border-2 border-cyan-400 shadow-[0_0_20px_#00ffff]"
+          style={{ zIndex: 15 }}
+        />
+
+        <CircularCarousel3D
+          logos={logos}
+          alts={alts}
+          radius={130}
+          logoSize={{ max: 80, min: 30 }}
+          layer="front"
+        />
       </div>
     </section>
   );

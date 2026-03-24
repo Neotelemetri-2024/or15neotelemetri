@@ -171,7 +171,7 @@ export default function Ujian() {
                       boxShadow: isSelected ? "0 3px 16px rgba(255,0,255,0.35)" : "none",
                     }}
                   >
-                    {isSelected ? "Dipilih ✓" : "Pilih"}
+                    {isSelected ? "Dipilih" : "Pilih"}
                   </button>
                 </div>
               );
