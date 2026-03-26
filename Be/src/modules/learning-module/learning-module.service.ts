@@ -1,8 +1,11 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../../common/services/prisma.service';
 import { CloudinaryStorageService } from '../../common/services/storage/cloudinary-storage.service';
 import { CreateLearningModuleDto } from './dto/create-learning-module.dto';
@@ -11,9 +14,13 @@ import { AttemptStatus } from '../../../prisma/generated-client/client';
 
 @Injectable()
 export class LearningModuleService {
+  private readonly CACHE_KEY_ALL = 'learning_modules:all';
+  private readonly CACHE_KEY_SUBDIVISION = 'learning_modules:subdivision:';
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: CloudinaryStorageService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async create(
@@ -23,17 +30,23 @@ export class LearningModuleService {
   ) {
     const fileUrl = await this.storage.uploadFile(file, 'learning-modules');
 
-    return this.prisma.learningModule.create({
+    const result = await this.prisma.learningModule.create({
       data: {
         ...dto,
         fileUrl,
         createdByAdminId: adminId,
       },
     });
+
+    await this.clearCache(dto.subDivisionId);
+    return result;
   }
 
   async findAll() {
-    return this.prisma.learningModule.findMany({
+    const cached = await this.cacheManager.get(this.CACHE_KEY_ALL);
+    if (cached) return cached;
+
+    const modules = await this.prisma.learningModule.findMany({
       include: {
         subDivision: true,
         createdByAdmin: {
@@ -42,6 +55,9 @@ export class LearningModuleService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    await this.cacheManager.set(this.CACHE_KEY_ALL, modules);
+    return modules;
   }
 
   async findByUserId(userId: string) {
@@ -61,17 +77,21 @@ export class LearningModuleService {
       );
     }
 
-    return this.prisma.learningModule.findMany({
-      where: { subDivisionId: profile.subDivisionId },
-      orderBy: { createdAt: 'desc' },
-    });
+    return this.findBySubDivision(profile.subDivisionId);
   }
 
   async findBySubDivision(subDivisionId: string) {
-    return this.prisma.learningModule.findMany({
+    const cacheKey = `${this.CACHE_KEY_SUBDIVISION}${subDivisionId}`;
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const modules = await this.prisma.learningModule.findMany({
       where: { subDivisionId },
       orderBy: { createdAt: 'desc' },
     });
+
+    await this.cacheManager.set(cacheKey, modules);
+    return modules;
   }
 
   async findOne(id: string) {
@@ -95,19 +115,36 @@ export class LearningModuleService {
       fileUrl = await this.storage.uploadFile(file, 'learning-modules');
     }
 
-    return this.prisma.learningModule.update({
+    const result = await this.prisma.learningModule.update({
       where: { id },
       data: {
         ...dto,
         fileUrl,
       },
     });
+
+    await this.clearCache(module.subDivisionId);
+    if (dto.subDivisionId && dto.subDivisionId !== module.subDivisionId) {
+      await this.clearCache(dto.subDivisionId);
+    }
+
+    return result;
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-    return this.prisma.learningModule.delete({
+    const module = await this.findOne(id);
+    const result = await this.prisma.learningModule.delete({
       where: { id },
     });
+
+    await this.clearCache(module.subDivisionId);
+    return result;
+  }
+
+  private async clearCache(subDivisionId?: string) {
+    await this.cacheManager.del(this.CACHE_KEY_ALL);
+    if (subDivisionId) {
+      await this.cacheManager.del(`${this.CACHE_KEY_SUBDIVISION}${subDivisionId}`);
+    }
   }
 }

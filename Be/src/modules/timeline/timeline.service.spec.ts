@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { TimelineService } from './timeline.service';
 import { PrismaService } from '../../common/services/prisma.service';
 import { NotFoundException } from '@nestjs/common';
@@ -26,6 +27,12 @@ describe('TimelineService', () => {
     },
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,11 +41,19 @@ describe('TimelineService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
+        },
       ],
     }).compile();
 
     service = module.get<TimelineService>(TimelineService);
     prisma = module.get<PrismaService>(PrismaService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -47,6 +62,7 @@ describe('TimelineService', () => {
 
   describe('findAll', () => {
     it('should return all timelines', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
       const result = await service.findAll();
       expect(result).toEqual([mockTimeline]);
       expect(prisma.recruitmentTimeline.findMany).toHaveBeenCalled();
@@ -78,6 +94,7 @@ describe('TimelineService', () => {
       const result = await service.create(dto);
       expect(result).toBeDefined();
       expect(prisma.recruitmentTimeline.create).toHaveBeenCalled();
+      expect(mockCacheManager.del).toHaveBeenCalled();
     });
   });
 });

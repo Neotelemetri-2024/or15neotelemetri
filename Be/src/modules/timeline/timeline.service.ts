@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../../common/services/prisma.service';
 import { CreateTimelineDto } from './dto/create-timeline.dto';
 import { PartialType } from '@nestjs/swagger';
@@ -7,12 +9,23 @@ export class UpdateTimelineDto extends PartialType(CreateTimelineDto) {}
 
 @Injectable()
 export class TimelineService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly CACHE_KEY = 'timeline:all';
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async findAll() {
-    return this.prisma.recruitmentTimeline.findMany({
+    const cached = await this.cacheManager.get(this.CACHE_KEY);
+    if (cached) return cached;
+
+    const timeline = await this.prisma.recruitmentTimeline.findMany({
       orderBy: { orderIndex: 'asc' },
     });
+
+    await this.cacheManager.set(this.CACHE_KEY, timeline);
+    return timeline;
   }
 
   async findOne(id: string) {
@@ -24,13 +37,16 @@ export class TimelineService {
   }
 
   async create(dto: CreateTimelineDto) {
-    return this.prisma.recruitmentTimeline.create({
+    const result = await this.prisma.recruitmentTimeline.create({
       data: {
         ...dto,
         startAt: new Date(dto.startAt),
         endAt: new Date(dto.endAt),
       },
     });
+
+    await this.cacheManager.del(this.CACHE_KEY);
+    return result;
   }
 
   async update(id: string, dto: UpdateTimelineDto) {
@@ -39,16 +55,22 @@ export class TimelineService {
     if (dto.startAt) data.startAt = new Date(dto.startAt);
     if (dto.endAt) data.endAt = new Date(dto.endAt);
 
-    return this.prisma.recruitmentTimeline.update({
+    const result = await this.prisma.recruitmentTimeline.update({
       where: { id },
       data,
     });
+
+    await this.cacheManager.del(this.CACHE_KEY);
+    return result;
   }
 
   async remove(id: string) {
     await this.findOne(id);
-    return this.prisma.recruitmentTimeline.delete({
+    const result = await this.prisma.recruitmentTimeline.delete({
       where: { id },
     });
+
+    await this.cacheManager.del(this.CACHE_KEY);
+    return result;
   }
 }

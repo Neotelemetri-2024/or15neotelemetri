@@ -6,6 +6,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  Get,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -29,13 +31,20 @@ import { UserRole } from '../../../prisma/generated-client/client';
 
 @ApiTags('Master Data')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
 @Controller('master-data')
 export class MasterDataController {
   constructor(private readonly masterDataService: MasterDataService) {}
 
   // --- Department ---
+  @Get('departments')
+  @ApiOperation({ summary: 'Public: Get all departments' })
+  @ApiResponse({ status: 200, description: 'Return all departments' })
+  findAllDepartments() {
+    return this.masterDataService.findAllDepartments();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post('departments')
   @ApiOperation({ summary: 'Admin: Create new department' })
   @ApiResponse({ status: 201, description: 'Department successfully created' })
@@ -49,6 +58,8 @@ export class MasterDataController {
     return this.masterDataService.createDepartment(dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Patch('departments/:id')
   @ApiOperation({ summary: 'Admin: Update department' })
   @ApiResponse({ status: 200, description: 'Department successfully updated' })
@@ -63,6 +74,8 @@ export class MasterDataController {
     return this.masterDataService.updateDepartment(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete('departments/:id')
   @ApiOperation({ summary: 'Admin: Delete department' })
   @ApiResponse({ status: 200, description: 'Department successfully deleted' })
@@ -77,6 +90,15 @@ export class MasterDataController {
   }
 
   // --- Division ---
+  @Get('divisions')
+  @ApiOperation({ summary: 'Public: Get all divisions' })
+  @ApiResponse({ status: 200, description: 'Return all divisions' })
+  findAllDivisions(@Query('departmentId') departmentId?: string) {
+    return this.masterDataService.findAllDivisions(departmentId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post('divisions')
   @ApiOperation({ summary: 'Admin: Create new division' })
   @ApiResponse({ status: 201, description: 'Division successfully created' })
@@ -90,6 +112,8 @@ export class MasterDataController {
     return this.masterDataService.createDivision(dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Patch('divisions/:id')
   @ApiOperation({ summary: 'Admin: Update division' })
   @ApiResponse({ status: 200, description: 'Division successfully updated' })
@@ -104,6 +128,8 @@ export class MasterDataController {
     return this.masterDataService.updateDivision(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete('divisions/:id')
   @ApiOperation({ summary: 'Admin: Delete division' })
   @ApiResponse({ status: 200, description: 'Division successfully deleted' })
@@ -118,6 +144,15 @@ export class MasterDataController {
   }
 
   // --- SubDivision ---
+  @Get('sub-divisions')
+  @ApiOperation({ summary: 'Public: Get all sub-divisions' })
+  @ApiResponse({ status: 200, description: 'Return all sub-divisions' })
+  findAllSubDivisions(@Query('divisionId') divisionId?: string) {
+    return this.masterDataService.findAllSubDivisions(divisionId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Post('sub-divisions')
   @ApiOperation({ summary: 'Admin: Create new sub-division' })
   @ApiResponse({
@@ -134,6 +169,8 @@ export class MasterDataController {
     return this.masterDataService.createSubDivision(dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Patch('sub-divisions/:id')
   @ApiOperation({ summary: 'Admin: Update sub-division' })
   @ApiResponse({
@@ -154,6 +191,8 @@ export class MasterDataController {
     return this.masterDataService.updateSubDivision(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @Delete('sub-divisions/:id')
   @ApiOperation({ summary: 'Admin: Delete sub-division' })
   @ApiResponse({

@@ -2,7 +2,10 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../../common/services/prisma.service';
 import {
   CreateDepartmentDto,
@@ -15,32 +18,74 @@ import {
 
 @Injectable()
 export class MasterDataService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly CACHE_KEY_DEPARTMENTS = 'master_data:departments';
+  private readonly CACHE_KEY_DIVISIONS = 'master_data:divisions';
+  private readonly CACHE_KEY_SUBDIVISIONS = 'master_data:subdivisions';
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   // --- Department ---
+  async findAllDepartments() {
+    const cached = await this.cacheManager.get(this.CACHE_KEY_DEPARTMENTS);
+    if (cached) return cached;
+
+    const departments = await this.prisma.department.findMany({
+      orderBy: { name: 'asc' },
+    });
+
+    await this.cacheManager.set(this.CACHE_KEY_DEPARTMENTS, departments);
+    return departments;
+  }
+
   async createDepartment(dto: CreateDepartmentDto) {
     const existing = await this.prisma.department.findUnique({
       where: { name: dto.name },
     });
     if (existing) throw new ConflictException('Department name already exists');
 
-    return this.prisma.department.create({ data: dto });
+    const result = await this.prisma.department.create({ data: dto });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   async updateDepartment(id: string, dto: UpdateDepartmentDto) {
     await this.findDepartmentOrThrow(id);
-    return this.prisma.department.update({
+    const result = await this.prisma.department.update({
       where: { id },
       data: dto,
     });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   async deleteDepartment(id: string) {
     await this.findDepartmentOrThrow(id);
-    return this.prisma.department.delete({ where: { id } });
+    const result = await this.prisma.department.delete({ where: { id } });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   // --- Division ---
+  async findAllDivisions(departmentId?: string) {
+    const cacheKey = departmentId 
+      ? `${this.CACHE_KEY_DIVISIONS}:${departmentId}` 
+      : this.CACHE_KEY_DIVISIONS;
+    
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const divisions = await this.prisma.division.findMany({
+      where: departmentId ? { departmentId } : {},
+      orderBy: { name: 'asc' },
+    });
+
+    await this.cacheManager.set(cacheKey, divisions);
+    return divisions;
+  }
+
   async createDivision(dto: CreateDivisionDto) {
     const existing = await this.prisma.division.findUnique({
       where: {
@@ -55,23 +100,46 @@ export class MasterDataService {
         'Division name already exists in this department',
       );
 
-    return this.prisma.division.create({ data: dto });
+    const result = await this.prisma.division.create({ data: dto });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   async updateDivision(id: string, dto: UpdateDivisionDto) {
     await this.findDivisionOrThrow(id);
-    return this.prisma.division.update({
+    const result = await this.prisma.division.update({
       where: { id },
       data: dto,
     });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   async deleteDivision(id: string) {
     await this.findDivisionOrThrow(id);
-    return this.prisma.division.delete({ where: { id } });
+    const result = await this.prisma.division.delete({ where: { id } });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   // --- SubDivision ---
+  async findAllSubDivisions(divisionId?: string) {
+    const cacheKey = divisionId 
+      ? `${this.CACHE_KEY_SUBDIVISIONS}:${divisionId}` 
+      : this.CACHE_KEY_SUBDIVISIONS;
+    
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const subDivisions = await this.prisma.subDivision.findMany({
+      where: divisionId ? { divisionId } : {},
+      orderBy: { name: 'asc' },
+    });
+
+    await this.cacheManager.set(cacheKey, subDivisions);
+    return subDivisions;
+  }
+
   async createSubDivision(dto: CreateSubDivisionDto) {
     const existing = await this.prisma.subDivision.findUnique({
       where: {
@@ -86,20 +154,26 @@ export class MasterDataService {
         'Subdivision name already exists in this division',
       );
 
-    return this.prisma.subDivision.create({ data: dto });
+    const result = await this.prisma.subDivision.create({ data: dto });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   async updateSubDivision(id: string, dto: UpdateSubDivisionDto) {
     await this.findSubDivisionOrThrow(id);
-    return this.prisma.subDivision.update({
+    const result = await this.prisma.subDivision.update({
       where: { id },
       data: dto,
     });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   async deleteSubDivision(id: string) {
     await this.findSubDivisionOrThrow(id);
-    return this.prisma.subDivision.delete({ where: { id } });
+    const result = await this.prisma.subDivision.delete({ where: { id } });
+    await this.clearMasterDataCache();
+    return result;
   }
 
   // --- Helpers ---
@@ -119,5 +193,23 @@ export class MasterDataService {
     const sub = await this.prisma.subDivision.findUnique({ where: { id } });
     if (!sub) throw new NotFoundException('Subdivision not found');
     return sub;
+  }
+
+  private async clearMasterDataCache() {
+    await this.cacheManager.del(this.CACHE_KEY_DEPARTMENTS);
+    await this.cacheManager.del(this.CACHE_KEY_DIVISIONS);
+    await this.cacheManager.del(this.CACHE_KEY_SUBDIVISIONS);
+
+    try {
+      const store = (this.cacheManager as any).store;
+      if (store && typeof store.keys === 'function') {
+        const keys = await store.keys('master_data:*');
+        for (const key of keys) {
+          await this.cacheManager.del(key);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to clear all master data cache patterns:', error.message);
+    }
   }
 }

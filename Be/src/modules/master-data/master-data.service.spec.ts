@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { MasterDataService } from './master-data.service';
 import { PrismaService } from '../../common/services/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
@@ -11,21 +11,33 @@ describe('MasterDataService', () => {
   const mockPrismaService = {
     department: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
     },
     division: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
     },
     subDivision: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+    },
+  };
+
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    store: {
+      keys: jest.fn().mockResolvedValue([]),
     },
   };
 
@@ -36,6 +48,10 @@ describe('MasterDataService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
       ],
     }).compile();

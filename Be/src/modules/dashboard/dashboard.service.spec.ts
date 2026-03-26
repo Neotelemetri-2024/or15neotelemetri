@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { Test, TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { DashboardService } from './dashboard.service';
 import { PrismaService } from '../../common/services/prisma.service';
 
@@ -34,6 +33,12 @@ describe('DashboardService', () => {
     },
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -41,6 +46,10 @@ describe('DashboardService', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
       ],
     }).compile();
@@ -59,6 +68,7 @@ describe('DashboardService', () => {
 
   describe('getMyDashboard', () => {
     it('should calculate steps and current status correctly', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
       mockPrismaService.profile.findUnique.mockResolvedValue({
         fullName: 'Test User',
         nim: '1234',
@@ -78,7 +88,7 @@ describe('DashboardService', () => {
       mockPrismaService.recruitmentTimeline.findMany.mockResolvedValue([]);
       mockPrismaService.examAttempt.findFirst.mockResolvedValue(null);
 
-      const result = await service.getMyDashboard('user-1');
+      const result = await service.getMyDashboard('user-1') as any;
 
       expect(result.progress.currentStep).toBe(3); // Profile Complete -> Step 2, Verif APPROVED -> Step 3
       expect(result.user.fullName).toBe('Test User');
@@ -90,6 +100,7 @@ describe('DashboardService', () => {
 
   describe('getAdminStats', () => {
     it('should return aggregated metrics for admin', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
       mockPrismaService.user.count.mockResolvedValue(100);
       mockPrismaService.submissionVerification.groupBy.mockResolvedValue([
         { status: 'APPROVED', _count: { _all: 50 } },
@@ -103,7 +114,7 @@ describe('DashboardService', () => {
         { name: 'Mobile', _count: { profiles: 12 } },
       ]);
 
-      const result = await service.getAdminStats();
+      const result = await service.getAdminStats() as any;
 
       expect(result.overview.totalRegistrants).toBe(100);
       expect(result.verifications).toHaveLength(2);

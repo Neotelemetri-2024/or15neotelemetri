@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ProfileService } from './profile.service';
 import { PrismaService } from '../../common/services/prisma.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
@@ -22,6 +23,12 @@ describe('ProfileService', () => {
     uploadFile: jest.fn(),
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -33,6 +40,10 @@ describe('ProfileService', () => {
         {
           provide: 'IStorageService',
           useValue: mockStorageService,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
       ],
     }).compile();
@@ -52,16 +63,18 @@ describe('ProfileService', () => {
 
   describe('getProfile', () => {
     it('should throw NotFound if profile missing', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
       mockPrismaService.profile.findUnique.mockResolvedValue(null);
       await expect(service.getProfile('1')).rejects.toThrow(NotFoundException);
     });
 
     it('should return profile if found', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
       mockPrismaService.profile.findUnique.mockResolvedValue({
         id: '1',
         fullName: 'Test',
       });
-      const result = await service.getProfile('1');
+      const result = await service.getProfile('1') as any;
       expect(result.fullName).toBe('Test');
     });
   });
@@ -112,6 +125,7 @@ describe('ProfileService', () => {
 
       const result = await service.updateProfile('user-1', dto);
       expect(result.userId).toBe('user-1');
+      expect(mockCacheManager.del).toHaveBeenCalled();
     });
   });
 
@@ -128,6 +142,7 @@ describe('ProfileService', () => {
       const result = await service.updateAvatar('user-1', mockFile);
       expect(result.avatarUrl).toBe('https://cloud.com/test.png');
       expect(mockStorageService.uploadFile).toHaveBeenCalled();
+      expect(mockCacheManager.del).toHaveBeenCalled();
     });
   });
 });

@@ -1,10 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import { Test, TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { LearningModuleService } from './learning-module.service';
 import { PrismaService } from '../../common/services/prisma.service';
 import { CloudinaryStorageService } from '../../common/services/storage/cloudinary-storage.service';
@@ -32,6 +27,12 @@ describe('LearningModuleService', () => {
     uploadFile: jest.fn(),
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -43,6 +44,10 @@ describe('LearningModuleService', () => {
         {
           provide: CloudinaryStorageService,
           useValue: mockStorage,
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
         },
       ],
     }).compile();
@@ -66,9 +71,10 @@ describe('LearningModuleService', () => {
         ...dto,
       });
 
-      const result = await service.create(dto, 'admin-1', file);
+      const result = await service.create(dto as any, 'admin-1', file);
       expect(result.id).toBe('mod-1');
       expect(mockStorage.uploadFile).toHaveBeenCalled();
+      expect(mockCacheManager.del).toHaveBeenCalled();
     });
   });
 
@@ -85,6 +91,7 @@ describe('LearningModuleService', () => {
     });
 
     it('should return modules if exam submitted', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
       mockPrismaService.profile.findUnique.mockResolvedValue({
         subDivisionId: 'sub-1',
       });

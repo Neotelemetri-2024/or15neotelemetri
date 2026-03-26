@@ -1,11 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../../common/services/prisma.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async getMyDashboard(userId: string) {
+    const cacheKey = `dashboard:user:${userId}`;
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
     const profile = await this.prisma.profile.findUnique({
       where: { userId },
       include: {
@@ -94,7 +103,7 @@ export class DashboardService {
     const now = new Date();
     const nextTimelineEvent = timeline.find((t) => t.startAt > now);
 
-    return {
+    const result = {
       user: {
         id: userId,
         fullName: profile?.fullName,
@@ -109,9 +118,17 @@ export class DashboardService {
       timeline,
       nextTimelineEvent,
     };
+
+    // Cache user dashboard for 3 minutes (180,000 ms)
+    await this.cacheManager.set(cacheKey, result, 180000);
+    return result;
   }
 
   async getAdminStats() {
+    const cacheKey = 'dashboard:admin_stats';
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
     const totalUsers = await this.prisma.user.count({
       where: { role: 'USER' },
     });
@@ -144,7 +161,7 @@ export class DashboardService {
       applicantCount: sd._count.profiles,
     }));
 
-    return {
+    const result = {
       overview: {
         totalRegistrants: totalUsers,
       },
@@ -158,5 +175,9 @@ export class DashboardService {
       })),
       distribution: subDivisionDistribution,
     };
+
+    // Cache admin stats for 5 minutes (300,000 ms)
+    await this.cacheManager.set(cacheKey, result, 300000);
+    return result;
   }
 }
