@@ -9,13 +9,24 @@ import {
 } from "../../services/userServices";
 import api from "../../components/api/axios";
 
-const getAllAssignments    = () => api.get("/assignments");
-const getSubmissions      = (assignmentId) => api.get(`/assignments/${assignmentId}/submissions`);
-const scoreSubmission     = (submissionId, payload) =>
+const getAllAssignments = () => api.get("/assignments");
+const getSubmissions = (assignmentId) =>
+  api.get(`/assignments/${assignmentId}/submissions`);
+const scoreSubmission = (submissionId, payload) =>
   api.patch(`/assignments/submissions/${submissionId}/score`, payload);
 
 const ROWS_PER_PAGE = 10;
-const columns = ["No", "Nama", "NIM", "Sub Divisi", "Tugas", "File", "Dikumpulkan", "Nilai", "Aksi"];
+const columns = [
+  "No",
+  "Nama",
+  "NIM",
+  "Sub Divisi",
+  "Tugas",
+  "File",
+  "Dikumpulkan",
+  "Nilai",
+  "Aksi",
+];
 
 export default function PengumpulanTugasAdmin() {
   const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -53,7 +64,7 @@ export default function PengumpulanTugasAdmin() {
             } catch {
               return [];
             }
-          })
+          }),
         );
 
         // Flatten semua submissions
@@ -61,7 +72,7 @@ export default function PengumpulanTugasAdmin() {
 
         // Fetch divisions
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           const divRes = await getDivisionsByDepartment(opDept.id);
@@ -73,7 +84,7 @@ export default function PengumpulanTugasAdmin() {
             divList.map(async (div) => {
               const subRes = await getSubDivisionsByDivision(div.id);
               subMap[div.id] = subRes.data;
-            })
+            }),
           );
           setSubDivisionMap(subMap);
         }
@@ -114,7 +125,7 @@ export default function PengumpulanTugasAdmin() {
   const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
   const paginated = filtered.slice(
     (currentPage - 1) * ROWS_PER_PAGE,
-    currentPage * ROWS_PER_PAGE
+    currentPage * ROWS_PER_PAGE,
   );
 
   const handleTabChange = (_, i) => {
@@ -126,6 +137,28 @@ export default function PengumpulanTugasAdmin() {
   const handleSearch = (e) => {
     setSearch(e.target.value);
     setCurrentPage(1);
+  };
+
+  const handleDownload = async (url, filename) => {
+    try {
+      const ext = url.split(".").pop().split("?")[0];
+      const filenameWithExt = filename.endsWith(`.${ext}`)
+        ? filename
+        : `${filename}.${ext}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filenameWithExt;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Gagal download:", err);
+      window.open(url, "_blank");
+    }
   };
 
   // ── BERI NILAI ────────────────────────────────────────────────
@@ -149,9 +182,13 @@ export default function PengumpulanTugasAdmin() {
       setRows((prev) =>
         prev.map((r) =>
           r.id === scoreTarget.id
-            ? { ...r, score: parseFloat(scoreForm.score), feedback: scoreForm.feedback }
-            : r
-        )
+            ? {
+                ...r,
+                score: parseFloat(scoreForm.score),
+                feedback: scoreForm.feedback,
+              }
+            : r,
+        ),
       );
       setScoreTarget(null);
     } catch (err) {
@@ -165,7 +202,11 @@ export default function PengumpulanTugasAdmin() {
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString("id-ID", {
-      day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -191,7 +232,6 @@ export default function PengumpulanTugasAdmin() {
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
-
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -199,7 +239,10 @@ export default function PengumpulanTugasAdmin() {
           </span>
           <div
             className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
           >
             <User size={18} className="text-white/70" />
           </div>
@@ -214,7 +257,10 @@ export default function PengumpulanTugasAdmin() {
           >
             <div
               className="flex flex-col bg-white"
-              style={{ borderRadius: "0 0 16px 16px", boxShadow: "0 8px 48px rgba(120,0,200,0.18)" }}
+              style={{
+                borderRadius: "0 0 16px 16px",
+                boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
+              }}
             >
               {/* FILTER + SEARCH */}
               <div
@@ -233,7 +279,10 @@ export default function PengumpulanTugasAdmin() {
                 </button>
                 <div
                   className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
-                  style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" }}
+                  style={{
+                    background: "rgba(0,0,0,0.05)",
+                    border: "1px solid rgba(0,0,0,0.10)",
+                  }}
                 >
                   <input
                     type="text"
@@ -250,14 +299,19 @@ export default function PengumpulanTugasAdmin() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[700px]">
                   <thead>
-                    <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
+                    <tr
+                      style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                    >
                       {columns.map((col) => (
                         <th
                           key={col}
                           className="p-4 text-xs font-bold text-gray-700 whitespace-nowrap"
                           style={{
-                            textAlign: ["No", "File", "Nilai", "Aksi"].includes(col)
-                              ? "center" : "left",
+                            textAlign: ["No", "File", "Nilai", "Aksi"].includes(
+                              col,
+                            )
+                              ? "center"
+                              : "left",
                           }}
                         >
                           {col}
@@ -272,9 +326,10 @@ export default function PengumpulanTugasAdmin() {
                         key={row.id}
                         className="transition-colors duration-150 hover:bg-purple-50"
                         style={{
-                          borderBottom: i < paginated.length - 1
-                            ? "1px solid rgba(0,0,0,0.05)"
-                            : "none",
+                          borderBottom:
+                            i < paginated.length - 1
+                              ? "1px solid rgba(0,0,0,0.05)"
+                              : "none",
                         }}
                       >
                         <td className="p-4 text-gray-500 text-xs text-center">
@@ -294,19 +349,23 @@ export default function PengumpulanTugasAdmin() {
                         </td>
                         {/* File submission */}
                         <td className="p-4 text-center">
-                          <a
-                            href={row.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            onClick={() =>
+                              handleDownload(
+                                row.fileUrl,
+                                `${row.user?.profile?.fullName || "submission"}-${row.assignment?.title || "tugas"}`,
+                              )
+                            }
                             className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
                             style={{
-                              background: "linear-gradient(135deg,#0077CC,#004499)",
+                              background:
+                                "linear-gradient(135deg,#0077CC,#004499)",
                               boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
                             }}
                           >
                             <ExternalLink size={10} />
                             Lihat
-                          </a>
+                          </button>
                         </td>
                         {/* Waktu kumpul */}
                         <td className="p-4 text-gray-500 text-xs whitespace-nowrap">
@@ -318,16 +377,18 @@ export default function PengumpulanTugasAdmin() {
                             <span
                               className="px-2 py-1 rounded-full text-xs font-bold"
                               style={{
-                                background: row.score >= 80
-                                  ? "rgba(34,197,94,0.15)"
-                                  : row.score >= 60
-                                  ? "rgba(245,158,11,0.15)"
-                                  : "rgba(239,68,68,0.15)",
-                                color: row.score >= 80
-                                  ? "#16a34a"
-                                  : row.score >= 60
-                                  ? "#d97706"
-                                  : "#dc2626",
+                                background:
+                                  row.score >= 80
+                                    ? "rgba(34,197,94,0.15)"
+                                    : row.score >= 60
+                                      ? "rgba(245,158,11,0.15)"
+                                      : "rgba(239,68,68,0.15)",
+                                color:
+                                  row.score >= 80
+                                    ? "#16a34a"
+                                    : row.score >= 60
+                                      ? "#d97706"
+                                      : "#dc2626",
                               }}
                             >
                               {parseFloat(row.score).toFixed(1)}
@@ -342,9 +403,10 @@ export default function PengumpulanTugasAdmin() {
                             onClick={() => openScoreModal(row)}
                             className="px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
                             style={{
-                              background: row.score != null
-                                ? "linear-gradient(135deg,#F0A000,#CC7700)"
-                                : "linear-gradient(135deg,#7B2FBE,#501A5E)",
+                              background:
+                                row.score != null
+                                  ? "linear-gradient(135deg,#F0A000,#CC7700)"
+                                  : "linear-gradient(135deg,#7B2FBE,#501A5E)",
                               boxShadow: "0 2px 8px rgba(120,0,200,0.2)",
                             }}
                           >
@@ -356,7 +418,10 @@ export default function PengumpulanTugasAdmin() {
 
                     {paginated.length === 0 && (
                       <tr>
-                        <td colSpan={9} className="text-center py-10 text-gray-400 text-sm">
+                        <td
+                          colSpan={9}
+                          className="text-center py-10 text-gray-400 text-sm"
+                        >
                           {search
                             ? "Tidak ada data yang cocok."
                             : "Belum ada pengumpulan tugas."}
@@ -372,7 +437,8 @@ export default function PengumpulanTugasAdmin() {
                 <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
                   <span className="text-xs text-gray-400">
                     {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)} dari {filtered.length}
+                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
+                    dari {filtered.length}
                   </span>
                   <div className="flex items-center gap-1">
                     <button
@@ -383,22 +449,28 @@ export default function PengumpulanTugasAdmin() {
                     >
                       ← Prev
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setCurrentPage(p)}
-                        className="px-3 py-1 text-xs rounded-lg border transition"
-                        style={{
-                          borderColor: currentPage === p ? "#7B2FBE" : "rgba(0,0,0,0.1)",
-                          background: currentPage === p ? "#7B2FBE" : "transparent",
-                          color: currentPage === p ? "white" : "inherit",
-                        }}
-                      >
-                        {p}
-                      </button>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (p) => (
+                        <button
+                          key={p}
+                          onClick={() => setCurrentPage(p)}
+                          className="px-3 py-1 text-xs rounded-lg border transition"
+                          style={{
+                            borderColor:
+                              currentPage === p ? "#7B2FBE" : "rgba(0,0,0,0.1)",
+                            background:
+                              currentPage === p ? "#7B2FBE" : "transparent",
+                            color: currentPage === p ? "white" : "inherit",
+                          }}
+                        >
+                          {p}
+                        </button>
+                      ),
+                    )}
                     <button
-                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(p + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                       className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
                       style={{ borderColor: "rgba(0,0,0,0.1)" }}
@@ -417,9 +489,12 @@ export default function PengumpulanTugasAdmin() {
       {scoreTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 className="text-gray-800 font-bold text-base mb-1">Beri Nilai</h3>
+            <h3 className="text-gray-800 font-bold text-base mb-1">
+              Beri Nilai
+            </h3>
             <p className="text-gray-500 text-xs mb-4">
-              {scoreTarget.user?.profile?.fullName} — {scoreTarget.assignment?.title}
+              {scoreTarget.user?.profile?.fullName} —{" "}
+              {scoreTarget.assignment?.title}
             </p>
 
             <div className="flex flex-col gap-3">
@@ -432,7 +507,9 @@ export default function PengumpulanTugasAdmin() {
                   min={0}
                   max={100}
                   value={scoreForm.score}
-                  onChange={(e) => setScoreForm((p) => ({ ...p, score: e.target.value }))}
+                  onChange={(e) =>
+                    setScoreForm((p) => ({ ...p, score: e.target.value }))
+                  }
                   placeholder="Contoh: 85"
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 outline-none focus:border-purple-400"
                 />
@@ -443,7 +520,9 @@ export default function PengumpulanTugasAdmin() {
                 </label>
                 <textarea
                   value={scoreForm.feedback}
-                  onChange={(e) => setScoreForm((p) => ({ ...p, feedback: e.target.value }))}
+                  onChange={(e) =>
+                    setScoreForm((p) => ({ ...p, feedback: e.target.value }))
+                  }
                   placeholder="Tulis feedback untuk peserta..."
                   rows={3}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-700 outline-none focus:border-purple-400 resize-none"
@@ -462,7 +541,9 @@ export default function PengumpulanTugasAdmin() {
                 onClick={handleScore}
                 disabled={!scoreForm.score || scoring}
                 className="flex-1 py-2 rounded-xl text-white text-sm font-semibold transition disabled:opacity-40"
-                style={{ background: "linear-gradient(135deg,#7B2FBE,#501A5E)" }}
+                style={{
+                  background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
+                }}
               >
                 {scoring ? "Menyimpan..." : "Simpan Nilai"}
               </button>

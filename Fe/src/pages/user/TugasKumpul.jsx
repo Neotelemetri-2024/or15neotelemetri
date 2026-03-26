@@ -50,7 +50,9 @@ export default function TugasKumpul() {
     return null;
   }
 
-  const handleFile = (f) => { if (f) setFile(f); };
+  const handleFile = (f) => {
+    if (f) setFile(f);
+  };
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
@@ -80,6 +82,28 @@ export default function TugasKumpul() {
     }
   };
 
+  const handleDownload = async (url, filename) => {
+    try {
+      const ext = url.split(".").pop().split("?")[0];
+      const filenameWithExt = filename.endsWith(`.${ext}`)
+        ? filename
+        : `${filename}.${ext}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filenameWithExt;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Gagal download:", err);
+      window.open(url, "_blank");
+    }
+  };
+
   return (
     <UserLayout>
       <div className="min-h-screen flex items-start lg:items-center justify-center">
@@ -100,11 +124,12 @@ export default function TugasKumpul() {
 
           {/* BODY */}
           <div className="px-6 md:px-8 py-6 flex flex-col gap-4">
-
             {/* JUDUL TUGAS */}
             <div>
               <p className="text-gray-800 font-bold text-sm">{title}</p>
-              <p className="text-gray-400 text-xs mt-0.5">Deadline: {deadline}</p>
+              <p className="text-gray-400 text-xs mt-0.5">
+                Deadline: {deadline}
+              </p>
             </div>
 
             {/* SUDAH DIKUMPULKAN SEBELUMNYA */}
@@ -126,14 +151,17 @@ export default function TugasKumpul() {
                     </p>
                   )}
                 </div>
-                <a
-                  href={existingSubmission.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() =>
+                    handleDownload(
+                      existingSubmission.fileUrl,
+                      `submission-${title}`,
+                    )
+                  }
                   className="text-xs text-blue-500 hover:underline"
                 >
                   Lihat file lama
-                </a>
+                </button>
               </div>
             )}
 
@@ -151,16 +179,22 @@ export default function TugasKumpul() {
             {/* UPLOAD FILE */}
             <div>
               <label className={labelStyle}>
-                File Tugas * {existingSubmission ? "(Upload file baru untuk mengganti)" : ""}
+                File Tugas *{" "}
+                {existingSubmission ? "(Upload file baru untuk mengganti)" : ""}
               </label>
               <div
                 className="relative flex flex-col items-center justify-center gap-3 py-8 rounded-xl transition-all duration-200 cursor-pointer"
                 style={{
                   border: `2px dashed ${dragging ? "#7B2FBE" : "rgba(0,0,0,0.12)"}`,
-                  background: dragging ? "rgba(120,0,200,0.04)" : "rgba(0,0,0,0.02)",
+                  background: dragging
+                    ? "rgba(120,0,200,0.04)"
+                    : "rgba(0,0,0,0.02)",
                   minHeight: "130px",
                 }}
-                onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragging(true);
+                }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current.click()}
@@ -181,7 +215,9 @@ export default function TugasKumpul() {
                   <>
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ background: "linear-gradient(135deg,#7B2FBE,#501A5E)" }}
+                      style={{
+                        background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
+                      }}
                     >
                       <Upload size={18} className="text-white" />
                     </div>
@@ -193,8 +229,13 @@ export default function TugasKumpul() {
                 <button
                   type="button"
                   className="mt-2 md:mt-0 md:absolute md:right-4 md:bottom-4 px-5 py-2 rounded-full text-white text-xs font-semibold hover:brightness-110 transition-all"
-                  style={{ background: "linear-gradient(135deg,#00AA55,#007733)" }}
-                  onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }}
+                  style={{
+                    background: "linear-gradient(135deg,#00AA55,#007733)",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current.click();
+                  }}
                 >
                   Pilih File
                 </button>
@@ -218,11 +259,16 @@ export default function TugasKumpul() {
                 disabled={submitting || !file}
                 className="w-full md:w-auto px-7 py-[10px] rounded-full text-white text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(120,0,200,0.4)] disabled:opacity-50 disabled:scale-100"
                 style={{
-                  background: "linear-gradient(135deg, #7B2FBE 0%, #501A5E 100%)",
+                  background:
+                    "linear-gradient(135deg, #7B2FBE 0%, #501A5E 100%)",
                   boxShadow: "0 3px 16px rgba(120,0,200,0.30)",
                 }}
               >
-                {submitting ? "Mengumpulkan..." : existingSubmission ? "Kumpul Ulang" : "Submit"}
+                {submitting
+                  ? "Mengumpulkan..."
+                  : existingSubmission
+                    ? "Kumpul Ulang"
+                    : "Submit"}
               </button>
             </div>
           </div>

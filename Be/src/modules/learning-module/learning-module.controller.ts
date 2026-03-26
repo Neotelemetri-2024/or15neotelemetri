@@ -26,6 +26,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { GetUser } from '../../common/decorators/get-user.decorator';
 import { UserRole } from '../../../prisma/generated-client/client';
+import { memoryStorage } from 'multer';
 
 @ApiTags('Learning Module')
 @ApiBearerAuth('JWT-auth')
@@ -48,7 +49,11 @@ export class LearningModuleController {
     status: 403,
     description: 'Forbidden - Insufficient permissions',
   })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+    }),
+  )
   create(
     @Body() dto: CreateLearningModuleDto,
     @GetUser('id') adminId: string,
@@ -95,7 +100,11 @@ export class LearningModuleController {
     description: 'Forbidden - Insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'Learning module not found' })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+    }),
+  )
   update(
     @Param('id') id: string,
     @Body() dto: UpdateLearningModuleDto,

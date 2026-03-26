@@ -11,7 +11,7 @@ import {
 import api from "../../components/api/axios";
 
 const getAllModules = () => api.get("/learning-modules");
-const deleteModule  = (id) => api.delete(`/learning-modules/${id}`);
+const deleteModule = (id) => api.delete(`/learning-modules/${id}`);
 
 const columns = ["No", "Title", "Sub Divisi", "File", "Action"];
 
@@ -36,7 +36,7 @@ export default function MateriAdmin() {
         setModules(modulesRes.data);
 
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           const divRes = await getDivisionsByDepartment(opDept.id);
@@ -48,7 +48,7 @@ export default function MateriAdmin() {
             divList.map(async (div) => {
               const subRes = await getSubDivisionsByDivision(div.id);
               subMap[div.id] = subRes.data;
-            })
+            }),
           );
           setSubDivisionMap(subMap);
         }
@@ -69,6 +69,29 @@ export default function MateriAdmin() {
       setModules((p) => p.filter((m) => m.id !== id));
     } catch (err) {
       console.error("Gagal hapus materi:", err);
+    }
+  };
+
+  // Tambah setelah handleDelete
+  const handleDownload = async (url, filename) => {
+    try {
+      const ext = url.split(".").pop().split("?")[0];
+      const filenameWithExt = filename.endsWith(`.${ext}`)
+        ? filename
+        : `${filename}.${ext}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filenameWithExt;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Gagal download:", err);
+      window.open(url, "_blank");
     }
   };
 
@@ -105,7 +128,6 @@ export default function MateriAdmin() {
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
-
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -113,7 +135,10 @@ export default function MateriAdmin() {
           </span>
           <div
             className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
           >
             <User size={18} className="text-white/70" />
           </div>
@@ -128,7 +153,10 @@ export default function MateriAdmin() {
           >
             <div
               className="flex flex-col bg-white"
-              style={{ borderRadius: "0 0 16px 16px", boxShadow: "0 8px 48px rgba(120,0,200,0.18)" }}
+              style={{
+                borderRadius: "0 0 16px 16px",
+                boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
+              }}
             >
               {/* ADD BUTTON */}
               <div className="px-4 pt-4 pb-2">
@@ -145,20 +173,26 @@ export default function MateriAdmin() {
                 </button>
               </div>
 
-              <div className="w-full h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
+              <div
+                className="w-full h-px"
+                style={{ background: "rgba(0,0,0,0.06)" }}
+              />
 
               {/* TABLE */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[500px]">
                   <thead>
-                    <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
+                    <tr
+                      style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                    >
                       {columns.map((col) => (
                         <th
                           key={col}
                           className="p-5 text-xs font-bold text-gray-700 whitespace-nowrap"
                           style={{
                             textAlign: ["No", "File", "Action"].includes(col)
-                              ? "center" : "left",
+                              ? "center"
+                              : "left",
                           }}
                         >
                           {col}
@@ -173,9 +207,10 @@ export default function MateriAdmin() {
                         key={m.id}
                         className="transition-colors duration-150 hover:bg-purple-50"
                         style={{
-                          borderBottom: i < filtered.length - 1
-                            ? "1px solid rgba(0,0,0,0.05)"
-                            : "none",
+                          borderBottom:
+                            i < filtered.length - 1
+                              ? "1px solid rgba(0,0,0,0.05)"
+                              : "none",
                         }}
                       >
                         {/* No */}
@@ -195,24 +230,24 @@ export default function MateriAdmin() {
 
                         {/* Sub Divisi */}
                         <td className="p-5 text-gray-600 text-xs whitespace-nowrap">
-                          {m.subDivision?.name || getSubDivisionName(m.subDivisionId)}
+                          {m.subDivision?.name ||
+                            getSubDivisionName(m.subDivisionId)}
                         </td>
 
                         {/* File */}
                         <td className="p-5 text-center">
-                          <a
-                            href={m.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() => handleDownload(m.fileUrl, m.title)}
                             className="inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
                             style={{
-                              background: "linear-gradient(135deg,#0077CC,#004499)",
+                              background:
+                                "linear-gradient(135deg,#0077CC,#004499)",
                               boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
                             }}
                           >
                             <ExternalLink size={11} />
                             Lihat
-                          </a>
+                          </button>
                         </td>
 
                         {/* Action */}
@@ -222,7 +257,8 @@ export default function MateriAdmin() {
                               onClick={() => handleDelete(m.id)}
                               className="px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
                               style={{
-                                background: "linear-gradient(135deg,#EE2222,#AA0000)",
+                                background:
+                                  "linear-gradient(135deg,#EE2222,#AA0000)",
                                 boxShadow: "0 2px 8px rgba(200,0,0,0.3)",
                               }}
                             >
@@ -235,7 +271,10 @@ export default function MateriAdmin() {
 
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="text-center py-10 text-gray-400 text-sm">
+                        <td
+                          colSpan={5}
+                          className="text-center py-10 text-gray-400 text-sm"
+                        >
                           Belum ada materi untuk divisi ini.
                         </td>
                       </tr>

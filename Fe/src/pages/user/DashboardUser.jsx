@@ -6,7 +6,6 @@ import { getMyProfile } from "../../services/userServices";
 import { getTimelines } from "../../services/userServices";
 import { getMyVerification } from "../../services/userServices";
 
-
 export default function DashboardUser() {
   const navigate = useNavigate();
 
@@ -97,7 +96,6 @@ export default function DashboardUser() {
   return (
     <UserLayout>
       <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
-
         {/* TOP RIGHT: NAMA + AVATAR */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -134,10 +132,8 @@ export default function DashboardUser() {
 
         {/* MAIN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-
           {/* LEFT COLUMN */}
           <div className="flex flex-col gap-4">
-
             {/* Tombol verifikasi hanya muncul jika belum approved */}
             {showVerifikasiButton && (
               <button
@@ -187,21 +183,26 @@ export default function DashboardUser() {
               </div>
             </div>
           </div>
-
           {/* RIGHT COLUMN: TIMELINE */}
-          <div className="flex flex-col gap-3 pt-1">
+
+          <div className="flex flex-col pt-1">
             {timelines.length === 0 && (
               <p className="text-white/40 text-sm">Belum ada timeline.</p>
             )}
             {timelines.map((item, index) => {
               const now = new Date();
-              const start = new Date(item.start_at);
-              const end = new Date(item.end_at);
-              const isActive = now >= start && now <= end;
+              const start = new Date(item.startAt);
+              const nextItem = timelines[index + 1];
+              const nextStart = nextItem ? new Date(nextItem.startAt) : null;
+
+              // Aktif: sudah lewat startAt DAN belum sampai startAt berikutnya
+              const isActive = now >= start && (!nextStart || now < nextStart);
+              const isPast = now > start && nextStart && now >= nextStart;
+              const isLast = index === timelines.length - 1;
 
               const formatDate = (dateStr) => {
-                const d = new Date(dateStr);
-                return d.toLocaleDateString("id-ID", {
+                if (!dateStr) return "-";
+                return new Date(dateStr).toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "short",
                   year: "numeric",
@@ -209,33 +210,59 @@ export default function DashboardUser() {
               };
 
               return (
-                <div key={item.id} className="flex items-center gap-3">
-                  {/* STEP CIRCLE */}
-                  <div
-                    className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-bold"
-                    style={{
-                      background: isActive
-                        ? "linear-gradient(135deg, #FF00FF, #990099)"
-                        : "rgba(255,255,255,0.12)",
-                      color: "white",
-                      boxShadow: isActive ? "0 0 16px #FF00FF66" : "none",
-                      border: isActive ? "none" : "1px solid rgba(255,255,255,0.2)",
-                    }}
-                  >
-                    {item.order_index}
+                <div key={item.id} className="flex gap-4">
+                  {/* KIRI: CIRCLE + GARIS */}
+                  <div className="flex flex-col items-center">
+                    {/* CIRCLE */}
+                    <div
+                      className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-bold z-10"
+                      style={{
+                        background: isActive
+                          ? "linear-gradient(135deg, #FF00FF, #990099)"
+                          : isPast
+                            ? "rgba(255,0,255,0.35)"
+                            : "rgba(255,255,255,0.12)",
+                        color: "white",
+                        boxShadow: isActive ? "0 0 16px #FF00FF66" : "none",
+                        border:
+                          isActive || isPast
+                            ? "none"
+                            : "1px solid rgba(255,255,255,0.2)",
+                      }}
+                    >
+                      {item.orderIndex}
+                    </div>
+
+                    {/* GARIS KE BAWAH */}
+                    {!isLast && (
+                      <div
+                        className="w-[2px] flex-1 my-1"
+                        style={{
+                          minHeight: "28px",
+                          background:
+                            isPast || isActive
+                              ? "linear-gradient(180deg, #FF00FF 0%, rgba(255,0,255,0.3) 100%)"
+                              : "rgba(255,255,255,0.12)",
+                        }}
+                      />
+                    )}
                   </div>
 
-                  {/* CARD */}
-                  <div className="relative flex-1 min-w-0">
+                  {/* KANAN: CARD */}
+                  <div className="flex-1 min-w-0 mb-3">
                     <div
                       className="flex items-center justify-between px-4 py-3 rounded-full gap-2"
                       style={{
                         background: isActive
-                          ? "rgba(255,0,255,0.12)"
-                          : "rgba(255,255,255,0.07)",
+                          ? "rgba(255,0,255,0.15)"
+                          : isPast
+                            ? "rgba(255,0,255,0.06)"
+                            : "rgba(255,255,255,0.07)",
                         border: isActive
-                          ? "1px solid rgba(255,0,255,0.35)"
-                          : "1px solid rgba(255,255,255,0.12)",
+                          ? "1px solid rgba(255,0,255,0.45)"
+                          : isPast
+                            ? "1px solid rgba(255,0,255,0.20)"
+                            : "1px solid rgba(255,255,255,0.12)",
                         backdropFilter: "blur(8px)",
                         WebkitBackdropFilter: "blur(8px)",
                       }}
@@ -243,7 +270,11 @@ export default function DashboardUser() {
                       <span
                         className="text-xs md:text-sm truncate"
                         style={{
-                          color: isActive ? "white" : "rgba(255,255,255,0.55)",
+                          color: isActive
+                            ? "white"
+                            : isPast
+                              ? "rgba(255,255,255,0.45)"
+                              : "rgba(255,255,255,0.55)",
                         }}
                       >
                         {item.title}
@@ -252,11 +283,11 @@ export default function DashboardUser() {
                         className="text-xs shrink-0"
                         style={{
                           color: isActive
-                            ? "rgba(255,255,255,0.8)"
-                            : "rgba(255,255,255,0.4)",
+                            ? "rgba(255,255,255,0.85)"
+                            : "rgba(255,255,255,0.35)",
                         }}
                       >
-                        {formatDate(item.start_at)}
+                        {formatDate(item.startAt)}
                       </span>
                     </div>
                   </div>
@@ -264,7 +295,6 @@ export default function DashboardUser() {
               );
             })}
           </div>
-
         </div>
       </div>
     </UserLayout>

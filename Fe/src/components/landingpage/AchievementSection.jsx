@@ -3,12 +3,30 @@ import logoMmd from "../../assets/images/Logo_Mmd.svg";
 import logoSkj from "../../assets/images/logo_Skj.svg";
 
 const achievements = [
-  { title: "", desc: "" },
-  { title: "", desc: "" },
-  { title: "", desc: "" },
-  { title: "", desc: "" },
-  { title: "", desc: "" },
-  { title: "", desc: "" },
+  {
+    title: "Juara 3 Ide Inovatif - FMIPA EXPO UNIMED 2025",
+    desc: "Diraih oleh Azizah Nofi Delfianti dalam kompetisi ide inovatif tingkat nasional.",
+  },
+  {
+    title: "Pendanaan PKM Karsa Cipta 2025",
+    desc: "Azizah Nofi Delfianti berhasil lolos pendanaan program PKM oleh Simbelmawa.",
+  },
+  {
+    title: "Gold Medal - WYIE Malaysia 2025",
+    desc: "Hamzah Abdillah Arif dengan karya Monosync: Website All-In-One.",
+  },
+  {
+    title: "Bronze Medal AI - MSU Expo Malaysia 2025",
+    desc: "Muhammad Fariz dengan Tangkapin: Weapon Crime Detection System.",
+  },
+  {
+    title: "Bronze Medal AI - MSU Expo Malaysia 2025",
+    desc: "Muhammad Nouval dengan Planmax: AI-Based Project Management.",
+  },
+  {
+    title: "Gold Medal & Best Project - MSU Expo Malaysia 2025",
+    desc: "Fajar Alif Riyandi dengan KakaoXpert: AI for Cocoa Farmers.",
+  },
 ];
 
 export default function AchievementSection() {

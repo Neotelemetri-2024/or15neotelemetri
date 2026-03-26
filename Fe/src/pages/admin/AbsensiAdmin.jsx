@@ -2,9 +2,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Search, SlidersHorizontal, Trash2, Plus } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
-import { getAllActivities, deleteActivity } from "../../services/attendanceService";
+import {
+  getAllActivities,
+  deleteActivity,
+} from "../../services/attendanceService";
 
-const columns = ["No", "Nama Kegiatan", "Tanggal", "Hadir", "Alfa", "Sakit", "Izin", "Action"];
+const columns = [
+  "No",
+  "Nama Kegiatan",
+  "Tanggal",
+  "Hadir",
+  "Alfa",
+  "Sakit",
+  "Izin",
+  "Action",
+];
 
 export default function ListAbsensiAdmin() {
   const navigate = useNavigate();
@@ -42,17 +54,20 @@ export default function ListAbsensiAdmin() {
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     const d = new Date(dateStr);
-    return d.toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return d.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const filtered = activities.filter((row) =>
-    row.name?.toLowerCase().includes(search.toLowerCase())
+    row.name?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
-
         {/* TOP RIGHT */}
         <div className="flex justify-between items-center gap-3">
           <h1 className="text-white font-bold text-lg">Absensi</h1>
@@ -60,7 +75,10 @@ export default function ListAbsensiAdmin() {
             <span className="text-white font-semibold text-sm">NamaUser</span>
             <div
               className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-              style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+              }}
             >
               <User size={18} className="text-white/70" />
             </div>
@@ -77,7 +95,10 @@ export default function ListAbsensiAdmin() {
           }}
         >
           {/* HEADER CARD */}
-          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+          <div
+            className="flex items-center justify-between px-5 py-4 border-b"
+            style={{ borderColor: "rgba(0,0,0,0.06)" }}
+          >
             <p className="text-gray-800 font-bold text-sm">List Absen</p>
             <button
               onClick={() => navigate("/admin/addabsensi")}
@@ -106,7 +127,10 @@ export default function ListAbsensiAdmin() {
             </button>
             <div
               className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
-              style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" }}
+              style={{
+                background: "rgba(0,0,0,0.05)",
+                border: "1px solid rgba(0,0,0,0.10)",
+              }}
             >
               <input
                 type="text"
@@ -128,7 +152,9 @@ export default function ListAbsensiAdmin() {
                     <th
                       key={col}
                       className="p-4 text-xs font-bold text-gray-700 whitespace-nowrap"
-                      style={{ textAlign: col === "Nama Kegiatan" ? "left" : "center" }}
+                      style={{
+                        textAlign: col === "Nama Kegiatan" ? "left" : "center",
+                      }}
                     >
                       {col}
                     </th>
@@ -139,13 +165,19 @@ export default function ListAbsensiAdmin() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-10 text-gray-400 text-sm">
+                    <td
+                      colSpan={8}
+                      className="text-center py-10 text-gray-400 text-sm"
+                    >
                       Memuat data...
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="text-center py-10 text-gray-400 text-sm">
+                    <td
+                      colSpan={8}
+                      className="text-center py-10 text-gray-400 text-sm"
+                    >
                       Tidak ada data ditemukan.
                     </td>
                   </tr>
@@ -154,32 +186,53 @@ export default function ListAbsensiAdmin() {
                     <tr
                       key={row.id}
                       className="transition-colors duration-150 hover:bg-purple-50 cursor-pointer"
-                      style={{ borderBottom: i < filtered.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none" }}
-                      onClick={() => navigate(`/admin/absensi/${row.id}/detail`)}
+                      style={{
+                        borderBottom:
+                          i < filtered.length - 1
+                            ? "1px solid rgba(0,0,0,0.05)"
+                            : "none",
+                      }}
+                      onClick={() =>
+                        navigate(`/admin/absensi/${row.id}/detail`)
+                      }
                     >
-                      <td className="p-4 text-gray-500 text-xs text-center">{i + 1}</td>
-                      <td className="p-4 text-gray-800 text-xs whitespace-nowrap">{row.name}</td>
-                      <td className="p-4 text-gray-500 text-xs text-center whitespace-nowrap">{formatDate(row.deadline)}</td>
-                      <td className="p-4 text-gray-600 text-xs text-center">{row.stats?.present ?? 0}</td>
-                      <td className="p-4 text-gray-600 text-xs text-center">{row.stats?.absent ?? 0}</td>
-                      <td className="p-4 text-gray-600 text-xs text-center">{row.stats?.sick ?? 0}</td>
-                      <td className="p-4 text-gray-600 text-xs text-center">{row.stats?.excused ?? 0}</td>
-                      <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="p-4 text-gray-500 text-xs text-center">
+                        {i + 1}
+                      </td>
+                      <td className="p-4 text-gray-800 text-xs whitespace-nowrap">
+                        {row.name}
+                      </td>
+                      <td className="p-4 text-gray-500 text-xs text-center whitespace-nowrap">
+                        {formatDate(row.deadline)}
+                      </td>
+                      <td className="p-4 text-gray-600 text-xs text-center">
+                        {row.stats?.present ?? 0}
+                      </td>
+                      <td className="p-4 text-gray-600 text-xs text-center">
+                        {row.stats?.absent ?? 0}
+                      </td>
+                      <td className="p-4 text-gray-600 text-xs text-center">
+                        {row.stats?.sick ?? 0}
+                      </td>
+                      <td className="p-4 text-gray-600 text-xs text-center">
+                        {row.stats?.excused ?? 0}
+                      </td>
+                      <td
+                        className="p-4 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => navigate(`/admin/absensi/${row.id}/edit`)}
+                            onClick={() =>
+                              navigate(`/admin/absensi/${row.id}/scan`)
+                            }
                             className="px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
-                            style={{ background: "#F0C000" }}
+                            style={{
+                              background:
+                                "linear-gradient(135deg,#00BB66,#007744)",
+                            }}
                           >
-                            Edit
-                          </button>
-                          
-                          <button
-                            onClick={() => setDeleteConfirm(row.id)}
-                            className="px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
-                            style={{ background: "#ef4444" }}
-                          >
-                            Hapus
+                            Scan
                           </button>
                         </div>
                       </td>
@@ -195,14 +248,16 @@ export default function ListAbsensiAdmin() {
       {/* MODAL KONFIRMASI HAPUS */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-6">
-          <div
-            className="bg-white rounded-2xl px-8 py-7 flex flex-col items-center gap-4 max-w-xs w-full shadow-2xl"
-          >
+          <div className="bg-white rounded-2xl px-8 py-7 flex flex-col items-center gap-4 max-w-xs w-full shadow-2xl">
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
               <Trash2 size={22} className="text-red-500" />
             </div>
-            <p className="text-gray-800 font-bold text-sm text-center">Hapus Kegiatan?</p>
-            <p className="text-gray-500 text-xs text-center">Data absensi kegiatan ini akan ikut terhapus.</p>
+            <p className="text-gray-800 font-bold text-sm text-center">
+              Hapus Kegiatan?
+            </p>
+            <p className="text-gray-500 text-xs text-center">
+              Data absensi kegiatan ini akan ikut terhapus.
+            </p>
             <div className="flex gap-3 w-full">
               <button
                 onClick={() => setDeleteConfirm(null)}

@@ -1,0 +1,155 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, User } from "lucide-react";
+import AdminLayout from "../../components/admin/LayoutAdmin";
+import { getActivityById, updateActivity } from "../../services/attendanceService";
+
+export default function AbsensiEditAdmin() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [form, setForm] = useState({ name: "", deadline: "" });
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [error, setError] = useState("");
+
+  const set = (key) => (e) => setForm((p) => ({ ...p, [key]: e.target.value }));
+
+  useEffect(() => {
+    const fetchActivity = async () => {
+      try {
+        const res = await getActivityById(id);
+        const data = res.data;
+        // Format deadline ke datetime-local (YYYY-MM-DDTHH:mm)
+        const deadlineFormatted = data.deadline
+          ? new Date(data.deadline).toISOString().slice(0, 16)
+          : "";
+        setForm({ name: data.name || "", deadline: deadlineFormatted });
+      } catch (err) {
+        setError("Gagal mengambil data kegiatan.");
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchActivity();
+  }, [id]);
+
+  const handleSimpan = async () => {
+    if (!form.name || !form.deadline) {
+      setError("Semua field wajib diisi.");
+      return;
+    }
+    try {
+      setLoading(true);
+      setError("");
+      const deadlineISO = new Date(form.deadline).toISOString();
+      await updateActivity(id, { name: form.name, deadline: deadlineISO });
+      navigate("/admin/absensi");
+    } catch (err) {
+      setError(err?.response?.data?.message || "Gagal menyimpan perubahan.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    border: "1px solid rgba(0,0,0,0.12)",
+    background: "white",
+    fontSize: "13px",
+    color: "#333",
+    outline: "none",
+  };
+
+  return (
+    <AdminLayout>
+      <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
+
+        {/* TOP ROW */}
+        <div className="flex items-center justify-between gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-white font-semibold text-sm">NamaUser</span>
+            <div
+              className="w-10 h-10 rounded-md flex items-center justify-center"
+              style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+            >
+              <User size={18} className="text-white/70" />
+            </div>
+          </div>
+        </div>
+
+        {/* CARD */}
+        <div
+          className="flex flex-col gap-5 px-5 md:px-8 py-6 md:py-7"
+          style={{
+            background: "white",
+            borderRadius: "16px",
+            boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
+            minHeight: "340px",
+          }}
+        >
+          <div>
+            <p className="text-gray-800 font-bold text-sm">List Absen</p>
+            <p className="text-gray-400 text-xs mt-0.5 pb-3 border-b border-gray-100">Edit List Absen</p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-xs px-4 py-2.5 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {fetching ? (
+            <p className="text-gray-400 text-xs">Memuat data...</p>
+          ) : (
+            <>
+              {/* TITLE */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-gray-700 font-semibold text-xs">Title</label>
+                <input
+                  type="text"
+                  placeholder="Masukkan Nama Kegiatan"
+                  value={form.name}
+                  onChange={set("name")}
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* DEADLINE */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-gray-700 font-semibold text-xs">Deadline</label>
+                <input
+                  type="datetime-local"
+                  value={form.deadline}
+                  onChange={set("deadline")}
+                  style={{ ...inputStyle, color: form.deadline ? "#333" : "#aaa" }}
+                />
+              </div>
+            </>
+          )}
+
+          {/* SIMPAN */}
+          <div className="flex-1 flex items-end justify-end pt-4">
+            <button
+              onClick={handleSimpan}
+              disabled={loading || fetching}
+              className="w-full md:w-auto px-10 py-3 rounded-full text-white text-sm font-semibold transition-all hover:opacity-80 active:scale-95 disabled:opacity-40"
+              style={{ background: "#FF00FF" }}
+            >
+              {loading ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </AdminLayout>
+  );
+}

@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, ArrowLeft, ChevronDown, Upload, FileText, Trash2, ExternalLink } from "lucide-react";
+import {
+  User,
+  ArrowLeft,
+  ChevronDown,
+  Upload,
+  FileText,
+  Trash2,
+  ExternalLink,
+} from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 import {
@@ -11,11 +19,12 @@ import {
 import api from "../../components/api/axios";
 
 // ── API ────────────────────────────────────────────────────────
-const getAllAssignments  = () => api.get("/assignments");
-const createAssignment  = (formData) => api.post("/assignments", formData, {
-  headers: { "Content-Type": "multipart/form-data" },
-});
-const deleteAssignment  = (id) => api.delete(`/assignments/${id}`);
+const getAllAssignments = () => api.get("/assignments");
+const createAssignment = (formData) =>
+  api.post("/assignments", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+const deleteAssignment = (id) => api.delete(`/assignments/${id}`);
 
 const inputStyle = {
   width: "100%",
@@ -69,7 +78,7 @@ export default function AddTugasAdmin() {
         setAssignments(assignmentsRes.data);
 
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           const divRes = await getDivisionsByDepartment(opDept.id);
@@ -93,7 +102,11 @@ export default function AddTugasAdmin() {
   // Fetch sub divisi saat tab berubah
   const handleTabChange = async (_, i) => {
     setActiveTabIndex(i);
-    setForm((p) => ({ ...p, subDivisionId: "", divisionId: divisions[i]?.id || "" }));
+    setForm((p) => ({
+      ...p,
+      subDivisionId: "",
+      divisionId: divisions[i]?.id || "",
+    }));
     setSubDivisions([]);
     if (divisions[i]) {
       const subRes = await getSubDivisionsByDivision(divisions[i].id);
@@ -163,6 +176,28 @@ export default function AddTugasAdmin() {
     }
   };
 
+  const handleDownload = async (url, filename) => {
+    try {
+      const ext = url.split(".").pop().split("?")[0];
+      const filenameWithExt = filename.endsWith(`.${ext}`)
+        ? filename
+        : `${filename}.${ext}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filenameWithExt;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Gagal download:", err);
+      window.open(url, "_blank");
+    }
+  };
+
   // Filter assignments berdasarkan tab divisi aktif
   const activeDivision = divisions[activeTabIndex];
   const filteredAssignments = assignments.filter((a) => {
@@ -174,7 +209,9 @@ export default function AddTugasAdmin() {
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString("id-ID", {
-      day: "numeric", month: "short", year: "numeric",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -191,7 +228,6 @@ export default function AddTugasAdmin() {
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4 pb-10">
-
         {/* TOP ROW */}
         <div className="flex items-center justify-between gap-3">
           <button
@@ -206,7 +242,10 @@ export default function AddTugasAdmin() {
             </span>
             <div
               className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-              style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.2)",
+              }}
             >
               <User size={18} className="text-white/70" />
             </div>
@@ -237,7 +276,9 @@ export default function AddTugasAdmin() {
                   type="text"
                   placeholder="Input Title"
                   value={form.title}
-                  onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, title: e.target.value }))
+                  }
                   style={inputStyle}
                 />
               </div>
@@ -248,7 +289,9 @@ export default function AddTugasAdmin() {
                 <textarea
                   placeholder="Input Description"
                   value={form.description}
-                  onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, description: e.target.value }))
+                  }
                   rows={4}
                   style={{ ...inputStyle, resize: "none", lineHeight: "1.6" }}
                 />
@@ -260,7 +303,9 @@ export default function AddTugasAdmin() {
                 <div className="relative">
                   <select
                     value={form.subDivisionId}
-                    onChange={(e) => setForm((p) => ({ ...p, subDivisionId: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((p) => ({ ...p, subDivisionId: e.target.value }))
+                    }
                     className="appearance-none cursor-pointer"
                     style={{
                       ...inputStyle,
@@ -277,7 +322,10 @@ export default function AddTugasAdmin() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <ChevronDown
+                    size={14}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  />
                 </div>
               </div>
 
@@ -287,22 +335,31 @@ export default function AddTugasAdmin() {
                 <input
                   type="datetime-local"
                   value={form.dueAt}
-                  onChange={(e) => setForm((p) => ({ ...p, dueAt: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, dueAt: e.target.value }))
+                  }
                   style={{ ...inputStyle, color: form.dueAt ? "#333" : "#aaa" }}
                 />
               </div>
 
               {/* FILE OPSIONAL */}
               <div className="flex flex-col gap-1">
-                <label className={labelStyle}>File Template (opsional — PDF, DOCX, dll)</label>
+                <label className={labelStyle}>
+                  File Tugas (opsional — PDF, DOCX, dll)
+                </label>
                 <div
                   className="relative flex flex-col items-center justify-center gap-3 py-6 rounded-xl transition-all duration-200 cursor-pointer"
                   style={{
                     border: `2px dashed ${dragging ? "#7B2FBE" : "rgba(0,0,0,0.12)"}`,
-                    background: dragging ? "rgba(120,0,200,0.04)" : "rgba(0,0,0,0.02)",
+                    background: dragging
+                      ? "rgba(120,0,200,0.04)"
+                      : "rgba(0,0,0,0.02)",
                     minHeight: "100px",
                   }}
-                  onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                  }}
                   onDragLeave={() => setDragging(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current.click()}
@@ -316,14 +373,21 @@ export default function AddTugasAdmin() {
                   />
                   {form.file ? (
                     <div className="flex items-center gap-2 text-gray-600 text-xs font-medium px-4">
-                      <FileText size={16} className="text-purple-500 shrink-0" />
-                      <span className="truncate max-w-[200px]">{form.file.name}</span>
+                      <FileText
+                        size={16}
+                        className="text-purple-500 shrink-0"
+                      />
+                      <span className="truncate max-w-[200px]">
+                        {form.file.name}
+                      </span>
                     </div>
                   ) : (
                     <>
                       <div
                         className="w-9 h-9 rounded-full flex items-center justify-center"
-                        style={{ background: "linear-gradient(135deg,#7B2FBE,#501A5E)" }}
+                        style={{
+                          background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
+                        }}
                       >
                         <Upload size={16} className="text-white" />
                       </div>
@@ -335,8 +399,13 @@ export default function AddTugasAdmin() {
                   <button
                     type="button"
                     className="mt-2 md:mt-0 md:absolute md:right-4 md:bottom-4 px-4 py-1.5 rounded-full text-white text-xs font-semibold hover:brightness-110 transition-all"
-                    style={{ background: "linear-gradient(135deg,#00AA55,#007733)" }}
-                    onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }}
+                    style={{
+                      background: "linear-gradient(135deg,#00AA55,#007733)",
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current.click();
+                    }}
                   >
                     Pilih File
                   </button>
@@ -344,8 +413,14 @@ export default function AddTugasAdmin() {
               </div>
 
               {/* PESAN */}
-              {successMsg && <p className="text-green-600 text-xs text-center">{successMsg}</p>}
-              {errorMsg && <p className="text-red-500 text-xs text-center">{errorMsg}</p>}
+              {successMsg && (
+                <p className="text-green-600 text-xs text-center">
+                  {successMsg}
+                </p>
+              )}
+              {errorMsg && (
+                <p className="text-red-500 text-xs text-center">{errorMsg}</p>
+              )}
 
               {/* KIRIM */}
               <div className="flex justify-end">
@@ -388,20 +463,19 @@ export default function AddTugasAdmin() {
                             {a.title}
                           </p>
                           <p className="text-gray-400 text-[10px] mt-0.5">
-                            {a.subDivision?.name || "-"} · Deadline: {formatDate(a.dueAt)}
+                            {a.subDivision?.name || "-"} · Deadline:{" "}
+                            {formatDate(a.dueAt)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {a.fileUrl && (
-                            <a
-                              href={a.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
+                            <button
+                              onClick={() => handleDownload(a.fileUrl, a.title)}
                               className="text-purple-500 hover:text-purple-700 transition"
-                              title="Lihat file"
+                              title="Unduh file"
                             >
                               <ExternalLink size={14} />
-                            </a>
+                            </button>
                           )}
                           <button
                             onClick={() => handleDelete(a.id)}

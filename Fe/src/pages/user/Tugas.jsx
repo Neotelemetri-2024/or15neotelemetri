@@ -12,8 +12,18 @@ import logoSkj from "../../assets/images/logo_Skj.svg";
 const getLogoByDivisionName = (name = "") => {
   const lower = name.toLowerCase();
   if (lower.includes("programming")) return logoProgramming;
-  if (lower.includes("multimedia") || lower.includes("mmd") || lower.includes("desain")) return logoMmd;
-  if (lower.includes("sistem") || lower.includes("jaringan") || lower.includes("skj")) return logoSkj;
+  if (
+    lower.includes("multimedia") ||
+    lower.includes("mmd") ||
+    lower.includes("desain")
+  )
+    return logoMmd;
+  if (
+    lower.includes("sistem") ||
+    lower.includes("jaringan") ||
+    lower.includes("skj")
+  )
+    return logoSkj;
   return logoProgramming;
 };
 
@@ -27,6 +37,28 @@ export default function Tugas() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Tambah fungsi setelah useState declarations
+  const handleDownload = async (url, filename) => {
+    try {
+      const ext = url.split(".").pop().split("?")[0];
+      const filenameWithExt = filename.endsWith(`.${ext}`)
+        ? filename
+        : `${filename}.${ext}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filenameWithExt;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error("Gagal download:", err);
+      window.open(url, "_blank");
+    }
+  };
   useEffect(() => {
     const init = async () => {
       try {
@@ -41,7 +73,7 @@ export default function Tugas() {
         if (err.response?.status === 403) {
           setErrorMsg(
             err.response.data?.message ||
-            "Kamu harus menyelesaikan ujian terlebih dahulu untuk mengakses tugas."
+              "Kamu harus menyelesaikan ujian terlebih dahulu untuk mengakses tugas.",
           );
         } else {
           setErrorMsg("Gagal memuat tugas.");
@@ -55,16 +87,20 @@ export default function Tugas() {
 
   const toggle = (id) => setOpenId((prev) => (prev === id ? null : id));
 
-  const divisionName = profile?.division?.name || profile?.subDivision?.division?.name || "";
-  const subDivName   = profile?.subDivision?.name || "-";
-  const logo         = getLogoByDivisionName(divisionName);
+  const divisionName =
+    profile?.division?.name || profile?.subDivision?.division?.name || "";
+  const subDivName = profile?.subDivision?.name || "-";
+  const logo = getLogoByDivisionName(divisionName);
 
   // Format deadline
   const formatDeadline = (dateStr) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleString("id-ID", {
-      day: "numeric", month: "long", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -85,7 +121,6 @@ export default function Tugas() {
   return (
     <UserLayout>
       <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
-
         {/* TITLE */}
         <h1 className="text-white text-lg md:text-xl font-bold">
           Tugas OR 15 Neotelemetri XV
@@ -99,7 +134,9 @@ export default function Tugas() {
             className="w-10 h-10 object-contain shrink-0"
           />
           <div>
-            <p className="text-white text-sm font-semibold">{divisionName || "Divisi"}</p>
+            <p className="text-white text-sm font-semibold">
+              {divisionName || "Divisi"}
+            </p>
             <p className="text-white/50 text-xs">{subDivName}</p>
           </div>
         </div>
@@ -130,13 +167,16 @@ export default function Tugas() {
                 const submitted = isSubmitted(tugas);
 
                 return (
-                  <div key={tugas.id} className="flex flex-col rounded-[24px] overflow-hidden">
-
+                  <div
+                    key={tugas.id}
+                    className="flex flex-col rounded-[24px] overflow-hidden"
+                  >
                     {/* HEADER CARD */}
                     <div
                       className="flex flex-col px-5 py-4 gap-3"
                       style={{
-                        background: "linear-gradient(90deg, #FF00FF 0%, #CC00CC 50%, #990099 100%)",
+                        background:
+                          "linear-gradient(90deg, #FF00FF 0%, #CC00CC 50%, #990099 100%)",
                         boxShadow: "0 4px 24px rgba(255,0,255,0.40)",
                       }}
                     >
@@ -184,9 +224,13 @@ export default function Tugas() {
                           }}
                         >
                           {isOpen ? (
-                            <><ChevronUp size={12} /> Tutup</>
+                            <>
+                              <ChevronUp size={12} /> Tutup
+                            </>
                           ) : (
-                            <><ChevronDown size={12} /> Lihat</>
+                            <>
+                              <ChevronDown size={12} /> Lihat
+                            </>
                           )}
                         </button>
                       </div>
@@ -225,21 +269,22 @@ export default function Tugas() {
                         {tugas.fileUrl && (
                           <div>
                             <p className="text-gray-700 font-semibold text-sm mb-1">
-                              File Template :
+                              File Tugas :
                             </p>
-                            <a
-                              href={tugas.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
+                            <button
+                              onClick={() =>
+                                handleDownload(tugas.fileUrl, tugas.title)
+                              }
                               className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-xs font-semibold transition-all hover:brightness-110"
                               style={{
-                                background: "linear-gradient(135deg,#0077CC,#004499)",
+                                background:
+                                  "linear-gradient(135deg,#0077CC,#004499)",
                                 boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
                               }}
                             >
                               <ExternalLink size={12} />
                               Download Template
-                            </a>
+                            </button>
                           </div>
                         )}
 
@@ -252,9 +297,13 @@ export default function Tugas() {
                               border: "1px solid rgba(34,197,94,0.2)",
                             }}
                           >
-                            <span className="text-gray-600 text-sm">Nilai kamu:</span>
+                            <span className="text-gray-600 text-sm">
+                              Nilai kamu:
+                            </span>
                             <span className="text-green-600 font-bold text-base">
-                              {parseFloat(tugas.submissions[0].score).toFixed(1)}
+                              {parseFloat(tugas.submissions[0].score).toFixed(
+                                1,
+                              )}
                             </span>
                           </div>
                         )}
@@ -262,17 +311,21 @@ export default function Tugas() {
                         {/* TOMBOL KUMPULKAN */}
                         <div className="flex justify-end">
                           <button
-                            onClick={() => navigate("/pengumpulan", {
-                              state: {
-                                assignmentId: tugas.id,
-                                title: tugas.title,
-                                deadline: formatDeadline(tugas.dueAt),
-                                existingSubmission: tugas.submissions?.[0] || null,
-                              }
-                            })}
+                            onClick={() =>
+                              navigate("/pengumpulan", {
+                                state: {
+                                  assignmentId: tugas.id,
+                                  title: tugas.title,
+                                  deadline: formatDeadline(tugas.dueAt),
+                                  existingSubmission:
+                                    tugas.submissions?.[0] || null,
+                                },
+                              })
+                            }
                             className="px-7 py-[10px] rounded-full text-white text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(120,0,200,0.4)]"
                             style={{
-                              background: "linear-gradient(135deg, #7B2FBE 0%, #501A5E 100%)",
+                              background:
+                                "linear-gradient(135deg, #7B2FBE 0%, #501A5E 100%)",
                               boxShadow: "0 3px 16px rgba(120,0,200,0.30)",
                             }}
                           >

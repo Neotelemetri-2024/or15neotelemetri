@@ -505,8 +505,7 @@ export default function UjianAdmin() {
               </label>
             </div>
 
-            {/* TAMBAH SOAL SEBELUM SIMPAN */}
-            <QuestionForm onAdd={handleAddPendingQuestion} />
+            
 
             {/* LIST SOAL PENDING */}
             {pendingQuestions.length > 0 && (
