@@ -8,9 +8,21 @@ import {
   getDivisionsByDepartment,
   getSubDivisionsByDivision,
 } from "../../services/userServices";
+import api from "../../components/api/axios";
+
+const getAllVerifications = () => api.get("/verification/admin/list");
+const getAllPayments = () => api.get("/payments");
+const getAllAssignments = () => api.get("/assignments");
 
 const ROWS_PER_PAGE = 10;
-const columns = ["Nama", "NIM", "Email", "No. WA", "Program Studi", "Sub Divisi"];
+const columns = [
+  "Nama",
+  "NIM",
+  "Email",
+  "No. WA",
+  "Program Studi",
+  "Sub Divisi",
+];
 
 export default function DashboardAdmin() {
   const [search, setSearch] = useState("");
@@ -20,40 +32,68 @@ export default function DashboardAdmin() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    { label: "Total Pendaftar", value: "-" },
+    { label: "Lulus Verifikasi", value: "-" },
+    { label: "Sudah Bayar", value: "-" },
+    { label: "Tugas Masuk", value: "-" },
+  ]);
 
   // Nama admin dari localStorage
   const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
-
-  // ── STATS dihitung dari data users ──────────────────────────────
-  const totalPendaftar = users.filter((u) => u.role === "USER").length;
-  const lulusVerifikasi = users.filter(
-    (u) => u.submissionVerifications?.some?.((v) => v.status === "APPROVED")
-  ).length;
-  const sudahBayar = users.filter(
-    (u) => u.payments?.some?.((p) => p.status === "PAID")
-  ).length;
-
-  const stats = [
-    { label: "Total Pendaftar", value: totalPendaftar },
-    { label: "Lulus Verifikasi", value: lulusVerifikasi },
-    { label: "Sudah Bayar", value: sudahBayar },
-    { label: "Tugas Masuk", value: "-" }, // perlu endpoint terpisah
-  ];
 
   // ── FETCH DATA ──────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       try {
-        const [usersRes, deptRes] = await Promise.all([
-          getAllUsers(),
-          getDepartments(),
-        ]);
+        const [usersRes, deptRes, verifRes, paymentsRes, assignmentsRes] =
+          await Promise.all([
+            getAllUsers(),
+            getDepartments(),
+            getAllVerifications().catch(() => ({ data: [] })),
+            getAllPayments().catch(() => ({ data: [] })),
+            getAllAssignments().catch(() => ({ data: [] })),
+          ]);
 
-        setUsers(usersRes.data);
+        const allUsers = usersRes.data;
+        setUsers(allUsers);
+
+        // ── HITUNG STATS GLOBAL ────────────────────────────────
+        const totalPendaftar = allUsers.filter((u) => u.role === "USER").length;
+        // ✅ Hitung APPROVED dari submission unik per user (submission terbaru)
+        const latestVerifPerUser = Object.values(
+          verifRes.data.reduce((acc, v) => {
+            if (
+              !acc[v.userId] ||
+              new Date(v.createdAt) > new Date(acc[v.userId].createdAt)
+            ) {
+              acc[v.userId] = v;
+            }
+            return acc;
+          }, {}),
+        );
+        const lulusVerifikasi = latestVerifPerUser.filter(
+          (v) => v.status === "APPROVED",
+        ).length;
+        const sudahBayar = paymentsRes.data.filter(
+          (p) => p.status === "APPROVED" || p.status === "PAID",
+        ).length;
+        // Hitung total submission dari semua assignment
+        const tugasMasuk = assignmentsRes.data.reduce(
+          (acc, a) => acc + (a._count?.submissions || 0),
+          0,
+        );
+
+        setStats([
+          { label: "Total Pendaftar", value: totalPendaftar },
+          { label: "Lulus Verifikasi", value: lulusVerifikasi },
+          { label: "Sudah Bayar", value: sudahBayar },
+          { label: "Tugas Masuk", value: tugasMasuk },
+        ]);
 
         // Cari department Operasional
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
 
         if (opDept) {
@@ -67,7 +107,7 @@ export default function DashboardAdmin() {
             divList.map(async (div) => {
               const subRes = await getSubDivisionsByDivision(div.id);
               subMap[div.id] = subRes.data;
-            })
+            }),
           );
           setSubDivisionMap(subMap);
         }
@@ -125,7 +165,7 @@ export default function DashboardAdmin() {
   const totalPages = Math.ceil(sortedUsers.length / ROWS_PER_PAGE);
   const paginatedUsers = sortedUsers.slice(
     (currentPage - 1) * ROWS_PER_PAGE,
-    currentPage * ROWS_PER_PAGE
+    currentPage * ROWS_PER_PAGE,
   );
 
   // Reset ke halaman 1 saat tab atau search berubah
@@ -162,7 +202,6 @@ export default function DashboardAdmin() {
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
-
         {/* TOP RIGHT — nama admin */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -192,8 +231,12 @@ export default function DashboardAdmin() {
                 WebkitBackdropFilter: "blur(12px)",
               }}
             >
-              <span className="text-white font-bold text-2xl lg:text-3xl">{s.value}</span>
-              <span className="text-white/60 text-xs text-center px-2">{s.label}</span>
+              <span className="text-white font-bold text-2xl lg:text-3xl">
+                {s.value}
+              </span>
+              <span className="text-white/60 text-xs text-center px-2">
+                {s.label}
+              </span>
             </div>
           ))}
         </div>
@@ -207,7 +250,6 @@ export default function DashboardAdmin() {
               onChange={handleTabChange}
             >
               <div className="rounded-b-2xl overflow-hidden flex flex-col bg-white">
-
                 {/* FILTER + SEARCH */}
                 <div className="flex items-center gap-3 p-4">
                   <button
@@ -243,7 +285,9 @@ export default function DashboardAdmin() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm min-w-[540px]">
                     <thead>
-                      <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
+                      <tr
+                        style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                      >
                         {columns.map((col) => (
                           <th
                             key={col}
@@ -290,7 +334,10 @@ export default function DashboardAdmin() {
 
                       {paginatedUsers.length === 0 && (
                         <tr>
-                          <td colSpan={6} className="text-center py-10 text-gray-400 text-sm">
+                          <td
+                            colSpan={6}
+                            className="text-center py-10 text-gray-400 text-sm"
+                          >
                             {search
                               ? "Tidak ada data yang cocok dengan pencarian."
                               : "Belum ada pendaftar di divisi ini."}
@@ -306,12 +353,17 @@ export default function DashboardAdmin() {
                   <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
                     <span className="text-xs text-gray-400">
                       Menampilkan {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                      {Math.min(currentPage * ROWS_PER_PAGE, filteredUsers.length)} dari{" "}
-                      {sortedUsers.length} pendaftar
+                      {Math.min(
+                        currentPage * ROWS_PER_PAGE,
+                        filteredUsers.length,
+                      )}{" "}
+                      dari {sortedUsers.length} pendaftar
                     </span>
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(p - 1, 1))
+                        }
                         disabled={currentPage === 1}
                         className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
                         style={{ borderColor: "rgba(0,0,0,0.1)" }}
@@ -320,10 +372,11 @@ export default function DashboardAdmin() {
                       </button>
 
                       {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter((p) =>
-                          p === 1 ||
-                          p === totalPages ||
-                          Math.abs(p - currentPage) <= 1
+                        .filter(
+                          (p) =>
+                            p === 1 ||
+                            p === totalPages ||
+                            Math.abs(p - currentPage) <= 1,
                         )
                         .reduce((acc, p, idx, arr) => {
                           if (idx > 0 && p - arr[idx - 1] > 1) {
@@ -334,7 +387,10 @@ export default function DashboardAdmin() {
                         }, [])
                         .map((p, idx) =>
                           p === "..." ? (
-                            <span key={`dot-${idx}`} className="px-2 text-xs text-gray-400">
+                            <span
+                              key={`dot-${idx}`}
+                              className="px-2 text-xs text-gray-400"
+                            >
                               ...
                             </span>
                           ) : (
@@ -354,11 +410,13 @@ export default function DashboardAdmin() {
                             >
                               {p}
                             </button>
-                          )
+                          ),
                         )}
 
                       <button
-                        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(p + 1, totalPages))
+                        }
                         disabled={currentPage === totalPages}
                         className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
                         style={{ borderColor: "rgba(0,0,0,0.1)" }}
@@ -368,7 +426,6 @@ export default function DashboardAdmin() {
                     </div>
                   </div>
                 )}
-
               </div>
             </DivisionTabs>
           </div>

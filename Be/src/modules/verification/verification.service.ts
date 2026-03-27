@@ -72,7 +72,13 @@ export class VerificationService {
   ) {
     // Cek pendaftaran aktif (PENDING)
     const submission = await this.prisma.submissionVerification.findFirst({
-      where: { userId, status: VerificationStatus.PENDING },
+      where: {
+        userId,
+        status: {
+          in: [VerificationStatus.PENDING, VerificationStatus.REJECTED],
+        },
+      },
+      orderBy: { createdAt: 'desc' },
     });
 
     const data: any = {
