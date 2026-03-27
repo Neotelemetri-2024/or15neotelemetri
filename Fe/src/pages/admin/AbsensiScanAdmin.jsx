@@ -332,13 +332,7 @@ export default function ScanAbsensiAdmin() {
             className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors">
             <ArrowLeft size={16} /> Back
           </button>
-          <div className="flex items-center gap-3">
-            <span className="text-white font-semibold text-sm">NamaUser</span>
-            <div className="w-10 h-10 rounded-md flex items-center justify-center"
-              style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}>
-              <User size={18} className="text-white/70" />
-            </div>
-          </div>
+          
         </div>
 
         {/* ACTIVITY */}
@@ -372,7 +366,7 @@ export default function ScanAbsensiAdmin() {
               onClick={() => { setActiveTab(tab); if (tab !== "scan") setCameraOn(false); }}
               className="px-5 py-2 rounded-full text-xs font-semibold transition-all"
               style={activeTab === tab
-                ? { background: "#FF00FF", color: "white" }
+                ? { background: "#6E3FBF", color: "white" }
                 : { background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
               {tab === "scan" ? "Scan QR" : "Daftar Hadir"}
             </button>
@@ -392,7 +386,7 @@ export default function ScanAbsensiAdmin() {
             {/* Toggle */}
             <button onClick={() => setCameraOn((v) => !v)}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-80 active:scale-95"
-              style={{ background: cameraOn ? "#6b7280" : "#FF00FF" }}>
+              style={{ background: cameraOn ? "#6b7280" : "#6E3FBF" }}>
               {cameraOn ? <><CameraOff size={16} /> Matikan Kamera</> : <><Camera size={16} /> Aktifkan Kamera</>}
             </button>
 

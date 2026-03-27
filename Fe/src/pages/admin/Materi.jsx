@@ -24,6 +24,7 @@ export default function MateriAdmin() {
   const [subDivisionMap, setSubDivisionMap] = useState({});
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [deleteModuleId, setDeleteModuleId] = useState(null);
 
   // ── FETCH ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -62,13 +63,20 @@ export default function MateriAdmin() {
   }, []);
 
   // ── HAPUS ──────────────────────────────────────────────────────
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin hapus materi ini?")) return;
+  const handleDelete = async () => {
+    if (!deleteModuleId) return;
+
     try {
-      await deleteModule(id);
-      setModules((p) => p.filter((m) => m.id !== id));
+      await deleteModule(deleteModuleId);
+
+      setModules((p) => p.filter((m) => m.id !== deleteModuleId));
+
+      
     } catch (err) {
       console.error("Gagal hapus materi:", err);
+      
+    } finally {
+      setDeleteModuleId(null);
     }
   };
 
@@ -254,7 +262,10 @@ export default function MateriAdmin() {
                         <td className="p-5">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleDelete(m.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteModuleId(m.id);
+                              }}
                               className="px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
                               style={{
                                 background:
@@ -286,6 +297,34 @@ export default function MateriAdmin() {
           </DivisionTabs>
         </div>
       </div>
+      {deleteModuleId && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-xl animate-fade-in">
+            <h2 className="text-lg font-bold text-gray-800">Hapus Materi?</h2>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Materi yang dihapus tidak dapat dikembalikan.
+            </p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setDeleteModuleId(null)}
+                className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-500 hover:bg-gray-300"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-full text-sm font-semibold text-white"
+                style={{ background: "#DC2626" }}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

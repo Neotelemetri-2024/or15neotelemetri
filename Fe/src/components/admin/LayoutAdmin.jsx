@@ -19,18 +19,48 @@ import {
   ChevronDown,
   ChevronRight,
   PlusSquare,
+  History,
+  Layers
 } from "lucide-react";
 
 const menuItems = [
-  { to: "/admin/dashboard", icon: <LayoutDashboard size={18} />, label: "Dashboard" },
-  { to: "/admin/verifikasi", icon: <ShieldCheck size={18} />, label: "Verifikasi" },
-  { to: "/admin/pembayaran", icon: <CreditCard size={18} />, label: "Pembayaran" },
+  {
+    to: "/admin/dashboard",
+    icon: <LayoutDashboard size={18} />,
+    label: "Dashboard",
+    children: [
+      {
+        to: "/admin/division",
+        icon: <Layers size={16} />,
+        label: "Division",
+      },
+      {
+        to: "/admin/timeline",
+        icon: <History size={16} />,
+        label: "Timeline",
+      },
+    ],
+  },
+  {
+    to: "/admin/verifikasi",
+    icon: <ShieldCheck size={18} />,
+    label: "Verifikasi",
+  },
+  {
+    to: "/admin/pembayaran",
+    icon: <CreditCard size={18} />,
+    label: "Pembayaran",
+  },
   {
     to: "/admin/ujian",
     icon: <FileText size={18} />,
     label: "Ujian",
     children: [
-      { to: "/admin/pengumpulanujian", icon: <ClipboardList size={16} />, label: "Pengumpulan" },
+      {
+        to: "/admin/pengumpulanujian",
+        icon: <ClipboardList size={16} />,
+        label: "Pengumpulan",
+      },
     ],
   },
   {
@@ -38,7 +68,11 @@ const menuItems = [
     icon: <CalendarCheck size={18} />,
     label: "List Absensi",
     children: [
-      { to: "/admin/absensi", icon: <CalendarCheck size={16} />, label: "Absen" },
+      {
+        to: "/admin/absensi",
+        icon: <CalendarCheck size={16} />,
+        label: "Absen",
+      },
     ],
   },
   {
@@ -46,7 +80,11 @@ const menuItems = [
     icon: <BookOpen size={18} />,
     label: "Materi",
     children: [
-      { to: "/admin/materi/add", icon: <PlusSquare size={16} />, label: "Tambah Materi" },
+      {
+        to: "/admin/materi/add",
+        icon: <PlusSquare size={16} />,
+        label: "Tambah Materi",
+      },
     ],
   },
   {
@@ -54,8 +92,16 @@ const menuItems = [
     icon: <ListTodo size={18} />,
     label: "Tugas",
     children: [
-      { to: "/admin/kumpultugas", icon: <PackageCheck size={16} />, label: "Pengumpulan" },
-      { to: "/admin/tugas/add", icon: <PlusSquare size={16} />, label: "Tambah Tugas" },
+      {
+        to: "/admin/kumpultugas",
+        icon: <PackageCheck size={16} />,
+        label: "Pengumpulan",
+      },
+      {
+        to: "/admin/tugas/add",
+        icon: <PlusSquare size={16} />,
+        label: "Tambah Tugas",
+      },
     ],
   },
 ];
@@ -65,9 +111,11 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
   const hasChildren = item.children && item.children.length > 0;
 
   const isChildActive =
-    hasChildren && item.children.some((child) => location.pathname.startsWith(child.to));
+    hasChildren &&
+    item.children.some((child) => location.pathname.startsWith(child.to));
   const isParentActive =
-    location.pathname === item.to || location.pathname.startsWith(item.to + "/");
+    location.pathname === item.to ||
+    location.pathname.startsWith(item.to + "/");
 
   const [expanded, setExpanded] = useState(isChildActive || isParentActive);
 
@@ -85,9 +133,10 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
           end
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200 flex-1
-            ${isActive || isChildActive
-              ? "bg-white/20 text-white font-semibold"
-              : "text-white/70 hover:bg-white/10 hover:text-white"
+            ${
+              isActive || isChildActive
+                ? "bg-white/20 text-white font-semibold"
+                : "text-white/70 hover:bg-white/10 hover:text-white"
             }`
           }
         >
@@ -113,9 +162,10 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
               to={child.to}
               className={({ isActive }) =>
                 `flex items-center gap-2 px-2 py-2 text-xs rounded-md transition-all duration-200
-                ${isActive
-                  ? "bg-white/20 text-white font-semibold"
-                  : "text-white/60 hover:bg-white/10 hover:text-white"
+                ${
+                  isActive
+                    ? "bg-white/20 text-white font-semibold"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`
               }
             >
@@ -151,14 +201,29 @@ export default function AdminLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-[#1a0023] text-white overflow-hidden relative">
       {/* BACKGROUND */}
-      <img src={circlePurple} alt="" className="absolute -top-20 left-1/3 w-[300px] pointer-events-none" />
-      <img src={circlePurple} alt="" className="absolute -bottom-20 left-1/4 pointer-events-none" />
-      <img src={circlePurple} alt="" className="absolute top-1/3 -right-10 pointer-events-none" />
+      <img
+        src={circlePurple}
+        alt=""
+        className="absolute -top-30 left-1/4 w-[250px] pointer-events-none"
+      />
+      <img
+        src={circlePurple}
+        alt=""
+        className="absolute -bottom-20 left-1/4 pointer-events-none"
+      />
+      <img
+        src={circlePurple}
+        alt=""
+        className="absolute top-1/3 -right-10 pointer-events-none"
+      />
       <div className="absolute -bottom-40 -right-40 w-[300px] h-[300px] bg-[#01FFFF] blur-[80px] rounded-full pointer-events-none" />
 
       {/* OVERLAY — mobile only */}
       {isMobile && isMobileOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[25]" onClick={() => setIsMobileOpen(false)} />
+        <div
+          className="fixed inset-0 bg-black/60 z-[25]"
+          onClick={() => setIsMobileOpen(false)}
+        />
       )}
 
       {/* SIDEBAR */}
@@ -169,9 +234,14 @@ export default function AdminLayout({ children }) {
           fixed top-0 left-0 h-screen bg-[#501A5E]
           flex flex-col justify-between py-6 px-3
           transition-all duration-300 z-[30]
-          ${!isMobile
-            ? isHovering ? "w-[240px]" : "w-[72px]"
-            : isMobileOpen ? "w-[240px] translate-x-0" : "-translate-x-full w-[240px]"
+          ${
+            !isMobile
+              ? isHovering
+                ? "w-[240px]"
+                : "w-[72px]"
+              : isMobileOpen
+                ? "w-[240px] translate-x-0"
+                : "-translate-x-full w-[240px]"
           }
         `}
       >
@@ -179,7 +249,11 @@ export default function AdminLayout({ children }) {
         <div className="overflow-hidden overflow-y-auto flex-1 flex flex-col">
           <div className="mb-8 flex justify-center items-center min-h-[40px]">
             {!isMobile && !isHovering ? (
-              <img src={logoORWhite} alt="logo" className="w-[32px] h-[32px] object-contain" />
+              <img
+                src={logoORWhite}
+                alt="logo"
+                className="w-[32px] h-[32px] object-contain"
+              />
             ) : (
               <img src={logoORWhite} alt="logo" className="w-[140px]" />
             )}

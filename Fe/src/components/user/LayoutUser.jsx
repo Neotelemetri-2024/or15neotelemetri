@@ -50,7 +50,7 @@ export default function UserLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-[#1a0023] text-white relative overflow-hidden">
       {/* BACKGROUND */}
-      <img src={circlePurple} alt="" className="absolute -top-20 left-1/3 w-[300px] pointer-events-none" />
+      <img src={circlePurple} alt="" className="absolute -top-30 left-1/4 w-[250px] pointer-events-none" />
       <img src={circlePurple} alt="" className="absolute -bottom-20 left-1/4 pointer-events-none" />
       <img src={circlePurple} alt="" className="absolute top-1/3 -right-10 pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-[300px] h-[300px] bg-[#01FFFF] blur-[80px] rounded-full pointer-events-none" />

@@ -9,7 +9,7 @@ export const operasional = [
     subDivisions: [
       { title: "UI/UX", desc: "Sub divisi ini  mempelajari konsep dalam desain digital yang bertujuan membuat tampilan dan pengalaman pengguna menjadi nyaman saat menggunakan aplikasi atau website." },
       { title: "Video Editing", desc: "Sub divisi ini mempelajari  proses pengolahan dan penyusunan rekaman video seperti transisi, alur cerita, efek dan penyempurnaan warna untuk menghasilkan konten yang terstruktur dan berkualitas. " },
-      { title: "Desain Grafis", desc: "Sub divisi ini mempelajari proses komunikasi visual yang menggunakan elemen seperti gambar, warna, tipografi, dan tata letak untuk menyampaikan pesan secara efektif,  informatif, menarik, dan mudah dipahami oleh audiens." }
+      { title: "Desain Grafis", desc: "Sub divisi 3D adalah bagian yang berfokus pada pembuatan dan pengolahan objek visual tiga dimensi yang memiliki panjang, lebar, dan tinggi untuk menghasilkan tampilan yang lebih realistis dan menarik." }
     ]
   },
   {
@@ -38,7 +38,7 @@ export const organisasi = [
       { title: "Organizing Committe", desc: "OC berperan dalam perencanaan dan pelaksanaan acara atau kegiatan Neo Telemetri. Anggota akan belajar bagaimana mengatur timeline, menyusun konsep acara, serta memastikan setiap kegiatan berjalan dengan lancar." },
       { title: "Public Relation", desc: "Divisi ini berperan sebagai jembatan komunikasi antara Neo Telemetri dengan pihak eksternal maupun internal. Anggota PR akan belajar cara membangun citra positif organisasi melalui media sosial, publikasi, serta relasi dengan komunitas dan mitra eksternal." },
       { title: "Marketing", desc: "Divisi ini berfokus pada strategi pemasaran digital untuk produk Neo Telemetri serta pengelolaan proyek yang masuk. Anggota akan belajar bagaimana menyusun strategi promosi, mengelola brand produk Neo, serta memastikan proyek yang masuk dapat berjalan dengan optimal." },
-      { title: "Human Resource Development", desc: "HRD bertanggung jawab atas pengembangan anggota Neo Telemetri. Subdivisi ini berfokus pada rekrutmen, pelatihan, serta peningkatan soft skill dan teamwork, sehingga setiap anggota dapat berkembang secara profesional dan pribadi dalam organisasi." }
+      { title: "Human Resource Development", desc: "HRD bertanggung jawab atas pengelolaan dan pengembangan anggota Neo Telemetri. Subdivisi ini berfokus pada rekrutmen, pelatihan, serta peningkatan soft skill dan teamwork, sehingga setiap anggota dapat berkembang secara profesional dan pribadi dalam organisasi." }
     ]
   }
 ];

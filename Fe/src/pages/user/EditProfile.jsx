@@ -23,7 +23,14 @@ const inputStyle = {
 
 const labelStyle = "text-white/70 text-xs mb-1 block";
 
-function InputField({ label, placeholder, value, onChange, type = "text", readOnly = false }) {
+function InputField({
+  label,
+  placeholder,
+  value,
+  onChange,
+  type = "text",
+  readOnly = false,
+}) {
   return (
     <div className="flex flex-col gap-1">
       <label className={labelStyle}>{label}</label>
@@ -42,7 +49,10 @@ function InputField({ label, placeholder, value, onChange, type = "text", readOn
           }}
         />
         {!readOnly && (
-          <Pencil size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <Pencil
+            size={13}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30"
+          />
         )}
       </div>
     </div>
@@ -50,7 +60,14 @@ function InputField({ label, placeholder, value, onChange, type = "text", readOn
 }
 
 // options: [{ id, name }]
-function SelectField({ label, options, value, onChange, disabled = false, placeholder = "Pilih" }) {
+function SelectField({
+  label,
+  options,
+  value,
+  onChange,
+  disabled = false,
+  placeholder = "Pilih",
+}) {
   return (
     <div className="flex flex-col gap-1">
       <label className={labelStyle}>{label}</label>
@@ -71,12 +88,19 @@ function SelectField({ label, options, value, onChange, disabled = false, placeh
             {placeholder}
           </option>
           {options.map((opt) => (
-            <option key={opt.id} value={opt.id} style={{ background: "#2d0045", color: "white" }}>
+            <option
+              key={opt.id}
+              value={opt.id}
+              style={{ background: "#2d0045", color: "white" }}
+            >
               {opt.name}
             </option>
           ))}
         </select>
-        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+        <ChevronDown
+          size={14}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
+        />
       </div>
     </div>
   );
@@ -126,7 +150,7 @@ export default function EditProfile() {
 
         // Cari department Operasional
         const opDept = depts.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           setOperasionalDeptId(opDept.id);
@@ -159,7 +183,6 @@ export default function EditProfile() {
           subDivisionId: p.subDivisionId || "",
           linkTwibbon: verif?.twibbonLink || "",
         });
-
       } catch (err) {
         console.error("Gagal load profile:", err);
         setErrorMsg("Gagal memuat data profil.");
@@ -187,9 +210,20 @@ export default function EditProfile() {
   };
 
   // ── HANDLER: ganti avatar ────────────────────────────────────────
+  const MAX_SIZE = 5 * 1024 * 1024;
+
+  
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    if (file.size > MAX_SIZE) {
+      setErrorMsg("Ukuran avatar maksimal 5MB");
+      return;
+    }
+
+    setErrorMsg("");
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
   };
@@ -199,6 +233,12 @@ export default function EditProfile() {
     setSaving(true);
     setSuccessMsg("");
     setErrorMsg("");
+    if (avatarFile && avatarFile.size > MAX_SIZE) {
+      setErrorMsg("Ukuran avatar maksimal 5MB");
+      setSaving(false);
+      return;
+    }
+
     try {
       // 1. Upload avatar jika ada file baru
       if (avatarFile) {
@@ -242,7 +282,9 @@ export default function EditProfile() {
     return (
       <UserLayout>
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-white/60 text-sm animate-pulse">Memuat profil...</p>
+          <p className="text-white/60 text-sm animate-pulse">
+            Memuat profil...
+          </p>
         </div>
       </UserLayout>
     );
@@ -251,9 +293,10 @@ export default function EditProfile() {
   return (
     <UserLayout>
       <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
-
         {/* TITLE */}
-        <h1 className="text-white text-lg md:text-xl font-bold">Edit Profile</h1>
+        <h1 className="text-white text-lg md:text-xl font-bold">
+          Edit Profile
+        </h1>
 
         {/* AVATAR */}
         <div className="flex justify-center">
@@ -266,7 +309,11 @@ export default function EditProfile() {
               }}
             >
               {avatarPreview ? (
-                <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+                <img
+                  src={avatarPreview}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <User size={44} className="text-white/60" />
               )}
@@ -294,7 +341,6 @@ export default function EditProfile() {
 
         {/* FORM */}
         <div className="flex flex-col gap-4">
-
           {/* ROW 1 — Nama & Panggilan */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
@@ -313,8 +359,19 @@ export default function EditProfile() {
 
           {/* ROW 2 — NIM & Email (readonly) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField label="NIM" placeholder="NIM" value={form.nim} readOnly />
-            <InputField label="Email" placeholder="Email" value={form.email} type="email" readOnly />
+            <InputField
+              label="NIM"
+              placeholder="NIM"
+              value={form.nim}
+              readOnly
+            />
+            <InputField
+              label="Email"
+              placeholder="Email"
+              value={form.email}
+              type="email"
+              readOnly
+            />
           </div>
 
           {/* ROW 3 — No WA & Program Studi */}
@@ -344,10 +401,14 @@ export default function EditProfile() {
             />
             <SelectField
               label="Sub Divisi"
-              placeholder={form.divisionId ? "Pilih Sub Divisi" : "Pilih Divisi dulu"}
+              placeholder={
+                form.divisionId ? "Pilih Sub Divisi" : "Pilih Divisi dulu"
+              }
               options={subDivisions}
               value={form.subDivisionId}
-              onChange={(e) => setForm((prev) => ({ ...prev, subDivisionId: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, subDivisionId: e.target.value }))
+              }
               disabled={subDivisions.length === 0}
             />
           </div>

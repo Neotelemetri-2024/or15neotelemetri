@@ -56,15 +56,7 @@ export default function ListAbsensiAdmin() {
         {/* TOP RIGHT */}
         <div className="flex justify-between items-center gap-3">
           <h1 className="text-white font-bold text-lg">Absensi</h1>
-          <div className="flex items-center gap-3">
-            <span className="text-white font-semibold text-sm">NamaUser</span>
-            <div
-              className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-              style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
-            >
-              <User size={18} className="text-white/70" />
-            </div>
-          </div>
+          
         </div>
 
         {/* CARD */}
@@ -82,7 +74,7 @@ export default function ListAbsensiAdmin() {
             <button
               onClick={() => navigate("/admin/addabsensi")}
               className="flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-semibold transition-all hover:brightness-110"
-              style={{ background: "#FF00FF" }}
+              style={{ background: "#6E3FBF" }}
             >
               <Plus size={13} />
               Add List Absen

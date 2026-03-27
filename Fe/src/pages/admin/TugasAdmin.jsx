@@ -11,9 +11,17 @@ import {
 import api from "../../components/api/axios";
 
 const getAllAssignments = () => api.get("/assignments");
-const deleteAssignment  = (id) => api.delete(`/assignments/${id}`);
+const deleteAssignment = (id) => api.delete(`/assignments/${id}`);
 
-const columns = ["No", "Title", "Description", "Sub Divisi", "Deadline", "Submitted", "Action"];
+const columns = [
+  "No",
+  "Title",
+  "Description",
+  "Sub Divisi",
+  "Deadline",
+  "Submitted",
+  "Action",
+];
 
 export default function TugasAdmin() {
   const navigate = useNavigate();
@@ -24,6 +32,7 @@ export default function TugasAdmin() {
   const [subDivisionMap, setSubDivisionMap] = useState({});
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [deleteAssignmentId, setDeleteAssignmentId] = useState(null);
 
   // ── FETCH ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -36,7 +45,7 @@ export default function TugasAdmin() {
         setAssignments(assignmentsRes.data);
 
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           const divRes = await getDivisionsByDepartment(opDept.id);
@@ -48,7 +57,7 @@ export default function TugasAdmin() {
             divList.map(async (div) => {
               const subRes = await getSubDivisionsByDivision(div.id);
               subMap[div.id] = subRes.data;
-            })
+            }),
           );
           setSubDivisionMap(subMap);
         }
@@ -62,13 +71,17 @@ export default function TugasAdmin() {
   }, []);
 
   // ── HAPUS ──────────────────────────────────────────────────────
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin hapus tugas ini?")) return;
+  const handleDelete = async () => {
+    if (!deleteAssignmentId) return;
+
     try {
-      await deleteAssignment(id);
-      setAssignments((p) => p.filter((a) => a.id !== id));
+      await deleteAssignment(deleteAssignmentId);
+
+      setAssignments((p) => p.filter((a) => a.id !== deleteAssignmentId));
     } catch (err) {
       console.error("Gagal hapus tugas:", err);
+    } finally {
+      setDeleteAssignmentId(null);
     }
   };
 
@@ -87,7 +100,9 @@ export default function TugasAdmin() {
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString("id-ID", {
-      day: "numeric", month: "short", year: "numeric",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -104,7 +119,6 @@ export default function TugasAdmin() {
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
-
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -112,7 +126,10 @@ export default function TugasAdmin() {
           </span>
           <div
             className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
           >
             <User size={18} className="text-white/70" />
           </div>
@@ -147,20 +164,28 @@ export default function TugasAdmin() {
                 </button>
               </div>
 
-              <div className="w-full h-px" style={{ background: "rgba(0,0,0,0.06)" }} />
+              <div
+                className="w-full h-px"
+                style={{ background: "rgba(0,0,0,0.06)" }}
+              />
 
               {/* TABLE */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[600px]">
                   <thead>
-                    <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
+                    <tr
+                      style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                    >
                       {columns.map((col) => (
                         <th
                           key={col}
                           className="p-5 text-xs font-bold text-gray-700 whitespace-nowrap"
                           style={{
-                            textAlign: ["No", "Submitted", "Action"].includes(col)
-                              ? "center" : "left",
+                            textAlign: ["No", "Submitted", "Action"].includes(
+                              col,
+                            )
+                              ? "center"
+                              : "left",
                           }}
                         >
                           {col}
@@ -175,17 +200,22 @@ export default function TugasAdmin() {
                         key={a.id}
                         className="transition-colors duration-150 hover:bg-purple-50"
                         style={{
-                          borderBottom: i < filtered.length - 1
-                            ? "1px solid rgba(0,0,0,0.05)"
-                            : "none",
+                          borderBottom:
+                            i < filtered.length - 1
+                              ? "1px solid rgba(0,0,0,0.05)"
+                              : "none",
                         }}
                       >
-                        <td className="p-5 text-gray-500 text-xs text-center">{i + 1}</td>
+                        <td className="p-5 text-gray-500 text-xs text-center">
+                          {i + 1}
+                        </td>
                         <td className="p-5 text-gray-800 text-xs whitespace-nowrap font-semibold">
                           {a.title}
                         </td>
                         <td className="p-5 text-gray-600 text-xs max-w-[200px]">
-                          <span className="line-clamp-2">{a.description || "-"}</span>
+                          <span className="line-clamp-2">
+                            {a.description || "-"}
+                          </span>
                         </td>
                         <td className="p-5 text-gray-600 text-xs whitespace-nowrap">
                           {a.subDivision?.name || "-"}
@@ -197,12 +227,14 @@ export default function TugasAdmin() {
                           <span
                             className="px-2 py-1 rounded-full text-xs font-semibold"
                             style={{
-                              background: (a._count?.submissions || 0) > 0
-                                ? "rgba(34,197,94,0.12)"
-                                : "rgba(0,0,0,0.05)",
-                              color: (a._count?.submissions || 0) > 0
-                                ? "#16a34a"
-                                : "#999",
+                              background:
+                                (a._count?.submissions || 0) > 0
+                                  ? "rgba(34,197,94,0.12)"
+                                  : "rgba(0,0,0,0.05)",
+                              color:
+                                (a._count?.submissions || 0) > 0
+                                  ? "#16a34a"
+                                  : "#999",
                             }}
                           >
                             {a._count?.submissions ?? 0}
@@ -213,10 +245,14 @@ export default function TugasAdmin() {
                         <td className="p-5">
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleDelete(a.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteAssignmentId(a.id);
+                              }}
                               className="px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
                               style={{
-                                background: "linear-gradient(135deg,#EE2222,#AA0000)",
+                                background:
+                                  "linear-gradient(135deg,#EE2222,#AA0000)",
                                 boxShadow: "0 2px 8px rgba(200,0,0,0.3)",
                               }}
                             >
@@ -229,7 +265,10 @@ export default function TugasAdmin() {
 
                     {filtered.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="text-center py-10 text-gray-400 text-sm">
+                        <td
+                          colSpan={7}
+                          className="text-center py-10 text-gray-400 text-sm"
+                        >
                           Belum ada tugas untuk divisi ini.
                         </td>
                       </tr>
@@ -241,6 +280,34 @@ export default function TugasAdmin() {
           </DivisionTabs>
         </div>
       </div>
+      {deleteAssignmentId && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm shadow-xl animate-fade-in">
+            <h2 className="text-lg font-bold text-gray-800">Hapus Tugas?</h2>
+
+            <p className="text-sm text-gray-500 mt-2">
+              Tugas yang dihapus tidak dapat dikembalikan.
+            </p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setDeleteAssignmentId(null)}
+                className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-500 hover:bg-gray-300"
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-full text-sm font-semibold text-white"
+                style={{ background: "#DC2626" }}
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

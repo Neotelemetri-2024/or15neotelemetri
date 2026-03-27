@@ -75,15 +75,7 @@ export default function AbsensiEditAdmin() {
             <ArrowLeft size={16} />
             Back
           </button>
-          <div className="flex items-center gap-3">
-            <span className="text-white font-semibold text-sm">NamaUser</span>
-            <div
-              className="w-10 h-10 rounded-md flex items-center justify-center"
-              style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
-            >
-              <User size={18} className="text-white/70" />
-            </div>
-          </div>
+          
         </div>
 
         {/* CARD */}
@@ -142,7 +134,7 @@ export default function AbsensiEditAdmin() {
               onClick={handleSimpan}
               disabled={loading || fetching}
               className="w-full md:w-auto px-10 py-3 rounded-full text-white text-sm font-semibold transition-all hover:opacity-80 active:scale-95 disabled:opacity-40"
-              style={{ background: "#FF00FF" }}
+              style={{ background: "#6E3FBF" }}
             >
               {loading ? "Menyimpan..." : "Simpan"}
             </button>

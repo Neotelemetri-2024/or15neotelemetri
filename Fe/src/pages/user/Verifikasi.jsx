@@ -1,24 +1,33 @@
 import { useState, useRef, useEffect } from "react";
 import { ShieldCheck, ShieldAlert, ShieldX, Upload, User } from "lucide-react";
 import UserLayout from "../../components/user/LayoutUser";
-import { getMyVerification, submitVerification } from "../../services/userServices";
+import {
+  getMyVerification,
+  submitVerification,
+} from "../../services/userServices";
 import { getMyProfile } from "../../services/userServices";
 
 // Field upload gambar
 const uploadFields = [
-  { key: "krsScan",               fieldName: "krsScan",               label: "Kartu Rencana Studi (KRS)" },
-  { key: "fotoFormal",            fieldName: "formalPhoto",           label: "Foto Formal" },
-  { key: "igNeo",                 fieldName: "instagramProof",        label: "Bukti Follow Instagram Neo Telemetri" },
-  { key: "igMarketing",           fieldName: "instagramMarketingProof", label: "Bukti Follow Instagram Marketing Neo Telemetri" },
+  { key: "krsScan", fieldName: "krsScan", label: "Kartu Rencana Studi (KRS)" },
+  { key: "fotoFormal", fieldName: "formalPhoto", label: "Foto Formal" },
+  {
+    key: "igNeo",
+    fieldName: "instagramProof",
+    label: "Bukti Follow Instagram Neo Telemetri",
+  },
+  {
+    key: "igMarketing",
+    fieldName: "instagramMarketingProof",
+    label: "Bukti Follow Instagram Marketing Neo Telemetri",
+  },
 ];
 
 function UploadBox({ label, file, existingUrl, onFileChange }) {
   const inputRef = useRef();
 
   // Preview: gunakan file baru jika ada, fallback ke URL yang sudah tersimpan
-  const preview = file
-    ? URL.createObjectURL(file)
-    : existingUrl || null;
+  const preview = file ? URL.createObjectURL(file) : existingUrl || null;
 
   return (
     <div className="flex flex-col gap-2 h-full">
@@ -27,7 +36,7 @@ function UploadBox({ label, file, existingUrl, onFileChange }) {
       </label>
 
       <div
-        className="w-full flex-1 min-h-[140px] rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer"
+        className="w-full flex-1 min-h-[140px] max-h-[200px] rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer"
         style={{
           background: "rgba(255,255,255,0.08)",
           border: "1.5px solid rgba(255,255,255,0.12)",
@@ -37,7 +46,11 @@ function UploadBox({ label, file, existingUrl, onFileChange }) {
         onClick={() => inputRef.current.click()}
       >
         {preview ? (
-          <img src={preview} alt="preview" className="w-full h-full object-cover" />
+          <img
+            src={preview}
+            alt="preview"
+            className="w-full h-full object-contain"
+          />
         ) : (
           <Upload size={28} className="text-white/20" />
         )}
@@ -101,8 +114,19 @@ export default function VerifikasiPage() {
     init();
   }, []);
 
-  const setFile = (key) => (file) =>
+  const MAX_SIZE = 5 * 1024 * 1024;
+
+  const setFile = (key) => (file) => {
+    if (!file) return;
+
+    if (file.size > MAX_SIZE) {
+      setErrorMsg("Ukuran file maksimal 5MB");
+      return;
+    }
+
+    setErrorMsg(""); // reset error kalau valid
     setFiles((prev) => ({ ...prev, [key]: file }));
+  };
 
   // ── RENDER BANNER STATUS ────────────────────────────────────────
   const renderBanner = () => {
@@ -113,13 +137,16 @@ export default function VerifikasiPage() {
         <div
           className="flex items-center gap-3 px-5 py-4 rounded-xl"
           style={{
-            background: "linear-gradient(90deg, #CC00CC 0%, #7B2FBE 60%, #501A5E 100%)",
+            background:
+              "linear-gradient(90deg, #CC00CC 0%, #7B2FBE 60%, #501A5E 100%)",
             border: "1px solid rgba(255,0,255,0.3)",
             boxShadow: "0 0 24px rgba(255,0,255,0.2)",
           }}
         >
           <ShieldCheck size={18} className="text-white shrink-0" />
-          <span className="text-white text-sm font-medium">Verifikasi Berhasil! Selamat bergabung 🎉</span>
+          <span className="text-white text-sm font-medium">
+            Verifikasi Berhasil! Selamat bergabung 🎉
+          </span>
         </div>
       );
     }
@@ -153,7 +180,8 @@ export default function VerifikasiPage() {
 
     // Belum submit
     return (
-      <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-[#FF00FF]/20"
+      <div
+        className="flex items-center gap-3 px-5 py-4 rounded-xl bg-[#FF00FF]/20"
         style={{ border: "1px solid rgba(255,0,255,0.3)" }}
       >
         <ShieldAlert size={18} className="text-white shrink-0" />
@@ -170,14 +198,20 @@ export default function VerifikasiPage() {
     setSuccessMsg("");
     setErrorMsg("");
 
-    try {
+    for (const key in files) {
+      if (files[key] && files[key].size > MAX_SIZE) {
+        setErrorMsg("File terlalu besar (maksimal 5MB)");
+        return;
+      }
+    }try {
       const fd = new FormData();
 
       // Append file baru jika ada
-      if (files.krsScan)    fd.append("krsScan", files.krsScan);
+      if (files.krsScan) fd.append("krsScan", files.krsScan);
       if (files.fotoFormal) fd.append("formalPhoto", files.fotoFormal);
-      if (files.igNeo)      fd.append("instagramProof", files.igNeo);
-      if (files.igMarketing) fd.append("instagramMarketingProof", files.igMarketing);
+      if (files.igNeo) fd.append("instagramProof", files.igNeo);
+      if (files.igMarketing)
+        fd.append("instagramMarketingProof", files.igMarketing);
 
       await submitVerification(fd);
 
@@ -186,7 +220,12 @@ export default function VerifikasiPage() {
       setVerification(verifRes.data);
 
       // Reset file baru
-      setFiles({ krsScan: null, fotoFormal: null, igNeo: null, igMarketing: null });
+      setFiles({
+        krsScan: null,
+        fotoFormal: null,
+        igNeo: null,
+        igMarketing: null,
+      });
       setSuccessMsg("Dokumen berhasil dikirim! Tunggu review dari admin.");
     } catch (err) {
       console.error("Gagal kirim dokumen:", err);
@@ -211,8 +250,7 @@ export default function VerifikasiPage() {
 
   return (
     <UserLayout>
-      <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
-
+      <div className="min-h-screen flex flex-col gap-6 pt-10 auto-rows-fr md:pt-4">
         {/* TOP RIGHT: NAMA + AVATAR */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -226,7 +264,11 @@ export default function VerifikasiPage() {
             }}
           >
             {profile?.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              <img
+                src={profile.avatarUrl}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
             ) : (
               <User size={18} className="text-white/70" />
             )}
@@ -244,13 +286,13 @@ export default function VerifikasiPage() {
         </h2>
 
         {/* UPLOAD GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 auto-rows-fr">
           {uploadFields.map(({ key, fieldName, label }) => {
             // Mapping field name ke URL yang tersimpan di BE
             const existingUrlMap = {
-              krsScan:     verification?.krsScanUrl,
-              fotoFormal:  verification?.formalPhotoUrl,
-              igNeo:       verification?.instagramProofUrl,
+              krsScan: verification?.krsScanUrl,
+              fotoFormal: verification?.formalPhotoUrl,
+              igNeo: verification?.instagramProofUrl,
               igMarketing: verification?.instagramMarketingProofUrl,
             };
 
@@ -288,8 +330,8 @@ export default function VerifikasiPage() {
             {saving
               ? "Mengirim..."
               : verification?.status === "REJECTED"
-              ? "Kirim Ulang"
-              : "Kirim!"}
+                ? "Kirim Ulang"
+                : "Kirim!"}
           </button>
         )}
       </div>

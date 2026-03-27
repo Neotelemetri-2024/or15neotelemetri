@@ -5,49 +5,65 @@ import UserLayout from "../../components/user/LayoutUser";
 import api from "../../components/api/axios";
 
 const getMyPayment = () => api.get("/payments/my-payment");
-const uploadProof  = (formData) =>
+const uploadProof = (formData) =>
   api.post("/payments/upload-proof", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+const getMyVerification = () => api.get("/verification/me");
+
 const AMOUNT = "40000";
 const AMOUNT_DISPLAY = "Rp40.000";
+const MAX_SIZE = 5 * 1024 * 1024;
 
 export default function PembayaranBukti() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-
+  const [verificationStatus, setVerificationStatus] = useState(null);
   const [preview, setPreview] = useState(null);
   const [fileName, setFileName] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState(null); // null | "pending" | "success" | "failed"
   const [rejectionReason, setRejectionReason] = useState("");
   const [loading, setLoading] = useState(true);
+  const isBlocked = verificationStatus !== "APPROVED";
 
   // Cek status pembayaran saat halaman dibuka
   useEffect(() => {
-    const checkPayment = async () => {
+    const init = async () => {
       try {
-        const res = await getMyPayment();
-        const payment = res.data;
+        const [paymentRes, verifRes] = await Promise.all([
+          getMyPayment().catch(() => null),
+          getMyVerification().catch(() => null),
+        ]);
+
+        const payment = paymentRes?.data;
+        const verification = verifRes?.data;
+
+        setVerificationStatus(verification?.status);
+
         if (payment?.status === "APPROVED") setModal("success");
         else if (payment?.status === "PENDING") setModal("pending");
         else if (payment?.status === "REJECTED") {
           setRejectionReason(payment.rejectionReason || "");
           setModal("failed");
         }
-      } catch {
-        // Belum pernah bayar — normal, lanjut
       } finally {
         setLoading(false);
       }
     };
-    checkPayment();
+
+    init();
   }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > MAX_SIZE) {
+      setModal("failed");
+      setRejectionReason("Ukuran file maksimal 5MB");
+      return;
+    }
     setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (ev) => setPreview(ev.target.result);
@@ -67,6 +83,15 @@ export default function PembayaranBukti() {
       const msg = err.response?.data?.message || "";
       // Mapping pesan error BE ke status modal
       if (
+        msg.toLowerCase().includes("file too large") ||
+        msg.toLowerCase().includes("limit") ||
+        err.response?.status === 413
+      ) {
+        setModal("failed");
+        setRejectionReason("Ukuran file terlalu besar (maksimal 5MB)");
+        return;
+      }
+      if (
         msg.toLowerCase().includes("lunas") ||
         msg.toLowerCase().includes("approved")
       ) {
@@ -77,7 +102,9 @@ export default function PembayaranBukti() {
       ) {
         setModal("pending");
       } else {
-        setRejectionReason(msg || "Terjadi kesalahan pada bukti pembayaran Anda.");
+        setRejectionReason(
+          msg || "Terjadi kesalahan pada bukti pembayaran Anda.",
+        );
         setModal("failed");
       }
     } finally {
@@ -106,7 +133,6 @@ export default function PembayaranBukti() {
   return (
     <UserLayout>
       <div className="min-h-screen px-6 py-8 text-white flex flex-col gap-6">
-
         {/* Back */}
         <button
           onClick={() => navigate(-1)}
@@ -121,6 +147,12 @@ export default function PembayaranBukti() {
           Pembayaran OR 15 Neo Telemetri
         </h2>
 
+        {verificationStatus !== "APPROVED" && (
+          <div className="bg-yellow-500/20 border border-yellow-400/40 text-yellow-200 text-sm px-4 py-3 rounded-xl">
+            ⚠️ Kamu harus menyelesaikan verifikasi terlebih dahulu sebelum
+            melakukan pembayaran.
+          </div>
+        )}
         {/* Upload Area */}
         <div className="flex flex-col gap-3">
           <p className="text-xs text-white/70">
@@ -133,8 +165,10 @@ export default function PembayaranBukti() {
             style={{
               background: "rgba(255,255,255,0.08)",
               border: "1px solid rgba(255,255,255,0.15)",
+              opacity: isBlocked ? 0.5 : 1,
+              cursor: isBlocked ? "not-allowed" : "pointer",
             }}
-            onClick={() => fileInputRef.current.click()}
+            onClick={() => !isBlocked && fileInputRef.current.click()}
           >
             {preview ? (
               <img
@@ -163,7 +197,8 @@ export default function PembayaranBukti() {
 
           {/* Ganti File Button */}
           <button
-            onClick={() => fileInputRef.current.click()}
+            onClick={() => !isBlocked && fileInputRef.current.click()}
+            disabled={isBlocked}
             className="self-start text-white text-sm font-semibold px-6 py-2 rounded-full transition-all hover:opacity-80 active:scale-95"
             style={{
               backgroundColor: "#FF00FF",
@@ -212,7 +247,8 @@ export default function PembayaranBukti() {
                   <span className="text-black text-2xl font-black">!</span>
                 </div>
                 <p className="text-xs text-white/70 text-center leading-relaxed">
-                  Pembayaran Anda sedang dalam proses verifikasi oleh panitia. Mohon ditunggu :D
+                  Pembayaran Anda sedang dalam proses verifikasi oleh panitia.
+                  Mohon ditunggu :D
                 </p>
                 <button
                   onClick={handleCloseModal}
@@ -231,8 +267,18 @@ export default function PembayaranBukti() {
                   Verifikasi Pembayaran Berhasil!
                 </h3>
                 <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.5)]">
-                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
                 <div className="text-center">
@@ -240,7 +286,8 @@ export default function PembayaranBukti() {
                     Terima kasih sudah mendaftar!
                   </p>
                   <p className="text-xs text-white/60 mt-1">
-                    Pembayaran Anda sebanyak {AMOUNT_DISPLAY} telah berhasil diverifikasi.
+                    Pembayaran Anda sebanyak {AMOUNT_DISPLAY} telah berhasil
+                    diverifikasi.
                   </p>
                 </div>
                 <button
@@ -260,12 +307,23 @@ export default function PembayaranBukti() {
                   Verifikasi Pembayaran Gagal!
                 </h3>
                 <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)]">
-                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </div>
                 <p className="text-xs text-white/70 text-center leading-relaxed">
-                  {rejectionReason || "Terjadi kesalahan dalam bukti pembayaran Anda!"}
+                  {rejectionReason ||
+                    "Terjadi kesalahan dalam bukti pembayaran Anda!"}
                 </p>
                 <button
                   onClick={handleCloseModal}

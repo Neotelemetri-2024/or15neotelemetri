@@ -165,9 +165,9 @@ export default function TugasKumpul() {
               </div>
             )}
 
-            {/* NAMA — readonly dari localStorage */}
+            {/* Email — readonly dari localStorage */}
             <div>
-              <label className={labelStyle}>Nama</label>
+              <label className={labelStyle}>Email</label>
               <input
                 type="text"
                 value={userLocal.email || ""}

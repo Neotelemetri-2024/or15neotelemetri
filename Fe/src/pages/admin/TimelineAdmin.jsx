@@ -108,16 +108,7 @@ export default function TimelineAdmin() {
     <AdminLayout>
       <div className="min-h-screen px-8 py-8 flex flex-col gap-6">
 
-        {/* TOP RIGHT */}
-        <div className="flex justify-end items-center gap-3">
-          <span className="text-white font-semibold text-sm">NamaUser</span>
-          <div
-            className="w-10 h-10 rounded-md flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
-          >
-            <User size={18} className="text-white/70" />
-          </div>
-        </div>
+        
 
         {/* HEADER */}
         <div className="flex items-center justify-between">

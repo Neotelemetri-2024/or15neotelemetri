@@ -27,14 +27,17 @@ import Absensi from "./pages/user/Absensi";
 import Materi from "./pages/user/Materi";
 import Tugas from "./pages/user/Tugas";
 import TugasKumpul from "./pages/user/TugasKumpul";
-import TugasCek from "./pages/user/TugasCek";
+
 
 //admin
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import TimelineAdmin from "./pages/admin/TimelineAdmin";
+import DivisionAdmin from "./pages/admin/DivisionAdmin";
 import VerifikasiAdmin from "./pages/admin/VerifikasiAdmin";
 import PembayaranAdmin from "./pages/admin/PembayaranAdmin";
 import UjianAdmin from "./pages/admin/UjianAdmin";
+import UjianAdminBuat from "./pages/admin/UjianAdminBuat";
+import UjianAdminDetail from "./pages/admin/UjianAdminDetail";
 import HasilUjianAdmin from "./pages/admin/PengumpulanUjianAdmin";
 import AbsensiAdmin from "./pages/admin/AbsensiAdmin";
 import ListAbsensiAdmin from "./pages/admin/ListAbsensiAdmin";
@@ -176,14 +179,7 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/listtugas"
-        element={
-          <ProtectedRoute allowedRoles={["USER"]}>
-            <TugasCek />
-          </ProtectedRoute>
-        }
-      />
+      
 
       {/* ===== ADMIN ROUTES (hanya role ADMIN) ===== */}
       <Route path="/admin">
@@ -200,6 +196,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <TimelineAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="division"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <DivisionAdmin />
             </ProtectedRoute>
           }
         />
@@ -224,6 +228,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <UjianAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="ujian/buat"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <UjianAdminBuat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="ujian/:id"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <UjianAdminDetail />
             </ProtectedRoute>
           }
         />

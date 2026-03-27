@@ -283,7 +283,7 @@ export default function Tugas() {
                               }}
                             >
                               <ExternalLink size={12} />
-                              Download Template
+                              Download
                             </button>
                           </div>
                         )}

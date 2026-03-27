@@ -5,10 +5,9 @@ import cyanSide from "../../assets/images/Blue_Side.png";
 import logoORWhite from "../../assets/images/Logo_OR_White.png";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-
 import { register } from "../../services/authServices";
-
 import { useNavigate } from "react-router-dom";
+
 
 const CIRCUIT_LINES = [
   {
@@ -343,7 +342,12 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   // Di dalam komponen Register():
   const navigate = useNavigate();
-  const [form, setForm] = useState({ fullName: "", email: "", password: "", nim: "" });
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    nim: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -357,7 +361,7 @@ export default function Register() {
     setError("");
     try {
       await register(form);
-      navigate("/login");
+      navigate("/login", { state: { success: true } });
     } catch (err) {
       setError(err.response?.data?.message || "Registrasi gagal");
     } finally {
@@ -368,6 +372,7 @@ export default function Register() {
   return (
     <div className="bg-black relative min-h-screen flex items-center justify-center overflow-hidden px-4">
       {/* CYAN GLOW */}
+
       <img
         src={cyanSide}
         alt=""

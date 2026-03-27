@@ -7,27 +7,44 @@ import {
   getDivisionsByDepartment,
   getSubDivisionsByDivision,
 } from "../../services/userServices";
+import { getAllUsers } from "../../services/adminServices";
 import api from "../../components/api/axios";
 
-const getAllPayments   = () => api.get("/payments");
-const reviewPayment   = (id, payload) => api.patch(`/payments/${id}/review`, payload);
+const getAllPayments = () => api.get("/payments");
+const reviewPayment = (id, payload) =>
+  api.patch(`/payments/${id}/review`, payload);
 
 const ROWS_PER_PAGE = 10;
-const columns = ["No", "Nama", "NIM", "Sub Divisi", "Jumlah", "Bukti", "Status", "Aksi"];
+const columns = [
+  "No",
+  "Nama",
+  "NIM",
+  "Sub Divisi",
+  "Jumlah",
+  "Bukti",
+  "Status",
+  "Aksi",
+];
 
 function StatusBadge({ status }) {
   const map = {
-    PENDING:  { label: "Menunggu", bg: "bg-yellow-100", text: "text-yellow-700" },
-    APPROVED: { label: "Disetujui", bg: "bg-green-100",  text: "text-green-700"  },
-    REJECTED: { label: "Ditolak",   bg: "bg-red-100",    text: "text-red-600"    },
-    PAID:     { label: "Lunas",     bg: "bg-green-100",  text: "text-green-700"  },
-    FAILED:   { label: "Gagal",     bg: "bg-red-100",    text: "text-red-600"    },
-    EXPIRED:  { label: "Kadaluarsa",bg: "bg-gray-100",   text: "text-gray-500"   },
-    REFUNDED: { label: "Dikembalikan",bg:"bg-blue-100",  text: "text-blue-600"   },
+    PENDING: {
+      label: "Menunggu",
+      bg: "bg-yellow-100",
+      text: "text-yellow-700",
+    },
+    APPROVED: {
+      label: "Disetujui",
+      bg: "bg-green-100",
+      text: "text-green-700",
+    },
+    REJECTED: { label: "Ditolak", bg: "bg-red-100", text: "text-red-600" },
   };
   const s = map[status] || map.PENDING;
   return (
-    <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}>
+    <span
+      className={`px-2 py-1 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}
+    >
       {s.label}
     </span>
   );
@@ -39,7 +56,9 @@ function RejectModal({ onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <h3 className="text-gray-800 font-bold text-base mb-3">Alasan Penolakan</h3>
+        <h3 className="text-gray-800 font-bold text-base mb-3">
+          Alasan Penolakan
+        </h3>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -106,20 +125,24 @@ export default function PembayaranAdmin() {
   const [loading, setLoading] = useState(true);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
-  const [proofUrl, setProofUrl] = useState(null); // untuk modal preview bukti
+  const [proofUrl, setProofUrl] = useState(null);
+  const [users, setUsers] = useState([]);
 
   // ── FETCH ──────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       try {
-        const [paymentsRes, deptRes] = await Promise.all([
+        const [paymentsRes, deptRes, usersRes] = await Promise.all([
           getAllPayments(),
           getDepartments(),
+          getAllUsers(),
         ]);
+
         setPayments(paymentsRes.data);
+        setUsers(usersRes.data);
 
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           const divRes = await getDivisionsByDepartment(opDept.id);
@@ -131,7 +154,7 @@ export default function PembayaranAdmin() {
             divList.map(async (div) => {
               const subRes = await getSubDivisionsByDivision(div.id);
               subMap[div.id] = subRes.data;
-            })
+            }),
           );
           setSubDivisionMap(subMap);
         }
@@ -150,7 +173,7 @@ export default function PembayaranAdmin() {
     try {
       await reviewPayment(id, { status: "APPROVED" });
       setPayments((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, status: "APPROVED" } : p))
+        prev.map((p) => (p.id === id ? { ...p, status: "APPROVED" } : p)),
       );
     } catch (err) {
       console.error("Gagal approve:", err);
@@ -172,8 +195,8 @@ export default function PembayaranAdmin() {
         prev.map((p) =>
           p.id === rejectTarget
             ? { ...p, status: "REJECTED", rejectionReason: reason }
-            : p
-        )
+            : p,
+        ),
       );
     } catch (err) {
       console.error("Gagal reject:", err);
@@ -182,6 +205,11 @@ export default function PembayaranAdmin() {
       setRejectTarget(null);
     }
   };
+
+  const userMap = {};
+  users.forEach((u) => {
+    userMap[u.id] = u.profile?.subDivisionId;
+  });
 
   // ── FILTER ─────────────────────────────────────────────────────
   const activeDivision = divisions[activeTabIndex];
@@ -193,8 +221,9 @@ export default function PembayaranAdmin() {
     .filter((p) => {
       // Filter divisi berdasarkan sub divisi user
       if (activeDivision) {
-        const userSubDivId = p.user?.profile?.subDivisionId;
-        if (userSubDivId && !subIdsInActive.includes(userSubDivId)) return false;
+        const userSubDivId = userMap[p.userId];
+        if (userSubDivId && !subIdsInActive.includes(userSubDivId))
+          return false;
       }
       // Search
       if (search) {
@@ -215,9 +244,9 @@ export default function PembayaranAdmin() {
 
   // ── PAGINATION ─────────────────────────────────────────────────
   const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
-  const paginated  = filtered.slice(
+  const paginated = filtered.slice(
     (currentPage - 1) * ROWS_PER_PAGE,
-    currentPage * ROWS_PER_PAGE
+    currentPage * ROWS_PER_PAGE,
   );
 
   const handleTabChange = (_, i) => {
@@ -239,7 +268,9 @@ export default function PembayaranAdmin() {
   const formatRupiah = (amount) => {
     if (!amount) return "-";
     return new Intl.NumberFormat("id-ID", {
-      style: "currency", currency: "IDR", maximumFractionDigits: 0,
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -256,7 +287,6 @@ export default function PembayaranAdmin() {
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
-
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -264,7 +294,10 @@ export default function PembayaranAdmin() {
           </span>
           <div
             className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
           >
             <User size={18} className="text-white/70" />
           </div>
@@ -279,7 +312,10 @@ export default function PembayaranAdmin() {
           >
             <div
               className="flex flex-col bg-white"
-              style={{ borderRadius: "0 0 16px 16px", boxShadow: "0 8px 48px rgba(120,0,200,0.18)" }}
+              style={{
+                borderRadius: "0 0 16px 16px",
+                boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
+              }}
             >
               {/* FILTER + SEARCH */}
               <div
@@ -298,13 +334,19 @@ export default function PembayaranAdmin() {
                 </button>
                 <div
                   className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
-                  style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" }}
+                  style={{
+                    background: "rgba(0,0,0,0.05)",
+                    border: "1px solid rgba(0,0,0,0.10)",
+                  }}
                 >
                   <input
                     type="text"
                     placeholder="Search nama, NIM, atau email..."
                     value={search}
-                    onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="bg-transparent text-xs text-gray-600 outline-none flex-1 placeholder-gray-400"
                   />
                   <Search size={13} className="text-gray-400 shrink-0" />
@@ -315,14 +357,22 @@ export default function PembayaranAdmin() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[700px]">
                   <thead>
-                    <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
+                    <tr
+                      style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                    >
                       {columns.map((col) => (
                         <th
                           key={col}
                           className="p-4 text-xs font-bold text-gray-700 whitespace-nowrap"
                           style={{
-                            textAlign: ["No", "Bukti", "Status", "Aksi"].includes(col)
-                              ? "center" : "left",
+                            textAlign: [
+                              "No",
+                              "Bukti",
+                              "Status",
+                              "Aksi",
+                            ].includes(col)
+                              ? "center"
+                              : "left",
                           }}
                         >
                           {col}
@@ -337,8 +387,10 @@ export default function PembayaranAdmin() {
                         key={p.id}
                         className="transition-colors duration-150 hover:bg-purple-50"
                         style={{
-                          borderBottom: i < paginated.length - 1
-                            ? "1px solid rgba(0,0,0,0.05)" : "none",
+                          borderBottom:
+                            i < paginated.length - 1
+                              ? "1px solid rgba(0,0,0,0.05)"
+                              : "none",
                         }}
                       >
                         <td className="p-4 text-gray-500 text-xs text-center">
@@ -348,7 +400,9 @@ export default function PembayaranAdmin() {
                           <div className="font-semibold text-gray-800">
                             {p.user?.profile?.fullName || "-"}
                           </div>
-                          <div className="text-gray-400 text-[10px]">{p.user?.email}</div>
+                          <div className="text-gray-400 text-[10px]">
+                            {p.user?.email}
+                          </div>
                           {p.status === "REJECTED" && p.rejectionReason && (
                             <div className="text-red-400 text-[10px] mt-0.5 max-w-[150px] truncate">
                               Alasan: {p.rejectionReason}
@@ -359,7 +413,7 @@ export default function PembayaranAdmin() {
                           {p.user?.profile?.nim || "-"}
                         </td>
                         <td className="p-4 text-gray-600 text-xs whitespace-nowrap">
-                          {getSubDivName(p.user?.profile?.subDivisionId)}
+                          {getSubDivName(userMap[p.userId])}
                         </td>
                         <td className="p-4 text-gray-700 text-xs whitespace-nowrap font-semibold">
                           {formatRupiah(p.amount)}
@@ -417,8 +471,13 @@ export default function PembayaranAdmin() {
 
                     {paginated.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="text-center py-10 text-gray-400 text-sm">
-                          {search ? "Tidak ada data yang cocok." : "Belum ada data pembayaran."}
+                        <td
+                          colSpan={8}
+                          className="text-center py-10 text-gray-400 text-sm"
+                        >
+                          {search
+                            ? "Tidak ada data yang cocok."
+                            : "Belum ada data pembayaran."}
                         </td>
                       </tr>
                     )}
@@ -431,7 +490,8 @@ export default function PembayaranAdmin() {
                 <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
                   <span className="text-xs text-gray-400">
                     {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)} dari {filtered.length}
+                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
+                    dari {filtered.length}
                   </span>
                   <div className="flex items-center gap-1">
                     <button
@@ -443,7 +503,12 @@ export default function PembayaranAdmin() {
                       ← Prev
                     </button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          Math.abs(p - currentPage) <= 1,
+                      )
                       .reduce((acc, p, idx, arr) => {
                         if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
                         acc.push(p);
@@ -451,24 +516,35 @@ export default function PembayaranAdmin() {
                       }, [])
                       .map((p, idx) =>
                         p === "..." ? (
-                          <span key={`dot-${idx}`} className="px-2 text-xs text-gray-400">...</span>
+                          <span
+                            key={`dot-${idx}`}
+                            className="px-2 text-xs text-gray-400"
+                          >
+                            ...
+                          </span>
                         ) : (
                           <button
                             key={p}
                             onClick={() => setCurrentPage(p)}
                             className="px-3 py-1 text-xs rounded-lg border transition"
                             style={{
-                              borderColor: currentPage === p ? "#7B2FBE" : "rgba(0,0,0,0.1)",
-                              background: currentPage === p ? "#7B2FBE" : "transparent",
+                              borderColor:
+                                currentPage === p
+                                  ? "#7B2FBE"
+                                  : "rgba(0,0,0,0.1)",
+                              background:
+                                currentPage === p ? "#7B2FBE" : "transparent",
                               color: currentPage === p ? "white" : "inherit",
                             }}
                           >
                             {p}
                           </button>
-                        )
+                        ),
                       )}
                     <button
-                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(p + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
                       className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
                       style={{ borderColor: "rgba(0,0,0,0.1)" }}
