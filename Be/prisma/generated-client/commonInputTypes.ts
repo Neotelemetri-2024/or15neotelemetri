@@ -209,6 +209,40 @@ export type EnumAttendanceStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
 }
 
+export type EnumFakultasNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFakultasNullableFilter<$PrismaModel> | $Enums.Fakultas | null
+}
+
+export type EnumFakultasNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFakultasNullableWithAggregatesFilter<$PrismaModel> | $Enums.Fakultas | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFakultasNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFakultasNullableFilter<$PrismaModel>
+}
+
+export type EnumFakultasFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel>
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFakultasFilter<$PrismaModel> | $Enums.Fakultas
+}
+
+export type EnumFakultasWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel>
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFakultasWithAggregatesFilter<$PrismaModel> | $Enums.Fakultas
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFakultasFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFakultasFilter<$PrismaModel>
+}
+
 export type EnumVerificationStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.VerificationStatus | Prisma.EnumVerificationStatusFieldRefInput<$PrismaModel>
   in?: $Enums.VerificationStatus[] | Prisma.ListEnumVerificationStatusFieldRefInput<$PrismaModel>
@@ -577,6 +611,40 @@ export type NestedEnumAttendanceStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumFakultasNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFakultasNullableFilter<$PrismaModel> | $Enums.Fakultas | null
+}
+
+export type NestedEnumFakultasNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumFakultasNullableWithAggregatesFilter<$PrismaModel> | $Enums.Fakultas | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFakultasNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFakultasNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumFakultasFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel>
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFakultasFilter<$PrismaModel> | $Enums.Fakultas
+}
+
+export type NestedEnumFakultasWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Fakultas | Prisma.EnumFakultasFieldRefInput<$PrismaModel>
+  in?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  notIn?: $Enums.Fakultas[] | Prisma.ListEnumFakultasFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumFakultasWithAggregatesFilter<$PrismaModel> | $Enums.Fakultas
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumFakultasFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumFakultasFilter<$PrismaModel>
 }
 
 export type NestedEnumVerificationStatusFilter<$PrismaModel = never> = {

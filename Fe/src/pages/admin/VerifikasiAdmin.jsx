@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, User, ExternalLink, X, Check } from "lucide-react";
+import { Search, User, ExternalLink, X, Check } from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
-import { getAllVerifications, reviewVerification, getAllUsers } from "../../services/adminServices";
-import { getDepartments, getDivisionsByDepartment, getSubDivisionsByDivision } from "../../services/userServices";
+import {
+  getAllVerifications,
+  reviewVerification,
+  getAllUsers,
+} from "../../services/adminServices";
+import {
+  getDepartments,
+  getDivisionsByDepartment,
+  getSubDivisionsByDivision,
+} from "../../services/userServices";
 
 const ROWS_PER_PAGE = 10;
 
@@ -18,26 +27,41 @@ const columns = [
   "Aksi",
 ];
 
-// Badge status verifikasi
+// ── Badge status ─────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const map = {
-    PENDING:  { label: "Menunggu", bg: "bg-yellow-100", text: "text-yellow-700" },
-    APPROVED: { label: "Disetujui", bg: "bg-green-100",  text: "text-green-700" },
-    REJECTED: { label: "Ditolak",   bg: "bg-red-100",    text: "text-red-600" },
+    PENDING: {
+      label: "Menunggu",
+      bg: "bg-yellow-100",
+      text: "text-yellow-700",
+    },
+    APPROVED: {
+      label: "Disetujui",
+      bg: "bg-green-100",
+      text: "text-green-700",
+    },
+    REJECTED: { label: "Ditolak", bg: "bg-red-100", text: "text-red-600" },
   };
   const s = map[status] || map.PENDING;
   return (
-    <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}>
+    <span
+      className={`px-2 py-1 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}
+    >
       {s.label}
     </span>
   );
 }
 
-// Thumbnail dokumen — klik untuk buka di tab baru
+// ── Thumbnail dokumen ────────────────────────────────────────────
 function DocThumb({ url }) {
   if (!url) return <span className="text-gray-300 text-xs">—</span>;
   return (
-    <a href={url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(e) => e.stopPropagation()}
+    >
       <img
         src={url}
         alt="doc"
@@ -47,13 +71,55 @@ function DocThumb({ url }) {
   );
 }
 
-// Modal reject — untuk input alasan penolakan
-function RejectModal({ onConfirm, onCancel }) {
+// ── Modal konfirmasi approve ─────────────────────────────────────
+function ConfirmApproveModal({ name, onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <h3 className="text-gray-800 font-bold text-base mb-2">
+          Setujui Verifikasi?
+        </h3>
+        <p className="text-gray-500 text-sm mb-5">
+          Kamu akan menyetujui verifikasi dari{" "}
+          <span className="font-semibold text-gray-700">
+            {name || "user ini"}
+          </span>
+          . Tindakan ini tidak dapat dibatalkan.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition"
+          >
+            Ya, Setujui
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Modal reject (dengan alasan) ─────────────────────────────────
+function RejectModal({ name, onConfirm, onCancel }) {
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <h3 className="text-gray-800 font-bold text-base mb-3">Alasan Penolakan</h3>
+        <h3 className="text-gray-800 font-bold text-base mb-1">
+          Tolak Verifikasi?
+        </h3>
+        {name && (
+          <p className="text-gray-400 text-xs mb-3">
+            Verifikasi dari{" "}
+            <span className="font-semibold text-gray-600">{name}</span>
+          </p>
+        )}
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -73,7 +139,7 @@ function RejectModal({ onConfirm, onCancel }) {
             disabled={!reason.trim()}
             className="flex-1 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition disabled:opacity-40"
           >
-            Tolak
+            Ya, Tolak
           </button>
         </div>
       </div>
@@ -90,7 +156,10 @@ export default function VerifikasiAdmin() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rejectTarget, setRejectTarget] = useState(null);
+
+  // ✅ FIX: simpan { id, name } bukan hanya id
+  const [approveTarget, setApproveTarget] = useState(null); // { id, name }
+  const [rejectTarget, setRejectTarget] = useState(null); // { id, name }
   const [actionLoading, setActionLoading] = useState(null);
 
   const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -108,9 +177,8 @@ export default function VerifikasiAdmin() {
         setVerifications(verifRes.data);
         setUsers(usersRes.data);
 
-        // Cari department Operasional → fetch divisions + sub divisions
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           const divRes = await getDivisionsByDepartment(opDept.id);
@@ -122,7 +190,7 @@ export default function VerifikasiAdmin() {
             divList.map(async (div) => {
               const subRes = await getSubDivisionsByDivision(div.id);
               subMap[div.id] = subRes.data;
-            })
+            }),
           );
           setSubDivisionMap(subMap);
         }
@@ -135,72 +203,82 @@ export default function VerifikasiAdmin() {
     fetchData();
   }, []);
 
-  // ── APPROVE ────────────────────────────────────────────────────
-  const handleApprove = async (id) => {
+  // ── APPROVE (setelah konfirmasi) ──────────────────────────────
+  const handleApprove = async () => {
+    if (!approveTarget) return;
+    const { id, name } = approveTarget;
     setActionLoading(id);
     try {
       await reviewVerification(id, { status: "APPROVED" });
       setVerifications((prev) =>
-        prev.map((v) => (v.id === id ? { ...v, status: "APPROVED", rejectionReason: null } : v))
+        prev.map((v) =>
+          v.id === id ? { ...v, status: "APPROVED", rejectionReason: null } : v,
+        ),
       );
-      // Trigger re-render dengan update lokal
+      toast.success(`Verifikasi ${name || ""} disetujui`);
     } catch (err) {
       console.error("Gagal approve:", err);
+      toast.error("Gagal menyetujui verifikasi");
     } finally {
       setActionLoading(null);
+      setApproveTarget(null);
     }
   };
 
-  // ── REJECT ─────────────────────────────────────────────────────
+  // ── REJECT (setelah konfirmasi + alasan) ──────────────────────
   const handleReject = async (reason) => {
     if (!rejectTarget) return;
-    setActionLoading(rejectTarget);
+    const { id, name } = rejectTarget;
+    setActionLoading(id);
     try {
-      await reviewVerification(rejectTarget, {
+      await reviewVerification(id, {
         status: "REJECTED",
         rejectionReason: reason,
       });
       setVerifications((prev) =>
         prev.map((v) =>
-          v.id === rejectTarget
+          v.id === id
             ? { ...v, status: "REJECTED", rejectionReason: reason }
-            : v
-        )
+            : v,
+        ),
       );
+      toast.error(`Verifikasi ${name || ""} ditolak`);
     } catch (err) {
       console.error("Gagal reject:", err);
+      toast.error("Gagal menolak verifikasi");
     } finally {
       setActionLoading(null);
       setRejectTarget(null);
     }
   };
 
-  // ── SEMUA USER dengan data verifikasi (merge) ──────────────────
-  // Tampilkan semua user, yang belum submit verifikasi tetap muncul
+  // ── BUILD ROWS ─────────────────────────────────────────────────
   const activeDivision = divisions[activeTabIndex];
 
   const allRows = users
     .filter((u) => u.role === "USER")
     .filter((u) => {
-      // Filter per tab divisi (sama dengan dashboard)
       if (activeDivision && u.profile?.subDivisionId) {
-        const subIds = (subDivisionMap[activeDivision.id] || []).map((s) => s.id);
+        const subIds = (subDivisionMap[activeDivision.id] || []).map(
+          (s) => s.id,
+        );
         return subIds.includes(u.profile.subDivisionId);
       }
       return true;
     })
     .map((u) => {
-      // Cari data verifikasi milik user ini
       const verif = verifications.find((v) => v.userId === u.id) || null;
       return { user: u, verif };
     })
-    // User dengan verifikasi PENDING di atas, lalu yang belum submit
     .sort((a, b) => {
       const order = { PENDING: 0, REJECTED: 1, APPROVED: 2, null: 3 };
-      return (order[a.verif?.status ?? null] ?? 3) - (order[b.verif?.status ?? null] ?? 3);
+      return (
+        (order[a.verif?.status ?? null] ?? 3) -
+        (order[b.verif?.status ?? null] ?? 3)
+      );
     });
 
-  // ── FILTER SEARCH ──────────────────────────────────────────────
+  // ── SEARCH ────────────────────────────────────────────────────
   const filtered = allRows.filter((row) => {
     if (!search) return true;
     const q = search.toLowerCase();
@@ -210,17 +288,12 @@ export default function VerifikasiAdmin() {
     );
   });
 
-  // ── PAGINATION ─────────────────────────────────────────────────
+  // ── PAGINATION ────────────────────────────────────────────────
   const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
   const paginated = filtered.slice(
     (currentPage - 1) * ROWS_PER_PAGE,
-    currentPage * ROWS_PER_PAGE
+    currentPage * ROWS_PER_PAGE,
   );
-
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
-  };
 
   if (loading) {
     return (
@@ -234,8 +307,8 @@ export default function VerifikasiAdmin() {
 
   return (
     <AdminLayout>
+      <Toaster position="top-right" />
       <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
-
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -257,24 +330,18 @@ export default function VerifikasiAdmin() {
           <DivisionTabs
             divisions={divisions.map((d) => d.name)}
             bgColor="#1a0023"
-            onChange={(_, i) => { setActiveTabIndex(i); setCurrentPage(1); setSearch(""); }}
+            onChange={(_, i) => {
+              setActiveTabIndex(i);
+              setCurrentPage(1);
+              setSearch("");
+            }}
           >
             <div
               className="flex flex-col bg-white"
               style={{ borderRadius: "0 0 16px 16px" }}
             >
-              {/* FILTER + SEARCH */}
+              {/* SEARCH */}
               <div className="flex items-center gap-3 p-4">
-                <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
-                    boxShadow: "0 2px 10px rgba(120,0,200,0.25)",
-                  }}
-                >
-                  <SlidersHorizontal size={13} />
-                  Filter
-                </button>
                 <div
                   className="flex items-center gap-2 px-3 py-2 rounded-full flex-1"
                   style={{
@@ -286,7 +353,10 @@ export default function VerifikasiAdmin() {
                     type="text"
                     placeholder="Search nama atau email..."
                     value={search}
-                    onChange={handleSearch}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="bg-transparent text-xs text-gray-600 outline-none flex-1 placeholder-gray-400"
                   />
                   <Search size={13} className="text-gray-400 shrink-0" />
@@ -297,12 +367,16 @@ export default function VerifikasiAdmin() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[800px]">
                   <thead>
-                    <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
+                    <tr
+                      style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                    >
                       {columns.map((col) => (
                         <th
                           key={col}
                           className="px-4 py-3 text-xs font-bold text-gray-700 whitespace-nowrap"
-                          style={{ textAlign: col === "Nama" ? "left" : "center" }}
+                          style={{
+                            textAlign: col === "Nama" ? "left" : "center",
+                          }}
                         >
                           {col}
                         </th>
@@ -313,102 +387,128 @@ export default function VerifikasiAdmin() {
                   <tbody>
                     {paginated.map((row, i) => {
                       const { user: u, verif: v } = row;
+                      const fullName = u.profile?.fullName || "";
                       return (
-                      <tr
-                        key={u.id}
-                        className="transition-colors duration-150 hover:bg-purple-50"
-                        style={{
-                          borderBottom: i < paginated.length - 1
-                            ? "1px solid rgba(0,0,0,0.05)"
-                            : "none",
-                        }}
-                      >
-                        {/* Nama */}
-                        <td className="px-4 py-4 text-gray-800 text-xs whitespace-nowrap">
-                          <div className="font-semibold">
-                            {u.profile?.fullName || "-"}
-                          </div>
-                          <div className="text-gray-400 text-[10px]">{u.email}</div>
-                          {v?.status === "REJECTED" && v?.rejectionReason && (
-                            <div className="text-red-400 text-[10px] mt-1 max-w-[160px] truncate">
-                              Alasan: {v.rejectionReason}
+                        <tr
+                          key={u.id}
+                          className="transition-colors duration-150 hover:bg-purple-50"
+                          style={{
+                            borderBottom:
+                              i < paginated.length - 1
+                                ? "1px solid rgba(0,0,0,0.05)"
+                                : "none",
+                          }}
+                        >
+                          {/* Nama */}
+                          <td className="px-4 py-4 text-gray-800 text-xs whitespace-nowrap">
+                            <div className="font-semibold">
+                              {fullName || "-"}
                             </div>
-                          )}
-                        </td>
-
-                        {/* Dokumen */}
-                        <td className="px-4 py-4 text-center">
-                          <DocThumb url={v?.krsScanUrl} />
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <DocThumb url={v?.formalPhotoUrl} />
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <DocThumb url={v?.instagramProofUrl} />
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <DocThumb url={v?.instagramMarketingProofUrl} />
-                        </td>
-
-                        {/* Link Twibbon */}
-                        <td className="px-4 py-4 text-center">
-                          {v?.twibbonLink ? (
-                            <a
-                              href={v.twibbonLink}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex items-center justify-center gap-1 text-purple-500 hover:text-purple-700 text-xs transition"
-                            >
-                              <ExternalLink size={12} />
-                              Lihat
-                            </a>
-                          ) : (
-                            <span className="text-gray-300 text-xs">—</span>
-                          )}
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 py-4 text-center">
-                          {v ? <StatusBadge status={v.status} /> : (
-                            <span className="text-gray-300 text-xs">Belum Submit</span>
-                          )}
-                        </td>
-
-                        {/* Aksi */}
-                        <td className="px-4 py-4 text-center">
-                          {v?.status === "PENDING" ? (
-                            <div className="flex items-center justify-center gap-2">
-                              {/* Approve */}
-                              <button
-                                onClick={() => handleApprove(v.id)}
-                                disabled={actionLoading === v.id}
-                                title="Setujui"
-                                className="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 hover:bg-green-200 transition disabled:opacity-40"
-                              >
-                                <Check size={14} className="text-green-600" />
-                              </button>
-                              {/* Reject */}
-                              <button
-                                onClick={() => setRejectTarget(v.id)}
-                                disabled={actionLoading === v.id}
-                                title="Tolak"
-                                className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 hover:bg-red-200 transition disabled:opacity-40"
-                              >
-                                <X size={14} className="text-red-500" />
-                              </button>
+                            <div className="text-gray-400 text-[10px]">
+                              {u.email}
                             </div>
-                          ) : (
-                            <span className="text-gray-300 text-xs">—</span>
-                          )}
-                        </td>
-                      </tr>
+                            {v?.status === "REJECTED" && v?.rejectionReason && (
+                              <div className="text-red-400 text-[10px] mt-1 max-w-[160px] truncate">
+                                Alasan: {v.rejectionReason}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Dokumen */}
+                          <td className="px-4 py-4 text-center">
+                            <DocThumb url={v?.krsScanUrl} />
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <DocThumb url={v?.formalPhotoUrl} />
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <DocThumb url={v?.instagramProofUrl} />
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <DocThumb url={v?.instagramMarketingProofUrl} />
+                          </td>
+
+                          {/* Link Twibbon */}
+                          <td className="px-4 py-4 text-center">
+                            {v?.twibbonLink ? (
+                              <a
+                                href={v.twibbonLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center justify-center gap-1 text-purple-500 hover:text-purple-700 text-xs transition"
+                              >
+                                <ExternalLink size={12} />
+                                Lihat
+                              </a>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-4 py-4 text-center">
+                            {v ? (
+                              <StatusBadge status={v.status} />
+                            ) : (
+                              <span className="text-gray-300 text-xs">
+                                Belum Submit
+                              </span>
+                            )}
+                          </td>
+
+                          {/* ✅ FIX: Aksi — set { id, name } ke state, bukan call langsung */}
+                          <td className="px-4 py-4 text-center">
+                            {v &&
+                            (v.status === "PENDING" ||
+                              v.status === "REJECTED") ? (
+                              <div className="flex items-center justify-center gap-2">
+                                {/* Approve */}
+                                <button
+                                  onClick={() =>
+                                    setApproveTarget({
+                                      id: v.id,
+                                      name: fullName,
+                                    })
+                                  }
+                                  disabled={actionLoading === v.id}
+                                  title="Setujui"
+                                  className="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 hover:bg-green-200 transition disabled:opacity-40"
+                                >
+                                  <Check size={14} className="text-green-600" />
+                                </button>
+
+                                {/* Reject — tampil saat PENDING atau REJECTED */}
+                                <button
+                                  onClick={() =>
+                                    setRejectTarget({
+                                      id: v.id,
+                                      name: fullName,
+                                    })
+                                  }
+                                  disabled={actionLoading === v.id}
+                                  title="Tolak"
+                                  className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 hover:bg-red-200 transition disabled:opacity-40"
+                                >
+                                  <X size={14} className="text-red-500" />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+                        </tr>
                       );
                     })}
 
                     {paginated.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="text-center py-10 text-gray-400 text-sm">
-                          {search ? "Tidak ada data yang cocok." : "Belum ada pendaftar di divisi ini."}
+                        <td
+                          colSpan={8}
+                          className="text-center py-10 text-gray-400 text-sm"
+                        >
+                          {search
+                            ? "Tidak ada data yang cocok."
+                            : "Belum ada pendaftar di divisi ini."}
                         </td>
                       </tr>
                     )}
@@ -416,41 +516,89 @@ export default function VerifikasiAdmin() {
                 </table>
               </div>
 
-              {/* PAGINATION */}
+              {/* PAGINATION — ganti blok lama dengan ini */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-400">
+                <div
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                  style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                >
+                  <span className="text-xs text-gray-500">
                     {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)} dari {filtered.length}
+                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
+                    dari {filtered.length}
                   </span>
-                  <div className="flex items-center gap-1">
+
+                  <div className="flex items-center gap-1 flex-wrap">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       ← Prev
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setCurrentPage(p)}
-                        className="px-3 py-1 text-xs rounded-lg border transition"
-                        style={{
-                          borderColor: currentPage === p ? "#7B2FBE" : "rgba(0,0,0,0.1)",
-                          background: currentPage === p ? "#7B2FBE" : "transparent",
-                          color: currentPage === p ? "white" : "inherit",
-                        }}
-                      >
-                        {p}
-                      </button>
-                    ))}
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          Math.abs(p - currentPage) <= 1,
+                      )
+                      .reduce((acc, p, idx, arr) => {
+                        if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, idx) =>
+                        p === "..." ? (
+                          <span
+                            key={`dot-${idx}`}
+                            className="px-2 text-xs text-gray-400 select-none"
+                          >
+                            •••
+                          </span>
+                        ) : (
+                          <button
+                            key={p}
+                            onClick={() => setCurrentPage(p)}
+                            className="w-8 h-8 text-xs rounded-lg font-semibold transition-all"
+                            style={{
+                              background:
+                                currentPage === p
+                                  ? "#7B2FBE"
+                                  : "rgba(0,0,0,0.04)",
+                              color: currentPage === p ? "white" : "#374151",
+                              border:
+                                currentPage === p
+                                  ? "1px solid #7B2FBE"
+                                  : "1px solid rgba(0,0,0,0.10)",
+                              boxShadow:
+                                currentPage === p
+                                  ? "0 2px 8px rgba(123,47,190,0.3)"
+                                  : "none",
+                            }}
+                          >
+                            {p}
+                          </button>
+                        ),
+                      )}
+
                     <button
-                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(p + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       Next →
                     </button>
@@ -462,9 +610,19 @@ export default function VerifikasiAdmin() {
         </div>
       </div>
 
+      {/* MODAL KONFIRMASI APPROVE */}
+      {approveTarget && (
+        <ConfirmApproveModal
+          name={approveTarget.name}
+          onConfirm={handleApprove}
+          onCancel={() => setApproveTarget(null)}
+        />
+      )}
+
       {/* MODAL REJECT */}
       {rejectTarget && (
         <RejectModal
+          name={rejectTarget.name}
           onConfirm={handleReject}
           onCancel={() => setRejectTarget(null)}
         />

@@ -1,5 +1,12 @@
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Fakultas } from '../../../../prisma/generated-client/client';
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({
@@ -30,13 +37,21 @@ export class UpdateProfileDto {
   whatsappNumber?: string;
 
   @ApiPropertyOptional({
-    example: 'Sistem Informasi',
-    description: 'The study program of the user',
+    example: Fakultas.TEKNOLOGI_INFORMASI,
+    description: 'The faculty of the user',
   })
   @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  studyProgram?: string;
+  @IsEnum(Fakultas)
+  fakultas?: Fakultas;
+
+  @ApiPropertyOptional({
+    example: 'b2b7f6c2-7c12-4bc9-8c58-3bdf84f1b8fd',
+    description: 'The study program selected by the user',
+    format: 'uuid',
+  })
+  @IsOptional()
+  @IsUUID()
+  studyProgramId?: string;
 
   @ApiPropertyOptional({
     example: 'uuid-department',

@@ -5,6 +5,7 @@ import { AppModule } from '@/app.module';
 import { PrismaService } from '@/common/services/prisma.service';
 import { UserRole } from '../prisma/generated-client/client';
 import { JwtService } from '@nestjs/jwt';
+import { Fakultas } from '../prisma/generated-client/client';
 
 describe('MasterData (e2e)', () => {
   let app: INestApplication;
@@ -35,6 +36,7 @@ describe('MasterData (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.programStudi.deleteMany();
     await prisma.user.deleteMany();
     await prisma.department.deleteMany();
     await app.close();
@@ -102,6 +104,44 @@ describe('MasterData (e2e)', () => {
         .expect(201);
       
       expect(res.body.name).toBe('Web Development');
+    });
+  });
+
+  describe('Program Studi', () => {
+    beforeAll(async () => {
+      await prisma.programStudi.create({
+        data: {
+          fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+          name: 'Sistem Informasi',
+        },
+      });
+      await prisma.programStudi.create({
+        data: {
+          fakultas: Fakultas.TEKNIK,
+          name: 'Teknik Sipil',
+        },
+      });
+    });
+
+    it('GET /api/master-data/program-studi', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/master-data/program-studi')
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('GET /api/master-data/program-studi?fakultas=TEKNOLOGI_INFORMASI', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/master-data/program-studi')
+        .query({ fakultas: Fakultas.TEKNOLOGI_INFORMASI })
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(
+        res.body.every((item: any) => item.fakultas === Fakultas.TEKNOLOGI_INFORMASI),
+      ).toBe(true);
     });
   });
 });

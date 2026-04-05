@@ -5,11 +5,11 @@ import logoSkj from "../../assets/images/logo_Skj.svg";
 const achievements = [
   {
     title: "Juara 3 Ide Inovatif - FMIPA EXPO UNIMED 2025",
-    desc: "Diraih oleh Azizah Nofi Delfianti dalam kompetisi ide inovatif tingkat nasional.",
+    desc: "Diraih oleh Java Maulana, Muhammad Zada Aufa Ningrat, dan Rayhan Habibi dalam kompetisi ide inovatif tingkat nasional.",
   },
   {
     title: "Pendanaan PKM Karsa Cipta 2025",
-    desc: "Azizah Nofi Delfianti berhasil lolos pendanaan program PKM oleh Simbelmawa.",
+    desc: "Azizah Novi Delfianti berhasil lolos pendanaan program PKM oleh Simbelmawa.",
   },
   {
     title: "Gold Medal - WYIE Malaysia 2025",
@@ -31,7 +31,7 @@ const achievements = [
 
 export default function AchievementSection() {
   return (
-    <section id="achievement" className="relative py-8">
+    <section  className="relative py-8">
 
       {/* LOGO KANAN ATAS */}
       <img

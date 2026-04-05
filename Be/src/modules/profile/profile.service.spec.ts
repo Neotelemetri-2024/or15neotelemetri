@@ -3,6 +3,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ProfileService } from './profile.service';
 import { PrismaService } from '../../common/services/prisma.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { Fakultas } from '../../../prisma/generated-client/client';
 
 describe('ProfileService', () => {
   let service: ProfileService;
@@ -17,6 +18,7 @@ describe('ProfileService', () => {
     department: { findMany: jest.fn() },
     division: { findUnique: jest.fn(), findMany: jest.fn() },
     subDivision: { findUnique: jest.fn(), findMany: jest.fn() },
+    programStudi: { findUnique: jest.fn(), findMany: jest.fn() },
   };
 
   const mockStorageService = {
@@ -80,6 +82,19 @@ describe('ProfileService', () => {
   });
 
   describe('updateProfile', () => {
+    beforeEach(() => {
+      mockPrismaService.profile.findUnique.mockResolvedValue({
+        userId: 'user-1',
+        fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+        studyProgramId: 'prog-1',
+      });
+      mockPrismaService.programStudi.findUnique.mockResolvedValue({
+        id: 'prog-1',
+        fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+        name: 'Sistem Informasi',
+      });
+    });
+
     it('should throw BadRequest if division does not belong to department', async () => {
       const dto = { departmentId: 'dept-1', divisionId: 'div-1' };
       mockPrismaService.division.findUnique.mockResolvedValue({
@@ -126,6 +141,44 @@ describe('ProfileService', () => {
       const result = await service.updateProfile('user-1', dto);
       expect(result.userId).toBe('user-1');
       expect(mockCacheManager.del).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequest if study program does not match faculty', async () => {
+      const dto = {
+        fakultas: Fakultas.TEKNIK,
+        studyProgramId: 'prog-2',
+      };
+
+      mockPrismaService.programStudi.findUnique.mockResolvedValue({
+        id: 'prog-2',
+        fakultas: Fakultas.MIPA,
+        name: 'Biologi',
+      });
+
+      await expect(service.updateProfile('user-1', dto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should update profile if faculty and study program match', async () => {
+      const dto = {
+        fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+        studyProgramId: 'prog-1',
+      };
+
+      mockPrismaService.programStudi.findUnique.mockResolvedValue({
+        id: 'prog-1',
+        fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+        name: 'Sistem Informasi',
+      });
+      mockPrismaService.profile.update.mockResolvedValue({
+        userId: 'user-1',
+        ...dto,
+      });
+
+      const result = await service.updateProfile('user-1', dto);
+      expect(result.fakultas).toBe(Fakultas.TEKNOLOGI_INFORMASI);
+      expect(result.studyProgramId).toBe('prog-1');
     });
   });
 

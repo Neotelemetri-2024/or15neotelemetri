@@ -1281,11 +1281,6 @@ export type ChoiceFindManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Skip the first `n` Choices.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of Choices.
-   */
   distinct?: Prisma.ChoiceScalarFieldEnum | Prisma.ChoiceScalarFieldEnum[]
 }
 

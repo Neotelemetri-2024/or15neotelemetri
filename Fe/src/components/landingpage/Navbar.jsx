@@ -1,29 +1,44 @@
 import logoORWhite from "../../assets/images/Logo_OR_White.png";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Navbar() {
   const [active, setActive] = useState("home");
   const [menuOpen, setMenuOpen] = useState(false);
+  const isScrollingRef = useRef(false);
+  const scrollTimerRef = useRef(null);
 
   const menus = [
     { name: "Home", id: "home" },
     { name: "Division", id: "division" },
     { name: "Project", id: "project" },
     { name: "Achievement", id: "achievement" },
+    { name: "FAQ", id: "faq" },
   ];
+
+  const NAVBAR_HEIGHT = 72;
 
   useEffect(() => {
     const handleScroll = () => {
-      const offsets = menus.map(({ id }) => {
+      // Block deteksi otomatis saat sedang scroll programatik
+      if (isScrollingRef.current) return;
+
+      const scrollY = window.scrollY;
+
+      if (scrollY < 80) {
+        setActive("home");
+        return;
+      }
+
+      let currentActive = "home";
+      for (const { id } of menus) {
         const el = document.getElementById(id);
-        if (!el) return { id, top: Infinity };
-        const rect = el.getBoundingClientRect();
-        return { id, top: Math.abs(rect.top) };
-      });
-      const closest = offsets.reduce((prev, curr) =>
-        curr.top < prev.top ? curr : prev
-      );
-      setActive(closest.id);
+        if (!el) continue;
+        const elementTop = el.offsetTop;
+        if (scrollY + NAVBAR_HEIGHT >= elementTop - 10) {
+          currentActive = id;
+        }
+      }
+      setActive(currentActive);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -41,10 +56,28 @@ export default function Navbar() {
   }, []);
 
   const handleClick = (id) => {
-    setActive(id);
+    setActive(id); // Set langsung, tidak akan di-override
     setMenuOpen(false);
+
+    // Block handleScroll selama ~800ms (durasi smooth scroll)
+    isScrollingRef.current = true;
+    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    scrollTimerRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 800);
+
+    if (id === "home") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (!el) return;
+
+    window.scrollTo({
+      top: el.offsetTop - NAVBAR_HEIGHT,
+      behavior: "smooth",
+    });
   };
 
   return (

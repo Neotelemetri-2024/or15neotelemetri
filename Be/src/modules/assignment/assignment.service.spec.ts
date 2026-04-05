@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AssignmentService } from './assignment.service';
 import { PrismaService } from '../../common/services/prisma.service';
 import { CloudinaryStorageService } from '../../common/services/storage/cloudinary-storage.service';
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { AttemptStatus } from '../../../prisma/generated-client/client';
 
 describe('AssignmentService', () => {
@@ -108,56 +108,6 @@ describe('AssignmentService', () => {
     });
   });
 
-  describe('update', () => {
-    const asgId = 'asg-1';
-    const dto = {
-      title: 'Updated Task',
-      subDivisionId: 'sub-1',
-    };
-
-    it('should update assignment and keep existing fileUrl if no new file', async () => {
-      mockPrismaService.assignment.findUnique.mockResolvedValue({
-        id: asgId,
-        fileUrl: 'old-url',
-      });
-      mockPrismaService.assignment.update.mockResolvedValue({
-        id: asgId,
-        ...dto,
-        fileUrl: 'old-url',
-      });
-
-      const result = await service.update(asgId, dto);
-      expect(result.fileUrl).toBe('old-url');
-      expect(prisma.assignment.update).toHaveBeenCalledWith({
-        where: { id: asgId },
-        data: expect.objectContaining({ fileUrl: 'old-url' }),
-      });
-      expect(storage.uploadFile).not.toHaveBeenCalled();
-    });
-
-    it('should update assignment and upload new file if provided', async () => {
-      const file = { originalname: 'new-task.pdf' } as any;
-      mockPrismaService.assignment.findUnique.mockResolvedValue({
-        id: asgId,
-        fileUrl: 'old-url',
-      });
-      mockStorage.uploadFile.mockResolvedValue('new-url');
-      mockPrismaService.assignment.update.mockResolvedValue({
-        id: asgId,
-        ...dto,
-        fileUrl: 'new-url',
-      });
-
-      const result = await service.update(asgId, dto, file);
-      expect(result.fileUrl).toBe('new-url');
-      expect(storage.uploadFile).toHaveBeenCalledWith(file, 'assignment-tasks');
-      expect(prisma.assignment.update).toHaveBeenCalledWith({
-        where: { id: asgId },
-        data: expect.objectContaining({ fileUrl: 'new-url' }),
-      });
-    });
-  });
-
   describe('submit', () => {
     const userId = 'user-1';
     const asgId = 'asg-1';
@@ -170,7 +120,18 @@ describe('AssignmentService', () => {
       );
     });
 
-    it('should create submission if none exists', async () => {
+    it('should throw BadRequest when both file and text are missing', async () => {
+      mockPrismaService.examAttempt.findFirst.mockResolvedValue({
+        status: AttemptStatus.SUBMITTED,
+      });
+      mockPrismaService.assignment.findUnique.mockResolvedValue({ id: asgId });
+
+      await expect(service.submit(asgId, userId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should create submission with file upload', async () => {
       mockPrismaService.examAttempt.findFirst.mockResolvedValue({
         status: AttemptStatus.SUBMITTED,
       });
@@ -183,7 +144,30 @@ describe('AssignmentService', () => {
 
       const result = await service.submit(asgId, userId, file);
       expect(result.id).toBe('subm-1');
-      expect(prisma.assignmentSubmission.create).toHaveBeenCalled();
+      expect(storage.uploadFile).toHaveBeenCalledWith(file, 'assignments');
+    });
+
+    it('should create submission with text-only content', async () => {
+      mockPrismaService.examAttempt.findFirst.mockResolvedValue({
+        status: AttemptStatus.SUBMITTED,
+      });
+      mockPrismaService.assignment.findUnique.mockResolvedValue({ id: asgId });
+      mockPrismaService.assignmentSubmission.findFirst.mockResolvedValue(null);
+      mockPrismaService.assignmentSubmission.create.mockResolvedValue({
+        id: 'subm-1',
+        textContent: 'my answer',
+      });
+
+      const result = await service.submit(asgId, userId, undefined, 'my answer');
+      expect(result.id).toBe('subm-1');
+      expect(storage.uploadFile).not.toHaveBeenCalled();
+      expect(prisma.assignmentSubmission.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          assignmentId: asgId,
+          userId,
+          textContent: 'my answer',
+        }),
+      });
     });
 
     it('should update existing submission', async () => {

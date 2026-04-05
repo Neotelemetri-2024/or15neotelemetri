@@ -33,6 +33,26 @@ export default function UserLayout({ children }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState(null);
+
+  const handleMouseEnter = () => {
+    if (isMobile) return;
+    const timeout = setTimeout(() => setIsHovering(true), 120);
+    setHoverTimeout(timeout);
+  };
+
+  const handleMouseLeave = () => {
+    if (isMobile) return;
+    if (hoverTimeout) clearTimeout(hoverTimeout);
+    const timeout = setTimeout(() => setIsHovering(false), 120);
+    setHoverTimeout(timeout);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+    };
+  }, [hoverTimeout]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -47,6 +67,9 @@ export default function UserLayout({ children }) {
     navigate("/login");
   };
 
+  // Sidebar terbuka jika: desktop hover, atau mobile open
+  const sidebarOpen = isMobile ? isMobileOpen : isHovering;
+
   return (
     <div className="flex min-h-screen bg-[#1a0023] text-white relative overflow-hidden">
       {/* BACKGROUND */}
@@ -57,31 +80,40 @@ export default function UserLayout({ children }) {
 
       {/* OVERLAY — mobile only */}
       {isMobile && isMobileOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[25]" onClick={() => setIsMobileOpen(false)} />
+        <div
+          className="fixed inset-0 bg-black/60 z-[25] transition-opacity duration-300"
+          onClick={() => setIsMobileOpen(false)}
+        />
       )}
 
       {/* SIDEBAR */}
       <aside
-        onMouseEnter={() => !isMobile && setIsHovering(true)}
-        onMouseLeave={() => !isMobile && setIsHovering(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={`
           fixed top-0 left-0 h-screen bg-[#501A5E]
           flex flex-col justify-between py-6 px-3
-          transition-all duration-300 z-[30]
+          z-[30]
+          transition-[width,transform] duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]
           ${!isMobile
             ? isHovering ? "w-[240px]" : "w-[72px]"
-            : isMobileOpen ? "w-[240px] translate-x-0" : "-translate-x-full w-[240px]"
+            : isMobileOpen
+              ? "w-[240px] translate-x-0"
+              : "w-[240px] -translate-x-full"
           }
         `}
       >
         {/* LOGO */}
         <div>
-          <div className="mb-8 flex justify-center items-center min-h-[40px]">
-            {!isMobile && !isHovering ? (
-              <img src={logoORWhite} alt="logo" className="w-[32px] h-[32px] object-contain" />
-            ) : (
-              <img src={logoORWhite} alt="logo" className="w-[140px]" />
-            )}
+          <div className="mb-8 flex items-center min-h-[40px] px-1 overflow-hidden">
+            <img
+              src={logoORWhite}
+              alt="logo"
+              className={`
+                origin-left transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]
+                ${sidebarOpen ? "w-[140px]" : "w-[32px]"}
+              `}
+            />
           </div>
 
           {/* MENU */}
@@ -92,7 +124,7 @@ export default function UserLayout({ children }) {
                 to={item.to}
                 icon={item.icon}
                 label={item.label}
-                isOpen={isMobile ? true : isHovering}
+                isOpen={sidebarOpen}
               />
             ))}
           </nav>
@@ -101,17 +133,24 @@ export default function UserLayout({ children }) {
         {/* LOGOUT */}
         <button
           onClick={handleLogout}
-          className={`flex items-center gap-3 text-sm opacity-80 hover:opacity-100 transition px-2
-            ${!isMobile && !isHovering ? "justify-center" : "justify-start"}`}
+          className="flex items-center px-3 text-sm opacity-80 hover:opacity-100 transition"
         >
-          <LogOut size={20} className="shrink-0" />
-          {(isMobile || isHovering) && (
-            <span className="cursor-pointer">Keluar</span>
-          )}
+          <span className="shrink-0 w-[20px] flex items-center justify-center">
+            <LogOut size={20} />
+          </span>
+          <span
+            className={`
+              whitespace-nowrap overflow-hidden
+              transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+              ${sidebarOpen ? "opacity-100 max-w-[160px] ml-3" : "opacity-0 max-w-0 ml-0"}
+            `}
+          >
+            Keluar
+          </span>
         </button>
       </aside>
 
-      {/* HAMBURGER — floating */}
+      {/* HAMBURGER — floating, mobile only */}
       {isMobile && (
         <button
           onClick={() => setIsMobileOpen((p) => !p)}
@@ -123,7 +162,7 @@ export default function UserLayout({ children }) {
 
       <main
         className={`
-          flex-1 relative z-10 transition-all duration-300 min-w-0
+          flex-1 relative z-10 transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] min-w-0
           ${!isMobile ? (isHovering ? "ml-[240px]" : "ml-[72px]") : "ml-0"}
         `}
       >

@@ -73,11 +73,13 @@ describe('DashboardService', () => {
         fullName: 'Test User',
         nim: '1234',
         whatsappNumber: '08123',
-        studyProgram: 'IT',
+        fakultas: 'TEKNOLOGI_INFORMASI',
+        studyProgramId: 'prog-1',
         departmentId: 'dept-1',
         divisionId: 'div-1',
         subDivisionId: 'sub-1',
         subDivision: { name: 'Frontend' },
+        programStudi: { name: 'Sistem Informasi' },
       });
       mockPrismaService.submissionVerification.findFirst.mockResolvedValue({
         status: 'APPROVED',

@@ -607,18 +607,13 @@ export default function Login() {
         {/* RIGHT */}
         <div
           className="text-white space-y-3 text-center hidden lg:block"
-          style={{
-            WebkitMaskImage:
-              "linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0.6) 70%, transparent 100%)",
-            maskImage:
-              "linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0.6) 70%, transparent 100%)",
-          }}
+          
         >
           <p className="text-3xl tracking-widest font-bold">
             Hello! Welcome to
           </p>
           <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
-            Open Recruitment XV
+            Open Recruitment 15
             <br />
             <span>UKM Neo Telemetri</span>
           </h1>

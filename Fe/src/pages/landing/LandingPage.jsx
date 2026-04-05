@@ -6,11 +6,13 @@ import ProjectSection from "../../components/landingpage/ProjectSection";
 import AchievementSection from "../../components/landingpage/AchievementSection";
 import CountdownSection from "../../components/landingpage/TimerSection";
 import FooterSection from "../../components/landingpage/FooterSection";
+import CTASection from "../../components/landingpage/CtaSection";
 import FaqSection from "../../components/landingpage/FaqSection";
 import Navbar from "../../components/landingpage/Navbar";
 import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { Helmet } from "react-helmet-async";
 
 export default function LandingPage() {
   useEffect(() => {
@@ -25,48 +27,60 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#070012] text-white overflow-hidden">
-      <>
-        <Navbar />
-      </>
+    <>
+      <Helmet>
+        <title>Open Recruitment Neo Telemetri 15 UNAND</title>
+        <meta
+          name="description"
+          content="Ayo bergabung dengan angkatan ke-15 Neo Telemetri!"
+        />
+      </Helmet>
+      <div className="relative min-h-screen bg-[#070012] text-white overflow-hidden">
+        <>
+          <Navbar />
+        </>
 
-      <Hero />
+        <Hero />
 
-      <div data-aos="fade-up" data-aos-delay="100">
-        <OperasionalSection />
-      </div>
+        <div id="division" data-aos="fade-up">
+          <OperasionalSection />
+        </div>
 
-      <div data-aos="fade-up" data-aos-delay="200">
-        <OrganisasiSection />
-      </div>
-      <div data-aos="fade-up" data-aos-delay="300">
-        <ProjectSection />
-      </div>
+        <div id="organisasi" data-aos="fade-up">
+          <OrganisasiSection />
+        </div>
+        <div id="project" data-aos="fade-up">
+          <ProjectSection />
+        </div>
 
-      <div data-aos="fade-up" data-aos-delay="400">
-        <AchievementSection />
-      </div>
-      <div data-aos="fade-up" data-aos-delay="500">
-        <CountdownSection />
-      </div>
+        <div id="achievement" data-aos="fade-up">
+          <AchievementSection />
+        </div>
+        <div data-aos="fade-up">
+          <CountdownSection />
+        </div>
+        <div data-aos="fade-up">
+          <CTASection />
+        </div>
 
-      <div data-aos="fade-up" data-aos-delay="600">
-        <FaqSection />
-      </div>
+        <div id="faq" data-aos="fade-up">
+          <FaqSection />
+        </div>
 
-      <div data-aos="fade-up" data-aos-delay="700">
-        <FooterSection />
-      </div>
+        <div data-aos="fade-up">
+          <FooterSection />
+        </div>
 
-      {/* KEYFRAME */}
-      <style>
-        {`
+        {/* KEYFRAME */}
+        <style>
+          {`
         @keyframes circuit {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(300px); }
         }
         `}
-      </style>
-    </div>
+        </style>
+      </div>
+    </>
   );
 }

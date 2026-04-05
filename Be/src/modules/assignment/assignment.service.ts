@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../common/services/prisma.service';
 import { CloudinaryStorageService } from '../../common/services/storage/cloudinary-storage.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 import { ScoreSubmissionDto } from './dto/score-submission.dto';
 import { AttemptStatus } from '../../../prisma/generated-client/client';
-import { ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class AssignmentService {
@@ -76,6 +80,7 @@ export class AssignmentService {
             score: true,
             feedback: true,
             fileUrl: true,
+            textContent: true,
           },
         },
       },
@@ -95,6 +100,7 @@ export class AssignmentService {
             score: true,
             feedback: true,
             fileUrl: true,
+            textContent: true,
           },
         },
       },
@@ -143,7 +149,8 @@ export class AssignmentService {
   async submit(
     assignmentId: string,
     userId: string,
-    file: Express.Multer.File,
+    file?: Express.Multer.File,
+    textContent?: string,
   ) {
     const examPassed = await this.prisma.examAttempt.findFirst({
       where: { userId, status: AttemptStatus.SUBMITTED },
@@ -157,20 +164,42 @@ export class AssignmentService {
 
     await this.findOne(assignmentId);
 
+    const normalizedText = textContent?.trim();
+    if (!file && !normalizedText) {
+      throw new BadRequestException(
+        'At least one of file or text content must be provided.',
+      );
+    }
+
     // Check if duplicate submission, or just update? Let's say we update/resubmit.
     const existing = await this.prisma.assignmentSubmission.findFirst({
       where: { assignmentId, userId },
     });
 
-    const fileUrl = await this.storage.uploadFile(file, 'assignments');
+    const fileUrl = file
+      ? await this.storage.uploadFile(file, 'assignments')
+      : null;
 
     if (existing) {
+      const updateData: {
+        submittedAt: Date;
+        fileUrl?: string;
+        textContent?: string;
+      } = {
+        submittedAt: new Date(),
+      };
+
+      if (fileUrl) {
+        updateData.fileUrl = fileUrl;
+      }
+
+      if (normalizedText !== undefined) {
+        updateData.textContent = normalizedText;
+      }
+
       return this.prisma.assignmentSubmission.update({
         where: { id: existing.id },
-        data: {
-          fileUrl,
-          submittedAt: new Date(),
-        },
+        data: updateData,
       });
     }
 
@@ -179,6 +208,7 @@ export class AssignmentService {
         assignmentId,
         userId,
         fileUrl,
+        textContent: normalizedText ?? null,
         submittedAt: new Date(),
       },
     });
@@ -213,3 +243,6 @@ export class AssignmentService {
     });
   }
 }
+
+
+

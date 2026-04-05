@@ -255,6 +255,7 @@ export type RecruitmentTimelineOrderByWithRelationInput = {
 
 export type RecruitmentTimelineWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  orderIndex?: number
   AND?: Prisma.RecruitmentTimelineWhereInput | Prisma.RecruitmentTimelineWhereInput[]
   OR?: Prisma.RecruitmentTimelineWhereInput[]
   NOT?: Prisma.RecruitmentTimelineWhereInput | Prisma.RecruitmentTimelineWhereInput[]
@@ -262,10 +263,9 @@ export type RecruitmentTimelineWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringNullableFilter<"RecruitmentTimeline"> | string | null
   startAt?: Prisma.DateTimeFilter<"RecruitmentTimeline"> | Date | string
   endAt?: Prisma.DateTimeFilter<"RecruitmentTimeline"> | Date | string
-  orderIndex?: Prisma.IntFilter<"RecruitmentTimeline"> | number
   createdAt?: Prisma.DateTimeFilter<"RecruitmentTimeline"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"RecruitmentTimeline"> | Date | string
-}, "id">
+}, "id" | "orderIndex">
 
 export type RecruitmentTimelineOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -1094,11 +1094,6 @@ export type RecruitmentTimelineFindManyArgs<ExtArgs extends runtime.Types.Extens
    * Skip the first `n` RecruitmentTimelines.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of RecruitmentTimelines.
-   */
   distinct?: Prisma.RecruitmentTimelineScalarFieldEnum | Prisma.RecruitmentTimelineScalarFieldEnum[]
 }
 

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { TimelineService } from './timeline.service';
 import { PrismaService } from '../../common/services/prisma.service';
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 
 describe('TimelineService', () => {
   let service: TimelineService;
@@ -20,6 +20,7 @@ describe('TimelineService', () => {
   const mockPrismaService = {
     recruitmentTimeline: {
       findMany: jest.fn().mockResolvedValue([mockTimeline]),
+      findFirst: jest.fn().mockResolvedValue(null),
       findUnique: jest.fn().mockResolvedValue(mockTimeline),
       create: jest.fn().mockResolvedValue(mockTimeline),
       update: jest.fn().mockResolvedValue(mockTimeline),
@@ -65,7 +66,13 @@ describe('TimelineService', () => {
       mockCacheManager.get.mockResolvedValue(null);
       const result = await service.findAll();
       expect(result).toEqual([mockTimeline]);
-      expect(prisma.recruitmentTimeline.findMany).toHaveBeenCalled();
+      expect(prisma.recruitmentTimeline.findMany).toHaveBeenCalledWith({
+        orderBy: [
+          { orderIndex: 'asc' },
+          { startAt: 'asc' },
+          { createdAt: 'asc' },
+        ],
+      });
     });
   });
 
@@ -95,6 +102,21 @@ describe('TimelineService', () => {
       expect(result).toBeDefined();
       expect(prisma.recruitmentTimeline.create).toHaveBeenCalled();
       expect(mockCacheManager.del).toHaveBeenCalled();
+    });
+
+    it('should throw ConflictException if orderIndex already exists', async () => {
+      mockPrismaService.recruitmentTimeline.findFirst.mockResolvedValueOnce({
+        id: 'existing-id',
+      });
+
+      const dto = {
+        title: 'Conflicted',
+        startAt: new Date().toISOString(),
+        endAt: new Date().toISOString(),
+        orderIndex: 1,
+      };
+
+      await expect(service.create(dto)).rejects.toThrow(ConflictException);
     });
   });
 });

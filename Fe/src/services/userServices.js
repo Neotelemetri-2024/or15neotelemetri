@@ -12,6 +12,8 @@ export const updateAvatar = (formData) =>
     headers: { "Content-Type": "multipart/form-data" },
   });
 
+
+
 export const getDepartments = () =>
   api.get("/profile/departments");
 
@@ -20,6 +22,9 @@ export const getDivisionsByDepartment = (departmentId) =>
 
 export const getSubDivisionsByDivision = (divisionId) =>
   api.get(`/profile/sub-divisions/${divisionId}`);
+
+export const getAllProgramStudi = () =>
+  api.get("/master-data/program-studi");
 
 // ===== TIMELINE =====
 export const getTimelines = () =>

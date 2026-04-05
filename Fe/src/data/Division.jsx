@@ -9,7 +9,7 @@ export const operasional = [
     subDivisions: [
       { title: "UI/UX", desc: "Sub divisi ini  mempelajari konsep dalam desain digital yang bertujuan membuat tampilan dan pengalaman pengguna menjadi nyaman saat menggunakan aplikasi atau website." },
       { title: "Video Editing", desc: "Sub divisi ini mempelajari  proses pengolahan dan penyusunan rekaman video seperti transisi, alur cerita, efek dan penyempurnaan warna untuk menghasilkan konten yang terstruktur dan berkualitas. " },
-      { title: "Desain Grafis", desc: "Sub divisi 3D adalah bagian yang berfokus pada pembuatan dan pengolahan objek visual tiga dimensi yang memiliki panjang, lebar, dan tinggi untuk menghasilkan tampilan yang lebih realistis dan menarik." }
+      { title: "3D", desc: "Sub divisi 3D adalah bagian yang berfokus pada pembuatan dan pengolahan objek visual tiga dimensi yang memiliki panjang, lebar, dan tinggi untuk menghasilkan tampilan yang lebih realistis dan menarik." }
     ]
   },
   {
@@ -26,7 +26,7 @@ export const operasional = [
     logo: logoSkj,
     subDivisions: [
       { title: "Network Engineer", desc: "Subdivisi ini berfokus pada perancangan, konfigurasi, dan pengelolaan jaringan komputer, baik dalam skala kecil maupun besar" },
-      { title: "System Engineer", desc: "Subdivisi ini berfokus pada perancangan dan pengelolaan sistem komputer serta infrastruktur teknologi agar berjalan optimal. " }
+      { title: "System & Cloud", desc: "Subdivisi ini berfokus pada perancangan dan pengelolaan sistem komputer serta infrastruktur teknologi agar berjalan optimal. " }
     ]
   }
 ];
@@ -42,4 +42,5 @@ export const organisasi = [
     ]
   }
 ];
+
 

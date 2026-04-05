@@ -39,7 +39,7 @@ export default function ProjectSection() {
   const allCards = currentProject.subDivisions.slice(0, 6);
 
   return (
-    <section id="project" className="relative py-8 lg:py-16">
+    <section  className="relative py-8 lg:py-16">
       {/* BACKGROUND */}
       <img
         src={circlePurple}

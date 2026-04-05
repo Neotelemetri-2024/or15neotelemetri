@@ -8,6 +8,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/common/services/prisma.service';
 import * as path from 'path';
+import { Fakultas } from '../prisma/generated-client/client';
 
 describe('Features (e2e)', () => {
   let app: INestApplication;
@@ -52,6 +53,7 @@ describe('Features (e2e)', () => {
     if (user) {
       await prisma.user.delete({ where: { id: user.id } });
     }
+    await prisma.programStudi.deleteMany();
     await app.close();
   });
 
@@ -106,16 +108,45 @@ describe('Features (e2e)', () => {
     });
 
     it('/api/profile/me (PATCH)', async () => {
+      const studyProgram = await prisma.programStudi.create({
+        data: {
+          fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+          name: 'Sistem Informasi',
+        },
+      });
+
       const response = await request(app.getHttpServer())
         .patch('/api/profile/me')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           nickName: 'Tester',
           whatsappNumber: '08123456789',
+          fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+          studyProgramId: studyProgram.id,
         })
         .expect(200);
 
       expect(response.body.nickName).toBe('Tester');
+      expect(response.body.fakultas).toBe(Fakultas.TEKNOLOGI_INFORMASI);
+      expect(response.body.studyProgramId).toBe(studyProgram.id);
+    });
+
+    it('/api/profile/me (PATCH) rejects mismatched faculty and study program', async () => {
+      const studyProgram = await prisma.programStudi.create({
+        data: {
+          fakultas: Fakultas.MIPA,
+          name: 'Biologi',
+        },
+      });
+
+      await request(app.getHttpServer())
+        .patch('/api/profile/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          fakultas: Fakultas.TEKNIK,
+          studyProgramId: studyProgram.id,
+        })
+        .expect(400);
     });
 
     it('/api/profile/me/avatar (POST)', async () => {
@@ -135,6 +166,27 @@ describe('Features (e2e)', () => {
         .get('/api/profile/departments')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
+    });
+
+    it('/api/master-data/program-studi (GET)', async () => {
+      await prisma.programStudi.create({
+        data: {
+          fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+          name: 'Teknik Komputer',
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/api/master-data/program-studi')
+        .query({ fakultas: Fakultas.TEKNOLOGI_INFORMASI })
+        .expect(200);
+
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(
+        response.body.every(
+          (item: any) => item.fakultas === Fakultas.TEKNOLOGI_INFORMASI,
+        ),
+      ).toBe(true);
     });
   });
 

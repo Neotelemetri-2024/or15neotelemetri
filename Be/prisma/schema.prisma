@@ -55,6 +55,22 @@ enum AttendanceStatus {
   @@map("attendance_status")
 }
 
+enum Fakultas {
+  PERTANIAN
+  KEDOKTERAN
+  MIPA
+  PETERNAKAN
+  TEKNIK
+  TEKNOLOGI_PERTANIAN
+  FARMASI
+  TEKNOLOGI_INFORMASI
+  KEPERAWATAN
+  KESEHATAN_MASYARAKAT
+  KEDOKTERAN_GIGI
+
+  @@map("fakultas")
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique @db.VarChar(255)
@@ -100,6 +116,7 @@ model RecruitmentTimeline {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @default(now()) @updatedAt @map("updated_at")
 
+  @@unique([orderIndex])
   @@map("recruitment_timelines")
 }
 
@@ -171,7 +188,8 @@ model Profile {
   nickName        String?  @map("nick_name") @db.VarChar(255)
   nim             String   @unique @db.VarChar(50)
   whatsappNumber  String?  @map("whatsapp_number") @db.VarChar(20)
-  studyProgram    String?  @map("study_program") @db.VarChar(255)
+  fakultas        Fakultas? @map("fakultas")
+  studyProgramId  String?  @map("study_program_id")
   departmentId    String?  @map("department_id")
   divisionId      String?  @map("division_id")
   subDivisionId   String?  @map("sub_division_id")
@@ -180,12 +198,26 @@ model Profile {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department  Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  division    Division?    @relation(fields: [divisionId], references: [id], onDelete: Cascade)
-  subDivision SubDivision? @relation(fields: [subDivisionId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programStudi ProgramStudi? @relation(fields: [studyProgramId], references: [id], onDelete: SetNull)
+  department   Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  division     Division?    @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  subDivision  SubDivision? @relation(fields: [subDivisionId], references: [id], onDelete: Cascade)
 
   @@map("profiles")
+}
+
+model ProgramStudi {
+  id        String   @id @default(uuid())
+  fakultas  Fakultas
+  name      String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  profiles Profile[]
+
+  @@unique([fakultas, name])
+  @@map("program_studi")
 }
 
 model SubmissionVerification {
@@ -354,7 +386,8 @@ model AssignmentSubmission {
   id           String   @id @default(uuid())
   assignmentId String   @map("assignment_id")
   userId       String   @map("user_id")
-  fileUrl      String   @map("file_url") @db.Text
+  fileUrl      String?  @map("file_url") @db.Text
+  textContent  String?  @map("text_content") @db.Text
   submittedAt  DateTime? @default(now()) @map("submitted_at")
   score        Decimal? @db.Decimal(5, 2)
   feedback     String?  @db.Text
@@ -366,3 +399,8 @@ model AssignmentSubmission {
 
   @@map("assignment_submissions")
 }
+
+
+
+
+

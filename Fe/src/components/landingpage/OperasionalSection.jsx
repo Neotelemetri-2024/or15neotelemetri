@@ -3,7 +3,7 @@ import { operasional } from "../../data/Division";
 import circleBlue from "../../assets/images/Bulat_Biru.png";
 import CircuitLine from "../../assets/images/Circuit_Line.png";
 
-export default function OperasionalSection() {
+export default function id() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flippingCards, setFlippingCards] = useState([]);
 
@@ -33,7 +33,7 @@ export default function OperasionalSection() {
   const currentDivision = operasional[currentIndex];
 
   return (
-    <section id="division" className="relative overflow-hidden py-20 lg:py-32">
+    <section  className="relative overflow-hidden py-20 lg:py-32">
       {/* BACKGROUND */}
       <img
         src={circleBlue}
@@ -90,7 +90,7 @@ export default function OperasionalSection() {
                       className="rounded-3xl border-4 border-white h-full backdrop-blur-3xl"
                       style={{ backfaceVisibility: "hidden" }}
                     >
-                      <div className="flex flex-col h-80 lg:h-100 rounded-3xl px-6 lg:px-8 py-8 lg:py-10 text-center">
+                      <div className="flex flex-col h-110 rounded-3xl px-6 lg:px-8 py-8 lg:py-10 text-center">
                         <h3 className="text-xl lg:text-2xl font-semibold pb-6 lg:pb-8">
                           {item.title}
                         </h3>
@@ -108,7 +108,7 @@ export default function OperasionalSection() {
                         transform: "rotateY(180deg)",
                       }}
                     >
-                      <div className="h-80 lg:h-100 w-full rounded-3xl flex items-center justify-center">
+                      <div className="h-110 w-full rounded-3xl flex items-center justify-center">
                         <span className="text-cyan-300 text-lg">Loading...</span>
                       </div>
                     </div>

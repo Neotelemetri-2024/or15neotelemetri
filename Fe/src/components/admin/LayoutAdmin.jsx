@@ -1,6 +1,5 @@
 import circlePurple from "../../assets/images/Bulat_Ungu.png";
 import logoORWhite from "../../assets/images/Logo_OR_White.png";
-import SidebarAdmin from "./SidebarAdmin";
 import { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -20,7 +19,7 @@ import {
   ChevronRight,
   PlusSquare,
   History,
-  Layers
+  Layers,
 } from "lucide-react";
 
 const menuItems = [
@@ -29,38 +28,18 @@ const menuItems = [
     icon: <LayoutDashboard size={18} />,
     label: "Dashboard",
     children: [
-      {
-        to: "/admin/division",
-        icon: <Layers size={16} />,
-        label: "Division",
-      },
-      {
-        to: "/admin/timeline",
-        icon: <History size={16} />,
-        label: "Timeline",
-      },
+      { to: "/admin/division", icon: <Layers size={16} />, label: "Division" },
+      { to: "/admin/timeline", icon: <History size={16} />, label: "Timeline" },
     ],
   },
-  {
-    to: "/admin/verifikasi",
-    icon: <ShieldCheck size={18} />,
-    label: "Verifikasi",
-  },
-  {
-    to: "/admin/pembayaran",
-    icon: <CreditCard size={18} />,
-    label: "Pembayaran",
-  },
+  { to: "/admin/verifikasi", icon: <ShieldCheck size={18} />, label: "Verifikasi" },
+  { to: "/admin/pembayaran", icon: <CreditCard size={18} />, label: "Pembayaran" },
   {
     to: "/admin/ujian",
     icon: <FileText size={18} />,
     label: "Ujian",
     children: [
-      {
-        to: "/admin/pengumpulanujian",
-        icon: <ClipboardList size={16} />,
-        label: "Pengumpulan",
-      },
+      { to: "/admin/pengumpulanujian", icon: <ClipboardList size={16} />, label: "Pengumpulan" },
     ],
   },
   {
@@ -68,11 +47,7 @@ const menuItems = [
     icon: <CalendarCheck size={18} />,
     label: "List Absensi",
     children: [
-      {
-        to: "/admin/absensi",
-        icon: <CalendarCheck size={16} />,
-        label: "Absen",
-      },
+      { to: "/admin/absensi", icon: <CalendarCheck size={16} />, label: "Absen" },
     ],
   },
   {
@@ -80,11 +55,7 @@ const menuItems = [
     icon: <BookOpen size={18} />,
     label: "Materi",
     children: [
-      {
-        to: "/admin/materi/add",
-        icon: <PlusSquare size={16} />,
-        label: "Tambah Materi",
-      },
+      { to: "/admin/materi/add", icon: <PlusSquare size={16} />, label: "Tambah Materi" },
     ],
   },
   {
@@ -92,16 +63,8 @@ const menuItems = [
     icon: <ListTodo size={18} />,
     label: "Tugas",
     children: [
-      {
-        to: "/admin/kumpultugas",
-        icon: <PackageCheck size={16} />,
-        label: "Pengumpulan",
-      },
-      {
-        to: "/admin/tugas/add",
-        icon: <PlusSquare size={16} />,
-        label: "Tambah Tugas",
-      },
+      { to: "/admin/kumpultugas", icon: <PackageCheck size={16} />, label: "Pengumpulan" },
+      { to: "/admin/tugas/add", icon: <PlusSquare size={16} />, label: "Tambah Tugas" },
     ],
   },
 ];
@@ -111,11 +74,9 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
   const hasChildren = item.children && item.children.length > 0;
 
   const isChildActive =
-    hasChildren &&
-    item.children.some((child) => location.pathname.startsWith(child.to));
+    hasChildren && item.children.some((child) => location.pathname.startsWith(child.to));
   const isParentActive =
-    location.pathname === item.to ||
-    location.pathname.startsWith(item.to + "/");
+    location.pathname === item.to || location.pathname.startsWith(item.to + "/");
 
   const [expanded, setExpanded] = useState(isChildActive || isParentActive);
 
@@ -132,18 +93,31 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
           to={item.to}
           end
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200 flex-1
-            ${
-              isActive || isChildActive
-                ? "bg-white/20 text-white font-semibold"
-                : "text-white/70 hover:bg-white/10 hover:text-white"
+            `flex items-center px-3 py-2.5 text-sm rounded-lg transition-all duration-200 flex-1
+            ${isActive || isChildActive
+              ? "bg-white/20 text-white font-semibold"
+              : "text-white/70 hover:bg-white/10 hover:text-white"
             }`
           }
         >
-          <span className="shrink-0">{item.icon}</span>
-          {showLabel && <span className="flex-1 truncate">{item.label}</span>}
+          {/* Icon selalu di posisi kiri */}
+          <span className="shrink-0 w-[18px] flex items-center justify-center">
+            {item.icon}
+          </span>
+
+          {/* Label animate */}
+          <span
+            className={`
+              whitespace-nowrap overflow-hidden
+              transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+              ${showLabel ? "opacity-100 max-w-[140px] ml-3" : "opacity-0 max-w-0 ml-0"}
+            `}
+          >
+            {item.label}
+          </span>
         </NavLink>
 
+        {/* Chevron toggle — hanya muncul saat label visible */}
         {hasChildren && showLabel && (
           <button
             onClick={() => setExpanded((p) => !p)}
@@ -154,6 +128,7 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
         )}
       </div>
 
+      {/* Sub-menu — hanya muncul saat label visible */}
       {hasChildren && showLabel && expanded && (
         <div className="ml-4 mt-1 flex flex-col gap-1 border-l border-white/20 pl-3">
           {item.children.map((child) => (
@@ -162,10 +137,9 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
               to={child.to}
               className={({ isActive }) =>
                 `flex items-center gap-2 px-2 py-2 text-xs rounded-md transition-all duration-200
-                ${
-                  isActive
-                    ? "bg-white/20 text-white font-semibold"
-                    : "text-white/60 hover:bg-white/10 hover:text-white"
+                ${isActive
+                  ? "bg-white/20 text-white font-semibold"
+                  : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`
               }
             >
@@ -198,30 +172,21 @@ export default function AdminLayout({ children }) {
     navigate("/login");
   };
 
+  // Sidebar terbuka jika: desktop hover, atau mobile open
+  const sidebarOpen = isMobile ? isMobileOpen : isHovering;
+
   return (
     <div className="flex min-h-screen bg-[#1a0023] text-white overflow-hidden relative">
       {/* BACKGROUND */}
-      <img
-        src={circlePurple}
-        alt=""
-        className="absolute -top-30 left-1/4 w-[250px] pointer-events-none"
-      />
-      <img
-        src={circlePurple}
-        alt=""
-        className="absolute -bottom-20 left-1/4 pointer-events-none"
-      />
-      <img
-        src={circlePurple}
-        alt=""
-        className="absolute top-1/3 -right-10 pointer-events-none"
-      />
+      <img src={circlePurple} alt="" className="absolute -top-30 left-1/4 w-[250px] pointer-events-none" />
+      <img src={circlePurple} alt="" className="absolute -bottom-20 left-1/4 pointer-events-none" />
+      <img src={circlePurple} alt="" className="absolute top-1/3 -right-10 pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-[300px] h-[300px] bg-[#01FFFF] blur-[80px] rounded-full pointer-events-none" />
 
       {/* OVERLAY — mobile only */}
       {isMobile && isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-[25]"
+          className="fixed inset-0 bg-black/60 z-[25] transition-opacity duration-300"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -233,30 +198,27 @@ export default function AdminLayout({ children }) {
         className={`
           fixed top-0 left-0 h-screen bg-[#501A5E]
           flex flex-col justify-between py-6 px-3
-          transition-all duration-300 z-[30]
-          ${
-            !isMobile
-              ? isHovering
-                ? "w-[240px]"
-                : "w-[72px]"
-              : isMobileOpen
-                ? "w-[240px] translate-x-0"
-                : "-translate-x-full w-[240px]"
+          z-[30]
+          transition-[width,transform] duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]
+          ${!isMobile
+            ? isHovering ? "w-[240px]" : "w-[72px]"
+            : isMobileOpen
+              ? "w-[240px] translate-x-0"
+              : "w-[240px] -translate-x-full"
           }
         `}
       >
         {/* LOGO + MENU */}
-        <div className="overflow-hidden overflow-y-auto flex-1 flex flex-col">
-          <div className="mb-8 flex justify-center items-center min-h-[40px]">
-            {!isMobile && !isHovering ? (
-              <img
-                src={logoORWhite}
-                alt="logo"
-                className="w-[32px] h-[32px] object-contain"
-              />
-            ) : (
-              <img src={logoORWhite} alt="logo" className="w-[140px]" />
-            )}
+        <div className="overflow-y-auto flex-1 flex flex-col">
+          <div className="mb-8 flex items-center min-h-[40px] px-1 overflow-hidden">
+            <img
+              src={logoORWhite}
+              alt="logo"
+              className={`
+                origin-left transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]
+                ${sidebarOpen ? "w-[140px]" : "w-[32px]"}
+              `}
+            />
           </div>
 
           <nav className="flex flex-col gap-1 text-sm">
@@ -274,17 +236,24 @@ export default function AdminLayout({ children }) {
         {/* LOGOUT */}
         <button
           onClick={handleLogout}
-          className={`flex items-center gap-3 text-sm opacity-80 hover:opacity-100 transition px-2 mt-4
-            ${!isMobile && !isHovering ? "justify-center" : "justify-start"}`}
+          className="flex items-center px-3 mt-4 text-sm opacity-80 hover:opacity-100 transition"
         >
-          <LogOut size={18} className="shrink-0" />
-          {(isMobile || isHovering) && (
-            <span className="cursor-pointer">Keluar</span>
-          )}
+          <span className="shrink-0 w-[18px] flex items-center justify-center">
+            <LogOut size={18} />
+          </span>
+          <span
+            className={`
+              whitespace-nowrap overflow-hidden
+              transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+              ${sidebarOpen ? "opacity-100 max-w-[160px] ml-3" : "opacity-0 max-w-0 ml-0"}
+            `}
+          >
+            Keluar
+          </span>
         </button>
       </aside>
 
-      {/* HAMBURGER — floating */}
+      {/* HAMBURGER — floating, mobile only */}
       {isMobile && (
         <button
           onClick={() => setIsMobileOpen((p) => !p)}
@@ -297,7 +266,7 @@ export default function AdminLayout({ children }) {
       {/* CONTENT */}
       <main
         className={`
-          flex-1 relative z-10 transition-all duration-300 min-w-0
+          flex-1 relative z-10 transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] min-w-0
           ${!isMobile ? (isHovering ? "ml-[240px]" : "ml-[72px]") : "ml-0"}
         `}
       >

@@ -80,12 +80,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.5.0
- * Query Engine version: 280c870be64f457428992c43c1f6d557fab6e29e
+ * Prisma Client JS version: 7.4.0
+ * Query Engine version: ab56fe763f921d033a6c195e7ddeb3e255bdbb57
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.5.0",
-  engine: "280c870be64f457428992c43c1f6d557fab6e29e"
+  client: "7.4.0",
+  engine: "ab56fe763f921d033a6c195e7ddeb3e255bdbb57"
 }
 
 /**
@@ -392,6 +392,7 @@ export const ModelName = {
   Division: 'Division',
   SubDivision: 'SubDivision',
   Profile: 'Profile',
+  ProgramStudi: 'ProgramStudi',
   SubmissionVerification: 'SubmissionVerification',
   Payment: 'Payment',
   Exam: 'Exam',
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "department" | "recruitmentTimeline" | "activity" | "attendance" | "division" | "subDivision" | "profile" | "submissionVerification" | "payment" | "exam" | "question" | "choice" | "examAttempt" | "examAnswer" | "learningModule" | "assignment" | "assignmentSubmission"
+    modelProps: "user" | "department" | "recruitmentTimeline" | "activity" | "attendance" | "division" | "subDivision" | "profile" | "programStudi" | "submissionVerification" | "payment" | "exam" | "question" | "choice" | "examAttempt" | "examAnswer" | "learningModule" | "assignment" | "assignmentSubmission"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1010,6 +1011,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProgramStudi: {
+      payload: Prisma.$ProgramStudiPayload<ExtArgs>
+      fields: Prisma.ProgramStudiFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProgramStudiFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProgramStudiFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>
+        }
+        findFirst: {
+          args: Prisma.ProgramStudiFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProgramStudiFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>
+        }
+        findMany: {
+          args: Prisma.ProgramStudiFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>[]
+        }
+        create: {
+          args: Prisma.ProgramStudiCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>
+        }
+        createMany: {
+          args: Prisma.ProgramStudiCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProgramStudiCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>[]
+        }
+        delete: {
+          args: Prisma.ProgramStudiDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>
+        }
+        update: {
+          args: Prisma.ProgramStudiUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProgramStudiDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProgramStudiUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProgramStudiUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProgramStudiUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProgramStudiPayload>
+        }
+        aggregate: {
+          args: Prisma.ProgramStudiAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProgramStudi>
+        }
+        groupBy: {
+          args: Prisma.ProgramStudiGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProgramStudiGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProgramStudiCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProgramStudiCountAggregateOutputType> | number
         }
       }
     }
@@ -1883,7 +1958,8 @@ export const ProfileScalarFieldEnum = {
   nickName: 'nickName',
   nim: 'nim',
   whatsappNumber: 'whatsappNumber',
-  studyProgram: 'studyProgram',
+  fakultas: 'fakultas',
+  studyProgramId: 'studyProgramId',
   departmentId: 'departmentId',
   divisionId: 'divisionId',
   subDivisionId: 'subDivisionId',
@@ -1894,6 +1970,17 @@ export const ProfileScalarFieldEnum = {
 } as const
 
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
+
+
+export const ProgramStudiScalarFieldEnum = {
+  id: 'id',
+  fakultas: 'fakultas',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProgramStudiScalarFieldEnum = (typeof ProgramStudiScalarFieldEnum)[keyof typeof ProgramStudiScalarFieldEnum]
 
 
 export const SubmissionVerificationScalarFieldEnum = {
@@ -2040,6 +2127,7 @@ export const AssignmentSubmissionScalarFieldEnum = {
   assignmentId: 'assignmentId',
   userId: 'userId',
   fileUrl: 'fileUrl',
+  textContent: 'textContent',
   submittedAt: 'submittedAt',
   score: 'score',
   feedback: 'feedback',
@@ -2154,6 +2242,20 @@ export type EnumAttendanceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
  * Reference to a field of type 'AttendanceStatus[]'
  */
 export type ListEnumAttendanceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Fakultas'
+ */
+export type EnumFakultasFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Fakultas'>
+    
+
+
+/**
+ * Reference to a field of type 'Fakultas[]'
+ */
+export type ListEnumFakultasFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Fakultas[]'>
     
 
 
@@ -2343,6 +2445,7 @@ export type GlobalOmitConfig = {
   division?: Prisma.DivisionOmit
   subDivision?: Prisma.SubDivisionOmit
   profile?: Prisma.ProfileOmit
+  programStudi?: Prisma.ProgramStudiOmit
   submissionVerification?: Prisma.SubmissionVerificationOmit
   payment?: Prisma.PaymentOmit
   exam?: Prisma.ExamOmit

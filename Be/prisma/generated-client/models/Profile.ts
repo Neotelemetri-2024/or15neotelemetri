@@ -31,7 +31,8 @@ export type ProfileMinAggregateOutputType = {
   nickName: string | null
   nim: string | null
   whatsappNumber: string | null
-  studyProgram: string | null
+  fakultas: $Enums.Fakultas | null
+  studyProgramId: string | null
   departmentId: string | null
   divisionId: string | null
   subDivisionId: string | null
@@ -48,7 +49,8 @@ export type ProfileMaxAggregateOutputType = {
   nickName: string | null
   nim: string | null
   whatsappNumber: string | null
-  studyProgram: string | null
+  fakultas: $Enums.Fakultas | null
+  studyProgramId: string | null
   departmentId: string | null
   divisionId: string | null
   subDivisionId: string | null
@@ -65,7 +67,8 @@ export type ProfileCountAggregateOutputType = {
   nickName: number
   nim: number
   whatsappNumber: number
-  studyProgram: number
+  fakultas: number
+  studyProgramId: number
   departmentId: number
   divisionId: number
   subDivisionId: number
@@ -84,7 +87,8 @@ export type ProfileMinAggregateInputType = {
   nickName?: true
   nim?: true
   whatsappNumber?: true
-  studyProgram?: true
+  fakultas?: true
+  studyProgramId?: true
   departmentId?: true
   divisionId?: true
   subDivisionId?: true
@@ -101,7 +105,8 @@ export type ProfileMaxAggregateInputType = {
   nickName?: true
   nim?: true
   whatsappNumber?: true
-  studyProgram?: true
+  fakultas?: true
+  studyProgramId?: true
   departmentId?: true
   divisionId?: true
   subDivisionId?: true
@@ -118,7 +123,8 @@ export type ProfileCountAggregateInputType = {
   nickName?: true
   nim?: true
   whatsappNumber?: true
-  studyProgram?: true
+  fakultas?: true
+  studyProgramId?: true
   departmentId?: true
   divisionId?: true
   subDivisionId?: true
@@ -208,7 +214,8 @@ export type ProfileGroupByOutputType = {
   nickName: string | null
   nim: string
   whatsappNumber: string | null
-  studyProgram: string | null
+  fakultas: $Enums.Fakultas | null
+  studyProgramId: string | null
   departmentId: string | null
   divisionId: string | null
   subDivisionId: string | null
@@ -246,7 +253,8 @@ export type ProfileWhereInput = {
   nickName?: Prisma.StringNullableFilter<"Profile"> | string | null
   nim?: Prisma.StringFilter<"Profile"> | string
   whatsappNumber?: Prisma.StringNullableFilter<"Profile"> | string | null
-  studyProgram?: Prisma.StringNullableFilter<"Profile"> | string | null
+  fakultas?: Prisma.EnumFakultasNullableFilter<"Profile"> | $Enums.Fakultas | null
+  studyProgramId?: Prisma.StringNullableFilter<"Profile"> | string | null
   departmentId?: Prisma.StringNullableFilter<"Profile"> | string | null
   divisionId?: Prisma.StringNullableFilter<"Profile"> | string | null
   subDivisionId?: Prisma.StringNullableFilter<"Profile"> | string | null
@@ -255,6 +263,7 @@ export type ProfileWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  programStudi?: Prisma.XOR<Prisma.ProgramStudiNullableScalarRelationFilter, Prisma.ProgramStudiWhereInput> | null
   department?: Prisma.XOR<Prisma.DepartmentNullableScalarRelationFilter, Prisma.DepartmentWhereInput> | null
   division?: Prisma.XOR<Prisma.DivisionNullableScalarRelationFilter, Prisma.DivisionWhereInput> | null
   subDivision?: Prisma.XOR<Prisma.SubDivisionNullableScalarRelationFilter, Prisma.SubDivisionWhereInput> | null
@@ -267,7 +276,8 @@ export type ProfileOrderByWithRelationInput = {
   nickName?: Prisma.SortOrderInput | Prisma.SortOrder
   nim?: Prisma.SortOrder
   whatsappNumber?: Prisma.SortOrderInput | Prisma.SortOrder
-  studyProgram?: Prisma.SortOrderInput | Prisma.SortOrder
+  fakultas?: Prisma.SortOrderInput | Prisma.SortOrder
+  studyProgramId?: Prisma.SortOrderInput | Prisma.SortOrder
   departmentId?: Prisma.SortOrderInput | Prisma.SortOrder
   divisionId?: Prisma.SortOrderInput | Prisma.SortOrder
   subDivisionId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -276,6 +286,7 @@ export type ProfileOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  programStudi?: Prisma.ProgramStudiOrderByWithRelationInput
   department?: Prisma.DepartmentOrderByWithRelationInput
   division?: Prisma.DivisionOrderByWithRelationInput
   subDivision?: Prisma.SubDivisionOrderByWithRelationInput
@@ -291,7 +302,8 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   fullName?: Prisma.StringFilter<"Profile"> | string
   nickName?: Prisma.StringNullableFilter<"Profile"> | string | null
   whatsappNumber?: Prisma.StringNullableFilter<"Profile"> | string | null
-  studyProgram?: Prisma.StringNullableFilter<"Profile"> | string | null
+  fakultas?: Prisma.EnumFakultasNullableFilter<"Profile"> | $Enums.Fakultas | null
+  studyProgramId?: Prisma.StringNullableFilter<"Profile"> | string | null
   departmentId?: Prisma.StringNullableFilter<"Profile"> | string | null
   divisionId?: Prisma.StringNullableFilter<"Profile"> | string | null
   subDivisionId?: Prisma.StringNullableFilter<"Profile"> | string | null
@@ -300,6 +312,7 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  programStudi?: Prisma.XOR<Prisma.ProgramStudiNullableScalarRelationFilter, Prisma.ProgramStudiWhereInput> | null
   department?: Prisma.XOR<Prisma.DepartmentNullableScalarRelationFilter, Prisma.DepartmentWhereInput> | null
   division?: Prisma.XOR<Prisma.DivisionNullableScalarRelationFilter, Prisma.DivisionWhereInput> | null
   subDivision?: Prisma.XOR<Prisma.SubDivisionNullableScalarRelationFilter, Prisma.SubDivisionWhereInput> | null
@@ -312,7 +325,8 @@ export type ProfileOrderByWithAggregationInput = {
   nickName?: Prisma.SortOrderInput | Prisma.SortOrder
   nim?: Prisma.SortOrder
   whatsappNumber?: Prisma.SortOrderInput | Prisma.SortOrder
-  studyProgram?: Prisma.SortOrderInput | Prisma.SortOrder
+  fakultas?: Prisma.SortOrderInput | Prisma.SortOrder
+  studyProgramId?: Prisma.SortOrderInput | Prisma.SortOrder
   departmentId?: Prisma.SortOrderInput | Prisma.SortOrder
   divisionId?: Prisma.SortOrderInput | Prisma.SortOrder
   subDivisionId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -335,7 +349,8 @@ export type ProfileScalarWhereWithAggregatesInput = {
   nickName?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   nim?: Prisma.StringWithAggregatesFilter<"Profile"> | string
   whatsappNumber?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
-  studyProgram?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  fakultas?: Prisma.EnumFakultasNullableWithAggregatesFilter<"Profile"> | $Enums.Fakultas | null
+  studyProgramId?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   departmentId?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   divisionId?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   subDivisionId?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
@@ -351,12 +366,13 @@ export type ProfileCreateInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
   avatarUrl?: string | null
   rejectionReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProfileInput
+  programStudi?: Prisma.ProgramStudiCreateNestedOneWithoutProfilesInput
   department?: Prisma.DepartmentCreateNestedOneWithoutProfilesInput
   division?: Prisma.DivisionCreateNestedOneWithoutProfilesInput
   subDivision?: Prisma.SubDivisionCreateNestedOneWithoutProfilesInput
@@ -369,7 +385,8 @@ export type ProfileUncheckedCreateInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   departmentId?: string | null
   divisionId?: string | null
   subDivisionId?: string | null
@@ -385,12 +402,13 @@ export type ProfileUpdateInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
+  programStudi?: Prisma.ProgramStudiUpdateOneWithoutProfilesNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutProfilesNestedInput
   division?: Prisma.DivisionUpdateOneWithoutProfilesNestedInput
   subDivision?: Prisma.SubDivisionUpdateOneWithoutProfilesNestedInput
@@ -403,7 +421,8 @@ export type ProfileUncheckedUpdateInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -420,7 +439,8 @@ export type ProfileCreateManyInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   departmentId?: string | null
   divisionId?: string | null
   subDivisionId?: string | null
@@ -436,7 +456,7 @@ export type ProfileUpdateManyMutationInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -450,7 +470,8 @@ export type ProfileUncheckedUpdateManyInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -482,7 +503,8 @@ export type ProfileCountOrderByAggregateInput = {
   nickName?: Prisma.SortOrder
   nim?: Prisma.SortOrder
   whatsappNumber?: Prisma.SortOrder
-  studyProgram?: Prisma.SortOrder
+  fakultas?: Prisma.SortOrder
+  studyProgramId?: Prisma.SortOrder
   departmentId?: Prisma.SortOrder
   divisionId?: Prisma.SortOrder
   subDivisionId?: Prisma.SortOrder
@@ -499,7 +521,8 @@ export type ProfileMaxOrderByAggregateInput = {
   nickName?: Prisma.SortOrder
   nim?: Prisma.SortOrder
   whatsappNumber?: Prisma.SortOrder
-  studyProgram?: Prisma.SortOrder
+  fakultas?: Prisma.SortOrder
+  studyProgramId?: Prisma.SortOrder
   departmentId?: Prisma.SortOrder
   divisionId?: Prisma.SortOrder
   subDivisionId?: Prisma.SortOrder
@@ -516,7 +539,8 @@ export type ProfileMinOrderByAggregateInput = {
   nickName?: Prisma.SortOrder
   nim?: Prisma.SortOrder
   whatsappNumber?: Prisma.SortOrder
-  studyProgram?: Prisma.SortOrder
+  fakultas?: Prisma.SortOrder
+  studyProgramId?: Prisma.SortOrder
   departmentId?: Prisma.SortOrder
   divisionId?: Prisma.SortOrder
   subDivisionId?: Prisma.SortOrder
@@ -684,17 +708,64 @@ export type ProfileUncheckedUpdateManyWithoutSubDivisionNestedInput = {
   deleteMany?: Prisma.ProfileScalarWhereInput | Prisma.ProfileScalarWhereInput[]
 }
 
+export type NullableEnumFakultasFieldUpdateOperationsInput = {
+  set?: $Enums.Fakultas | null
+}
+
+export type ProfileCreateNestedManyWithoutProgramStudiInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutProgramStudiInput, Prisma.ProfileUncheckedCreateWithoutProgramStudiInput> | Prisma.ProfileCreateWithoutProgramStudiInput[] | Prisma.ProfileUncheckedCreateWithoutProgramStudiInput[]
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutProgramStudiInput | Prisma.ProfileCreateOrConnectWithoutProgramStudiInput[]
+  createMany?: Prisma.ProfileCreateManyProgramStudiInputEnvelope
+  connect?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+}
+
+export type ProfileUncheckedCreateNestedManyWithoutProgramStudiInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutProgramStudiInput, Prisma.ProfileUncheckedCreateWithoutProgramStudiInput> | Prisma.ProfileCreateWithoutProgramStudiInput[] | Prisma.ProfileUncheckedCreateWithoutProgramStudiInput[]
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutProgramStudiInput | Prisma.ProfileCreateOrConnectWithoutProgramStudiInput[]
+  createMany?: Prisma.ProfileCreateManyProgramStudiInputEnvelope
+  connect?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+}
+
+export type ProfileUpdateManyWithoutProgramStudiNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutProgramStudiInput, Prisma.ProfileUncheckedCreateWithoutProgramStudiInput> | Prisma.ProfileCreateWithoutProgramStudiInput[] | Prisma.ProfileUncheckedCreateWithoutProgramStudiInput[]
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutProgramStudiInput | Prisma.ProfileCreateOrConnectWithoutProgramStudiInput[]
+  upsert?: Prisma.ProfileUpsertWithWhereUniqueWithoutProgramStudiInput | Prisma.ProfileUpsertWithWhereUniqueWithoutProgramStudiInput[]
+  createMany?: Prisma.ProfileCreateManyProgramStudiInputEnvelope
+  set?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  disconnect?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  delete?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  connect?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  update?: Prisma.ProfileUpdateWithWhereUniqueWithoutProgramStudiInput | Prisma.ProfileUpdateWithWhereUniqueWithoutProgramStudiInput[]
+  updateMany?: Prisma.ProfileUpdateManyWithWhereWithoutProgramStudiInput | Prisma.ProfileUpdateManyWithWhereWithoutProgramStudiInput[]
+  deleteMany?: Prisma.ProfileScalarWhereInput | Prisma.ProfileScalarWhereInput[]
+}
+
+export type ProfileUncheckedUpdateManyWithoutProgramStudiNestedInput = {
+  create?: Prisma.XOR<Prisma.ProfileCreateWithoutProgramStudiInput, Prisma.ProfileUncheckedCreateWithoutProgramStudiInput> | Prisma.ProfileCreateWithoutProgramStudiInput[] | Prisma.ProfileUncheckedCreateWithoutProgramStudiInput[]
+  connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutProgramStudiInput | Prisma.ProfileCreateOrConnectWithoutProgramStudiInput[]
+  upsert?: Prisma.ProfileUpsertWithWhereUniqueWithoutProgramStudiInput | Prisma.ProfileUpsertWithWhereUniqueWithoutProgramStudiInput[]
+  createMany?: Prisma.ProfileCreateManyProgramStudiInputEnvelope
+  set?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  disconnect?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  delete?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  connect?: Prisma.ProfileWhereUniqueInput | Prisma.ProfileWhereUniqueInput[]
+  update?: Prisma.ProfileUpdateWithWhereUniqueWithoutProgramStudiInput | Prisma.ProfileUpdateWithWhereUniqueWithoutProgramStudiInput[]
+  updateMany?: Prisma.ProfileUpdateManyWithWhereWithoutProgramStudiInput | Prisma.ProfileUpdateManyWithWhereWithoutProgramStudiInput[]
+  deleteMany?: Prisma.ProfileScalarWhereInput | Prisma.ProfileScalarWhereInput[]
+}
+
 export type ProfileCreateWithoutUserInput = {
   id?: string
   fullName: string
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
   avatarUrl?: string | null
   rejectionReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  programStudi?: Prisma.ProgramStudiCreateNestedOneWithoutProfilesInput
   department?: Prisma.DepartmentCreateNestedOneWithoutProfilesInput
   division?: Prisma.DivisionCreateNestedOneWithoutProfilesInput
   subDivision?: Prisma.SubDivisionCreateNestedOneWithoutProfilesInput
@@ -706,7 +777,8 @@ export type ProfileUncheckedCreateWithoutUserInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   departmentId?: string | null
   divisionId?: string | null
   subDivisionId?: string | null
@@ -738,11 +810,12 @@ export type ProfileUpdateWithoutUserInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  programStudi?: Prisma.ProgramStudiUpdateOneWithoutProfilesNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutProfilesNestedInput
   division?: Prisma.DivisionUpdateOneWithoutProfilesNestedInput
   subDivision?: Prisma.SubDivisionUpdateOneWithoutProfilesNestedInput
@@ -754,7 +827,8 @@ export type ProfileUncheckedUpdateWithoutUserInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -770,12 +844,13 @@ export type ProfileCreateWithoutDepartmentInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
   avatarUrl?: string | null
   rejectionReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProfileInput
+  programStudi?: Prisma.ProgramStudiCreateNestedOneWithoutProfilesInput
   division?: Prisma.DivisionCreateNestedOneWithoutProfilesInput
   subDivision?: Prisma.SubDivisionCreateNestedOneWithoutProfilesInput
 }
@@ -787,7 +862,8 @@ export type ProfileUncheckedCreateWithoutDepartmentInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   divisionId?: string | null
   subDivisionId?: string | null
   avatarUrl?: string | null
@@ -832,7 +908,8 @@ export type ProfileScalarWhereInput = {
   nickName?: Prisma.StringNullableFilter<"Profile"> | string | null
   nim?: Prisma.StringFilter<"Profile"> | string
   whatsappNumber?: Prisma.StringNullableFilter<"Profile"> | string | null
-  studyProgram?: Prisma.StringNullableFilter<"Profile"> | string | null
+  fakultas?: Prisma.EnumFakultasNullableFilter<"Profile"> | $Enums.Fakultas | null
+  studyProgramId?: Prisma.StringNullableFilter<"Profile"> | string | null
   departmentId?: Prisma.StringNullableFilter<"Profile"> | string | null
   divisionId?: Prisma.StringNullableFilter<"Profile"> | string | null
   subDivisionId?: Prisma.StringNullableFilter<"Profile"> | string | null
@@ -848,12 +925,13 @@ export type ProfileCreateWithoutDivisionInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
   avatarUrl?: string | null
   rejectionReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProfileInput
+  programStudi?: Prisma.ProgramStudiCreateNestedOneWithoutProfilesInput
   department?: Prisma.DepartmentCreateNestedOneWithoutProfilesInput
   subDivision?: Prisma.SubDivisionCreateNestedOneWithoutProfilesInput
 }
@@ -865,7 +943,8 @@ export type ProfileUncheckedCreateWithoutDivisionInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   departmentId?: string | null
   subDivisionId?: string | null
   avatarUrl?: string | null
@@ -906,12 +985,13 @@ export type ProfileCreateWithoutSubDivisionInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
   avatarUrl?: string | null
   rejectionReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProfileInput
+  programStudi?: Prisma.ProgramStudiCreateNestedOneWithoutProfilesInput
   department?: Prisma.DepartmentCreateNestedOneWithoutProfilesInput
   division?: Prisma.DivisionCreateNestedOneWithoutProfilesInput
 }
@@ -923,7 +1003,8 @@ export type ProfileUncheckedCreateWithoutSubDivisionInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   departmentId?: string | null
   divisionId?: string | null
   avatarUrl?: string | null
@@ -958,6 +1039,66 @@ export type ProfileUpdateManyWithWhereWithoutSubDivisionInput = {
   data: Prisma.XOR<Prisma.ProfileUpdateManyMutationInput, Prisma.ProfileUncheckedUpdateManyWithoutSubDivisionInput>
 }
 
+export type ProfileCreateWithoutProgramStudiInput = {
+  id?: string
+  fullName: string
+  nickName?: string | null
+  nim: string
+  whatsappNumber?: string | null
+  fakultas?: $Enums.Fakultas | null
+  avatarUrl?: string | null
+  rejectionReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutProfileInput
+  department?: Prisma.DepartmentCreateNestedOneWithoutProfilesInput
+  division?: Prisma.DivisionCreateNestedOneWithoutProfilesInput
+  subDivision?: Prisma.SubDivisionCreateNestedOneWithoutProfilesInput
+}
+
+export type ProfileUncheckedCreateWithoutProgramStudiInput = {
+  id?: string
+  userId: string
+  fullName: string
+  nickName?: string | null
+  nim: string
+  whatsappNumber?: string | null
+  fakultas?: $Enums.Fakultas | null
+  departmentId?: string | null
+  divisionId?: string | null
+  subDivisionId?: string | null
+  avatarUrl?: string | null
+  rejectionReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProfileCreateOrConnectWithoutProgramStudiInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutProgramStudiInput, Prisma.ProfileUncheckedCreateWithoutProgramStudiInput>
+}
+
+export type ProfileCreateManyProgramStudiInputEnvelope = {
+  data: Prisma.ProfileCreateManyProgramStudiInput | Prisma.ProfileCreateManyProgramStudiInput[]
+  skipDuplicates?: boolean
+}
+
+export type ProfileUpsertWithWhereUniqueWithoutProgramStudiInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  update: Prisma.XOR<Prisma.ProfileUpdateWithoutProgramStudiInput, Prisma.ProfileUncheckedUpdateWithoutProgramStudiInput>
+  create: Prisma.XOR<Prisma.ProfileCreateWithoutProgramStudiInput, Prisma.ProfileUncheckedCreateWithoutProgramStudiInput>
+}
+
+export type ProfileUpdateWithWhereUniqueWithoutProgramStudiInput = {
+  where: Prisma.ProfileWhereUniqueInput
+  data: Prisma.XOR<Prisma.ProfileUpdateWithoutProgramStudiInput, Prisma.ProfileUncheckedUpdateWithoutProgramStudiInput>
+}
+
+export type ProfileUpdateManyWithWhereWithoutProgramStudiInput = {
+  where: Prisma.ProfileScalarWhereInput
+  data: Prisma.XOR<Prisma.ProfileUpdateManyMutationInput, Prisma.ProfileUncheckedUpdateManyWithoutProgramStudiInput>
+}
+
 export type ProfileCreateManyDepartmentInput = {
   id?: string
   userId: string
@@ -965,7 +1106,8 @@ export type ProfileCreateManyDepartmentInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   divisionId?: string | null
   subDivisionId?: string | null
   avatarUrl?: string | null
@@ -980,12 +1122,13 @@ export type ProfileUpdateWithoutDepartmentInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
+  programStudi?: Prisma.ProgramStudiUpdateOneWithoutProfilesNestedInput
   division?: Prisma.DivisionUpdateOneWithoutProfilesNestedInput
   subDivision?: Prisma.SubDivisionUpdateOneWithoutProfilesNestedInput
 }
@@ -997,7 +1140,8 @@ export type ProfileUncheckedUpdateWithoutDepartmentInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1013,7 +1157,8 @@ export type ProfileUncheckedUpdateManyWithoutDepartmentInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1029,7 +1174,8 @@ export type ProfileCreateManyDivisionInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   departmentId?: string | null
   subDivisionId?: string | null
   avatarUrl?: string | null
@@ -1044,12 +1190,13 @@ export type ProfileUpdateWithoutDivisionInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
+  programStudi?: Prisma.ProgramStudiUpdateOneWithoutProfilesNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutProfilesNestedInput
   subDivision?: Prisma.SubDivisionUpdateOneWithoutProfilesNestedInput
 }
@@ -1061,7 +1208,8 @@ export type ProfileUncheckedUpdateWithoutDivisionInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1077,7 +1225,8 @@ export type ProfileUncheckedUpdateManyWithoutDivisionInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1093,7 +1242,8 @@ export type ProfileCreateManySubDivisionInput = {
   nickName?: string | null
   nim: string
   whatsappNumber?: string | null
-  studyProgram?: string | null
+  fakultas?: $Enums.Fakultas | null
+  studyProgramId?: string | null
   departmentId?: string | null
   divisionId?: string | null
   avatarUrl?: string | null
@@ -1108,12 +1258,13 @@ export type ProfileUpdateWithoutSubDivisionInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
+  programStudi?: Prisma.ProgramStudiUpdateOneWithoutProfilesNestedInput
   department?: Prisma.DepartmentUpdateOneWithoutProfilesNestedInput
   division?: Prisma.DivisionUpdateOneWithoutProfilesNestedInput
 }
@@ -1125,7 +1276,8 @@ export type ProfileUncheckedUpdateWithoutSubDivisionInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1141,9 +1293,78 @@ export type ProfileUncheckedUpdateManyWithoutSubDivisionInput = {
   nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   nim?: Prisma.StringFieldUpdateOperationsInput | string
   whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  studyProgram?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  studyProgramId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ProfileCreateManyProgramStudiInput = {
+  id?: string
+  userId: string
+  fullName: string
+  nickName?: string | null
+  nim: string
+  whatsappNumber?: string | null
+  fakultas?: $Enums.Fakultas | null
+  departmentId?: string | null
+  divisionId?: string | null
+  subDivisionId?: string | null
+  avatarUrl?: string | null
+  rejectionReason?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProfileUpdateWithoutProgramStudiInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nim?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
+  department?: Prisma.DepartmentUpdateOneWithoutProfilesNestedInput
+  division?: Prisma.DivisionUpdateOneWithoutProfilesNestedInput
+  subDivision?: Prisma.SubDivisionUpdateOneWithoutProfilesNestedInput
+}
+
+export type ProfileUncheckedUpdateWithoutProgramStudiInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nim?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ProfileUncheckedUpdateManyWithoutProgramStudiInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  nickName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nim?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsappNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fakultas?: Prisma.NullableEnumFakultasFieldUpdateOperationsInput | $Enums.Fakultas | null
+  departmentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  divisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subDivisionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1159,7 +1380,8 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   nickName?: boolean
   nim?: boolean
   whatsappNumber?: boolean
-  studyProgram?: boolean
+  fakultas?: boolean
+  studyProgramId?: boolean
   departmentId?: boolean
   divisionId?: boolean
   subDivisionId?: boolean
@@ -1168,6 +1390,7 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  programStudi?: boolean | Prisma.Profile$programStudiArgs<ExtArgs>
   department?: boolean | Prisma.Profile$departmentArgs<ExtArgs>
   division?: boolean | Prisma.Profile$divisionArgs<ExtArgs>
   subDivision?: boolean | Prisma.Profile$subDivisionArgs<ExtArgs>
@@ -1180,7 +1403,8 @@ export type ProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   nickName?: boolean
   nim?: boolean
   whatsappNumber?: boolean
-  studyProgram?: boolean
+  fakultas?: boolean
+  studyProgramId?: boolean
   departmentId?: boolean
   divisionId?: boolean
   subDivisionId?: boolean
@@ -1189,6 +1413,7 @@ export type ProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  programStudi?: boolean | Prisma.Profile$programStudiArgs<ExtArgs>
   department?: boolean | Prisma.Profile$departmentArgs<ExtArgs>
   division?: boolean | Prisma.Profile$divisionArgs<ExtArgs>
   subDivision?: boolean | Prisma.Profile$subDivisionArgs<ExtArgs>
@@ -1201,7 +1426,8 @@ export type ProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   nickName?: boolean
   nim?: boolean
   whatsappNumber?: boolean
-  studyProgram?: boolean
+  fakultas?: boolean
+  studyProgramId?: boolean
   departmentId?: boolean
   divisionId?: boolean
   subDivisionId?: boolean
@@ -1210,6 +1436,7 @@ export type ProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  programStudi?: boolean | Prisma.Profile$programStudiArgs<ExtArgs>
   department?: boolean | Prisma.Profile$departmentArgs<ExtArgs>
   division?: boolean | Prisma.Profile$divisionArgs<ExtArgs>
   subDivision?: boolean | Prisma.Profile$subDivisionArgs<ExtArgs>
@@ -1222,7 +1449,8 @@ export type ProfileSelectScalar = {
   nickName?: boolean
   nim?: boolean
   whatsappNumber?: boolean
-  studyProgram?: boolean
+  fakultas?: boolean
+  studyProgramId?: boolean
   departmentId?: boolean
   divisionId?: boolean
   subDivisionId?: boolean
@@ -1232,21 +1460,24 @@ export type ProfileSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "fullName" | "nickName" | "nim" | "whatsappNumber" | "studyProgram" | "departmentId" | "divisionId" | "subDivisionId" | "avatarUrl" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["profile"]>
+export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "fullName" | "nickName" | "nim" | "whatsappNumber" | "fakultas" | "studyProgramId" | "departmentId" | "divisionId" | "subDivisionId" | "avatarUrl" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["profile"]>
 export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  programStudi?: boolean | Prisma.Profile$programStudiArgs<ExtArgs>
   department?: boolean | Prisma.Profile$departmentArgs<ExtArgs>
   division?: boolean | Prisma.Profile$divisionArgs<ExtArgs>
   subDivision?: boolean | Prisma.Profile$subDivisionArgs<ExtArgs>
 }
 export type ProfileIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  programStudi?: boolean | Prisma.Profile$programStudiArgs<ExtArgs>
   department?: boolean | Prisma.Profile$departmentArgs<ExtArgs>
   division?: boolean | Prisma.Profile$divisionArgs<ExtArgs>
   subDivision?: boolean | Prisma.Profile$subDivisionArgs<ExtArgs>
 }
 export type ProfileIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  programStudi?: boolean | Prisma.Profile$programStudiArgs<ExtArgs>
   department?: boolean | Prisma.Profile$departmentArgs<ExtArgs>
   division?: boolean | Prisma.Profile$divisionArgs<ExtArgs>
   subDivision?: boolean | Prisma.Profile$subDivisionArgs<ExtArgs>
@@ -1256,6 +1487,7 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   name: "Profile"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    programStudi: Prisma.$ProgramStudiPayload<ExtArgs> | null
     department: Prisma.$DepartmentPayload<ExtArgs> | null
     division: Prisma.$DivisionPayload<ExtArgs> | null
     subDivision: Prisma.$SubDivisionPayload<ExtArgs> | null
@@ -1267,7 +1499,8 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     nickName: string | null
     nim: string
     whatsappNumber: string | null
-    studyProgram: string | null
+    fakultas: $Enums.Fakultas | null
+    studyProgramId: string | null
     departmentId: string | null
     divisionId: string | null
     subDivisionId: string | null
@@ -1670,6 +1903,7 @@ readonly fields: ProfileFieldRefs;
 export interface Prisma__ProfileClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  programStudi<T extends Prisma.Profile$programStudiArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$programStudiArgs<ExtArgs>>): Prisma.Prisma__ProgramStudiClient<runtime.Types.Result.GetResult<Prisma.$ProgramStudiPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   department<T extends Prisma.Profile$departmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$departmentArgs<ExtArgs>>): Prisma.Prisma__DepartmentClient<runtime.Types.Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   division<T extends Prisma.Profile$divisionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$divisionArgs<ExtArgs>>): Prisma.Prisma__DivisionClient<runtime.Types.Result.GetResult<Prisma.$DivisionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   subDivision<T extends Prisma.Profile$subDivisionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Profile$subDivisionArgs<ExtArgs>>): Prisma.Prisma__SubDivisionClient<runtime.Types.Result.GetResult<Prisma.$SubDivisionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1708,7 +1942,8 @@ export interface ProfileFieldRefs {
   readonly nickName: Prisma.FieldRef<"Profile", 'String'>
   readonly nim: Prisma.FieldRef<"Profile", 'String'>
   readonly whatsappNumber: Prisma.FieldRef<"Profile", 'String'>
-  readonly studyProgram: Prisma.FieldRef<"Profile", 'String'>
+  readonly fakultas: Prisma.FieldRef<"Profile", 'Fakultas'>
+  readonly studyProgramId: Prisma.FieldRef<"Profile", 'String'>
   readonly departmentId: Prisma.FieldRef<"Profile", 'String'>
   readonly divisionId: Prisma.FieldRef<"Profile", 'String'>
   readonly subDivisionId: Prisma.FieldRef<"Profile", 'String'>
@@ -1912,11 +2147,6 @@ export type ProfileFindManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Skip the first `n` Profiles.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of Profiles.
-   */
   distinct?: Prisma.ProfileScalarFieldEnum | Prisma.ProfileScalarFieldEnum[]
 }
 
@@ -2114,6 +2344,25 @@ export type ProfileDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Profiles to delete.
    */
   limit?: number
+}
+
+/**
+ * Profile.programStudi
+ */
+export type Profile$programStudiArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProgramStudi
+   */
+  select?: Prisma.ProgramStudiSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProgramStudi
+   */
+  omit?: Prisma.ProgramStudiOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProgramStudiInclude<ExtArgs> | null
+  where?: Prisma.ProgramStudiWhereInput
 }
 
 /**

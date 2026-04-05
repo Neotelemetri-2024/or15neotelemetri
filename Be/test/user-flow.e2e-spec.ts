@@ -109,4 +109,13 @@ describe('UserFlow: Exam & Assignment (e2e)', () => {
       .attach('file', Buffer.from('my work'), 'work.zip')
       .expect(201);
   });
+
+  it('4. User submits text-only assignment', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/assignments/${assignmentId}/submit`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .field('textContent', 'Ini jawaban dalam bentuk teks')
+      .expect(201);
+  });
 });
+

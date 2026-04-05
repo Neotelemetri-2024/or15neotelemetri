@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000/api",
+  // baseURL: "http://localhost:3001/api",
+  baseURL: "https://b3or15.neotelemetri.id/api",
   headers: {
     "Content-Type": "application/json",
   },

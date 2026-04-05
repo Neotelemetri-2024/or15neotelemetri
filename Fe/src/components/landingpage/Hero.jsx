@@ -30,9 +30,18 @@ function CircularCarousel({ logos, alts, radius, logoSize }) {
         const scale = logoSize.min + (logoSize.max - logoSize.min) * t;
         const opacity = 0.4 + 0.6 * t;
         const zIndex = Math.round(10 + t * 20);
-        const glowSize = Math.round(t * 20);
-        const glow =
-          t > 0.75 ? `drop-shadow(0 0 ${glowSize}px #FF00FF)` : "none";
+
+        // glow smooth mengikuti putaran
+        const glowStrength = t;
+
+        // easing biar halus (smoothstep)
+        const smooth = glowStrength * glowStrength * (3 - 2 * glowStrength);
+
+        // TANPA Math.round
+        const glowSize = smooth * 22;
+        const glowOpacity = smooth * 0.9;
+
+        const glow = `drop-shadow(0 0 ${glowSize}px rgba(255, 0, 255, ${glowOpacity}))`;
 
         el.style.transform = `translate(${x}px, ${y}px)`;
         el.style.width = `${scale}px`;
@@ -100,9 +109,18 @@ function CircularCarousel3D({ logos, alts, radius, logoSize, layer }) {
         const isFront = depth <= 0;
         const scale = logoSize.min + (logoSize.max - logoSize.min) * t;
         const opacity = 0.25 + 0.75 * t;
-        const glowSize = Math.round(t * 16);
-        const glow =
-          t > 0.8 ? `drop-shadow(0 0 ${glowSize}px #FF00FF)` : "none";
+        // const glowSize = Math.round(t * 16);
+        // glow mengikuti posisi (smooth in & out)
+        const glowStrength = t; // langsung pakai t (0 → 1)
+
+        // optional: biar lebih smooth pakai easing
+        const smooth = glowStrength * glowStrength * (3 - 2 * glowStrength);
+        // ini easing smoothstep
+
+        const glowSize = smooth * 20; // besar glow
+        const glowOpacity = smooth; // transparansi glow
+
+        const glow = `drop-shadow(0 0 ${glowSize}px rgba(255, 0, 255, ${glowOpacity}))`;
 
         if (layer === "back") {
           el.style.display = isFront ? "none" : "block";
@@ -167,7 +185,7 @@ export default function Hero() {
           className="text-3xl lg:text-4xl leading-tight mb-8"
           style={{ fontFamily: "LandepzGlitch" }}
         >
-          OPEN RECRUITMENT XV <br />
+          OPEN RECRUITMENT 15 <br />
           UKM NEO TELEMETRI
         </h1>
 

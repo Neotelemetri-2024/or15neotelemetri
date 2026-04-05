@@ -95,10 +95,10 @@ export default function Ujian() {
         {/* TITLE */}
         <div className="mt-6">
           <h1 className="text-white text-lg md:text-xl font-bold">
-            Ujian Online OR Neotelemetri XIV
+            Ujian Online OR 15 Neo Telemetri
           </h1>
           <p className="text-white/50 text-sm mt-1">
-            Silahkan pilih sesuai divisimu!
+            Silakan pilih sesuai divisimu!
           </p>
         </div>
 

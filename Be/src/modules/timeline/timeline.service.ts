@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PrismaService } from '../../common/services/prisma.service';
@@ -21,7 +26,11 @@ export class TimelineService {
     if (cached) return cached;
 
     const timeline = await this.prisma.recruitmentTimeline.findMany({
-      orderBy: { orderIndex: 'asc' },
+      orderBy: [
+        { orderIndex: 'asc' },
+        { startAt: 'asc' },
+        { createdAt: 'asc' },
+      ],
     });
 
     await this.cacheManager.set(this.CACHE_KEY, timeline);
@@ -37,6 +46,8 @@ export class TimelineService {
   }
 
   async create(dto: CreateTimelineDto) {
+    await this.ensureOrderIndexAvailable(dto.orderIndex);
+
     const result = await this.prisma.recruitmentTimeline.create({
       data: {
         ...dto,
@@ -51,6 +62,11 @@ export class TimelineService {
 
   async update(id: string, dto: UpdateTimelineDto) {
     await this.findOne(id);
+
+    if (typeof dto.orderIndex === 'number') {
+      await this.ensureOrderIndexAvailable(dto.orderIndex, id);
+    }
+
     const data: Record<string, any> = { ...dto };
     if (dto.startAt) data.startAt = new Date(dto.startAt);
     if (dto.endAt) data.endAt = new Date(dto.endAt);
@@ -72,5 +88,19 @@ export class TimelineService {
 
     await this.cacheManager.del(this.CACHE_KEY);
     return result;
+  }
+
+  private async ensureOrderIndexAvailable(orderIndex: number, excludeId?: string) {
+    const existing = await this.prisma.recruitmentTimeline.findFirst({
+      where: {
+        orderIndex,
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      throw new ConflictException('orderIndex already exists');
+    }
   }
 }

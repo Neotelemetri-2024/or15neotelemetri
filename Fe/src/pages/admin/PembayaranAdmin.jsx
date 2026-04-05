@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { User, Search, SlidersHorizontal, X, Check } from "lucide-react";
+import { User, Search, X, Check } from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 import {
@@ -26,6 +27,7 @@ const columns = [
   "Aksi",
 ];
 
+// ── Badge status ─────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const map = {
     PENDING: {
@@ -50,15 +52,60 @@ function StatusBadge({ status }) {
   );
 }
 
-// Modal reject — input alasan penolakan
-function RejectModal({ onConfirm, onCancel }) {
+// ── Modal konfirmasi approve ─────────────────────────────────────
+function ConfirmApproveModal({ name, amount, onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+        <h3 className="text-gray-800 font-bold text-base mb-2">
+          Setujui Pembayaran?
+        </h3>
+        <p className="text-gray-500 text-sm mb-1">
+          Pembayaran dari{" "}
+          <span className="font-semibold text-gray-700">
+            {name || "user ini"}
+          </span>
+        </p>
+        {amount && (
+          <p className="text-purple-600 font-bold text-sm mb-4">{amount}</p>
+        )}
+        <p className="text-gray-400 text-xs mb-5">
+          Tindakan ini tidak dapat dibatalkan.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition"
+          >
+            Ya, Setujui
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Modal reject (dengan alasan) ─────────────────────────────────
+function RejectModal({ name, onConfirm, onCancel }) {
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <h3 className="text-gray-800 font-bold text-base mb-3">
-          Alasan Penolakan
+        <h3 className="text-gray-800 font-bold text-base mb-1">
+          Tolak Pembayaran?
         </h3>
+        {name && (
+          <p className="text-gray-400 text-xs mb-3">
+            Pembayaran dari{" "}
+            <span className="font-semibold text-gray-600">{name}</span>
+          </p>
+        )}
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -78,7 +125,7 @@ function RejectModal({ onConfirm, onCancel }) {
             disabled={!reason.trim()}
             className="flex-1 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition disabled:opacity-40"
           >
-            Tolak
+            Ya, Tolak
           </button>
         </div>
       </div>
@@ -86,7 +133,7 @@ function RejectModal({ onConfirm, onCancel }) {
   );
 }
 
-// Modal preview bukti pembayaran
+// ── Modal preview bukti ──────────────────────────────────────────
 function ProofModal({ url, onClose }) {
   return (
     <div
@@ -123,6 +170,10 @@ export default function PembayaranAdmin() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+
+  // konfirmasi approve — simpan { id, name, amount }
+  const [approveTarget, setApproveTarget] = useState(null);
+  // konfirmasi reject — simpan { id, name }
   const [rejectTarget, setRejectTarget] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [proofUrl, setProofUrl] = useState(null);
@@ -167,49 +218,72 @@ export default function PembayaranAdmin() {
     init();
   }, []);
 
-  // ── APPROVE ────────────────────────────────────────────────────
-  const handleApprove = async (id) => {
+  // ── APPROVE (setelah konfirmasi) ──────────────────────────────
+  const handleApprove = async () => {
+    if (!approveTarget) return;
+    const { id, name } = approveTarget;
     setActionLoading(id);
     try {
       await reviewPayment(id, { status: "APPROVED" });
       setPayments((prev) =>
         prev.map((p) => (p.id === id ? { ...p, status: "APPROVED" } : p)),
       );
+      toast.success(`Pembayaran ${name || ""} disetujui`);
     } catch (err) {
       console.error("Gagal approve:", err);
+      toast.error("Gagal menyetujui pembayaran");
     } finally {
       setActionLoading(null);
+      setApproveTarget(null);
     }
   };
 
-  // ── REJECT ─────────────────────────────────────────────────────
+  // ── REJECT (setelah konfirmasi + alasan) ──────────────────────
   const handleReject = async (reason) => {
     if (!rejectTarget) return;
-    setActionLoading(rejectTarget);
+    const { id, name } = rejectTarget;
+    setActionLoading(id);
     try {
-      await reviewPayment(rejectTarget, {
-        status: "REJECTED",
-        rejectionReason: reason,
-      });
+      await reviewPayment(id, { status: "REJECTED", rejectionReason: reason });
       setPayments((prev) =>
         prev.map((p) =>
-          p.id === rejectTarget
+          p.id === id
             ? { ...p, status: "REJECTED", rejectionReason: reason }
             : p,
         ),
       );
+      toast.error(`Pembayaran ${name || ""} ditolak`);
     } catch (err) {
       console.error("Gagal reject:", err);
+      toast.error("Gagal menolak pembayaran");
     } finally {
       setActionLoading(null);
       setRejectTarget(null);
     }
   };
 
+  // ── Helpers ────────────────────────────────────────────────────
   const userMap = {};
   users.forEach((u) => {
     userMap[u.id] = u.profile?.subDivisionId;
   });
+
+  const getSubDivName = (subDivisionId) => {
+    for (const subs of Object.values(subDivisionMap)) {
+      const found = subs.find((s) => s.id === subDivisionId);
+      if (found) return found.name;
+    }
+    return "-";
+  };
+
+  const formatRupiah = (amount) => {
+    if (!amount) return "-";
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   // ── FILTER ─────────────────────────────────────────────────────
   const activeDivision = divisions[activeTabIndex];
@@ -219,13 +293,11 @@ export default function PembayaranAdmin() {
 
   const filtered = payments
     .filter((p) => {
-      // Filter divisi berdasarkan sub divisi user
       if (activeDivision) {
         const userSubDivId = userMap[p.userId];
         if (userSubDivId && !subIdsInActive.includes(userSubDivId))
           return false;
       }
-      // Search
       if (search) {
         const q = search.toLowerCase();
         return (
@@ -236,7 +308,6 @@ export default function PembayaranAdmin() {
       }
       return true;
     })
-    // PENDING di atas
     .sort((a, b) => {
       const order = { PENDING: 0, REJECTED: 1, APPROVED: 2, PAID: 2 };
       return (order[a.status] ?? 3) - (order[b.status] ?? 3);
@@ -248,31 +319,6 @@ export default function PembayaranAdmin() {
     (currentPage - 1) * ROWS_PER_PAGE,
     currentPage * ROWS_PER_PAGE,
   );
-
-  const handleTabChange = (_, i) => {
-    setActiveTabIndex(i);
-    setCurrentPage(1);
-    setSearch("");
-  };
-
-  // Helper nama sub divisi
-  const getSubDivName = (subDivisionId) => {
-    for (const subs of Object.values(subDivisionMap)) {
-      const found = subs.find((s) => s.id === subDivisionId);
-      if (found) return found.name;
-    }
-    return "-";
-  };
-
-  // Format rupiah
-  const formatRupiah = (amount) => {
-    if (!amount) return "-";
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   if (loading) {
     return (
@@ -286,6 +332,7 @@ export default function PembayaranAdmin() {
 
   return (
     <AdminLayout>
+      <Toaster position="top-right" />
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
@@ -308,7 +355,11 @@ export default function PembayaranAdmin() {
           <DivisionTabs
             divisions={divisions.map((d) => d.name)}
             bgColor="#1a0023"
-            onChange={handleTabChange}
+            onChange={(_, i) => {
+              setActiveTabIndex(i);
+              setCurrentPage(1);
+              setSearch("");
+            }}
           >
             <div
               className="flex flex-col bg-white"
@@ -317,21 +368,11 @@ export default function PembayaranAdmin() {
                 boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
               }}
             >
-              {/* FILTER + SEARCH */}
+              {/* SEARCH */}
               <div
                 className="flex items-center gap-3 px-4 py-3 border-b"
                 style={{ borderColor: "rgba(0,0,0,0.06)" }}
               >
-                <button
-                  className="flex items-center gap-2 px-4 py-[7px] rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
-                    boxShadow: "0 2px 10px rgba(120,0,200,0.25)",
-                  }}
-                >
-                  <SlidersHorizontal size={13} />
-                  Filter
-                </button>
                 <div
                   className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
                   style={{
@@ -382,92 +423,107 @@ export default function PembayaranAdmin() {
                   </thead>
 
                   <tbody>
-                    {paginated.map((p, i) => (
-                      <tr
-                        key={p.id}
-                        className="transition-colors duration-150 hover:bg-purple-50"
-                        style={{
-                          borderBottom:
-                            i < paginated.length - 1
-                              ? "1px solid rgba(0,0,0,0.05)"
-                              : "none",
-                        }}
-                      >
-                        <td className="p-4 text-gray-500 text-xs text-center">
-                          {(currentPage - 1) * ROWS_PER_PAGE + i + 1}
-                        </td>
-                        <td className="p-4 text-xs whitespace-nowrap">
-                          <div className="font-semibold text-gray-800">
-                            {p.user?.profile?.fullName || "-"}
-                          </div>
-                          <div className="text-gray-400 text-[10px]">
-                            {p.user?.email}
-                          </div>
-                          {p.status === "REJECTED" && p.rejectionReason && (
-                            <div className="text-red-400 text-[10px] mt-0.5 max-w-[150px] truncate">
-                              Alasan: {p.rejectionReason}
+                    {paginated.map((p, i) => {
+                      const fullName = p.user?.profile?.fullName || "";
+                      const amountFormatted = formatRupiah(p.amount);
+                      return (
+                        <tr
+                          key={p.id}
+                          className="transition-colors duration-150 hover:bg-purple-50"
+                          style={{
+                            borderBottom:
+                              i < paginated.length - 1
+                                ? "1px solid rgba(0,0,0,0.05)"
+                                : "none",
+                          }}
+                        >
+                          <td className="p-4 text-gray-500 text-xs text-center">
+                            {(currentPage - 1) * ROWS_PER_PAGE + i + 1}
+                          </td>
+                          <td className="p-4 text-xs whitespace-nowrap">
+                            <div className="font-semibold text-gray-800">
+                              {fullName || "-"}
                             </div>
-                          )}
-                        </td>
-                        <td className="p-4 text-gray-600 text-xs whitespace-nowrap">
-                          {p.user?.profile?.nim || "-"}
-                        </td>
-                        <td className="p-4 text-gray-600 text-xs whitespace-nowrap">
-                          {getSubDivName(userMap[p.userId])}
-                        </td>
-                        <td className="p-4 text-gray-700 text-xs whitespace-nowrap font-semibold">
-                          {formatRupiah(p.amount)}
-                        </td>
-
-                        {/* Bukti — thumbnail klik untuk preview */}
-                        <td className="p-4 text-center">
-                          {p.proofUrl ? (
-                            <button
-                              onClick={() => setProofUrl(p.proofUrl)}
-                              className="mx-auto block"
-                            >
-                              <img
-                                src={p.proofUrl}
-                                alt="bukti"
-                                className="w-12 h-12 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition mx-auto"
-                              />
-                            </button>
-                          ) : (
-                            <span className="text-gray-300 text-xs">—</span>
-                          )}
-                        </td>
-
-                        <td className="p-4 text-center">
-                          <StatusBadge status={p.status} />
-                        </td>
-
-                        {/* Aksi */}
-                        <td className="p-4 text-center">
-                          {p.status === "PENDING" ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleApprove(p.id)}
-                                disabled={actionLoading === p.id}
-                                title="Setujui"
-                                className="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 hover:bg-green-200 transition disabled:opacity-40"
-                              >
-                                <Check size={14} className="text-green-600" />
-                              </button>
-                              <button
-                                onClick={() => setRejectTarget(p.id)}
-                                disabled={actionLoading === p.id}
-                                title="Tolak"
-                                className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 hover:bg-red-200 transition disabled:opacity-40"
-                              >
-                                <X size={14} className="text-red-500" />
-                              </button>
+                            <div className="text-gray-400 text-[10px]">
+                              {p.user?.email}
                             </div>
-                          ) : (
-                            <span className="text-gray-300 text-xs">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                            {p.status === "REJECTED" && p.rejectionReason && (
+                              <div className="text-red-400 text-[10px] mt-0.5 max-w-[150px] truncate">
+                                Alasan: {p.rejectionReason}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-4 text-gray-600 text-xs whitespace-nowrap">
+                            {p.user?.profile?.nim || "-"}
+                          </td>
+                          <td className="p-4 text-gray-600 text-xs whitespace-nowrap">
+                            {getSubDivName(userMap[p.userId])}
+                          </td>
+                          <td className="p-4 text-gray-700 text-xs whitespace-nowrap font-semibold">
+                            {amountFormatted}
+                          </td>
+
+                          {/* Bukti */}
+                          <td className="p-4 text-center">
+                            {p.proofUrl ? (
+                              <button
+                                onClick={() => setProofUrl(p.proofUrl)}
+                                className="mx-auto block"
+                              >
+                                <img
+                                  src={p.proofUrl}
+                                  alt="bukti"
+                                  className="w-12 h-12 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition mx-auto"
+                                />
+                              </button>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+
+                          <td className="p-4 text-center">
+                            <StatusBadge status={p.status} />
+                          </td>
+
+                          {/* Aksi */}
+                          <td className="p-4 text-center">
+                            {p.status === "PENDING" ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() =>
+                                    setApproveTarget({
+                                      id: p.id,
+                                      name: fullName,
+                                      amount: amountFormatted,
+                                    })
+                                  }
+                                  disabled={actionLoading === p.id}
+                                  title="Setujui"
+                                  className="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 hover:bg-green-200 transition disabled:opacity-40"
+                                >
+                                  <Check size={14} className="text-green-600" />
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setRejectTarget({
+                                      id: p.id,
+                                      name: fullName,
+                                    })
+                                  }
+                                  disabled={actionLoading === p.id}
+                                  title="Tolak"
+                                  className="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 hover:bg-red-200 transition disabled:opacity-40"
+                                >
+                                  <X size={14} className="text-red-500" />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
 
                     {paginated.length === 0 && (
                       <tr>
@@ -485,23 +541,32 @@ export default function PembayaranAdmin() {
                 </table>
               </div>
 
-              {/* PAGINATION */}
+              {/* PAGINATION — ganti blok lama dengan ini */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-400">
+                <div
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                  style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                >
+                  <span className="text-xs text-gray-500">
                     {(currentPage - 1) * ROWS_PER_PAGE + 1}–
                     {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
                     dari {filtered.length}
                   </span>
-                  <div className="flex items-center gap-1">
+
+                  <div className="flex items-center gap-1 flex-wrap">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       ← Prev
                     </button>
+
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                       .filter(
                         (p) =>
@@ -518,36 +583,47 @@ export default function PembayaranAdmin() {
                         p === "..." ? (
                           <span
                             key={`dot-${idx}`}
-                            className="px-2 text-xs text-gray-400"
+                            className="px-2 text-xs text-gray-400 select-none"
                           >
-                            ...
+                            •••
                           </span>
                         ) : (
                           <button
                             key={p}
                             onClick={() => setCurrentPage(p)}
-                            className="px-3 py-1 text-xs rounded-lg border transition"
+                            className="w-8 h-8 text-xs rounded-lg font-semibold transition-all"
                             style={{
-                              borderColor:
+                              background:
                                 currentPage === p
                                   ? "#7B2FBE"
-                                  : "rgba(0,0,0,0.1)",
-                              background:
-                                currentPage === p ? "#7B2FBE" : "transparent",
-                              color: currentPage === p ? "white" : "inherit",
+                                  : "rgba(0,0,0,0.04)",
+                              color: currentPage === p ? "white" : "#374151",
+                              border:
+                                currentPage === p
+                                  ? "1px solid #7B2FBE"
+                                  : "1px solid rgba(0,0,0,0.10)",
+                              boxShadow:
+                                currentPage === p
+                                  ? "0 2px 8px rgba(123,47,190,0.3)"
+                                  : "none",
                             }}
                           >
                             {p}
                           </button>
                         ),
                       )}
+
                     <button
                       onClick={() =>
                         setCurrentPage((p) => Math.min(p + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       Next →
                     </button>
@@ -559,9 +635,20 @@ export default function PembayaranAdmin() {
         </div>
       </div>
 
+      {/* MODAL KONFIRMASI APPROVE */}
+      {approveTarget && (
+        <ConfirmApproveModal
+          name={approveTarget.name}
+          amount={approveTarget.amount}
+          onConfirm={handleApprove}
+          onCancel={() => setApproveTarget(null)}
+        />
+      )}
+
       {/* MODAL REJECT */}
       {rejectTarget && (
         <RejectModal
+          name={rejectTarget.name}
           onConfirm={handleReject}
           onCancel={() => setRejectTarget(null)}
         />

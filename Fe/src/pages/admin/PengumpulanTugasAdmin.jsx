@@ -267,16 +267,7 @@ export default function PengumpulanTugasAdmin() {
                 className="flex items-center gap-3 px-4 py-3 border-b"
                 style={{ borderColor: "rgba(0,0,0,0.06)" }}
               >
-                <button
-                  className="flex items-center gap-2 px-4 py-[7px] rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
-                    boxShadow: "0 2px 10px rgba(120,0,200,0.25)",
-                  }}
-                >
-                  <SlidersHorizontal size={13} />
-                  Filter
-                </button>
+                
                 <div
                   className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
                   style={{

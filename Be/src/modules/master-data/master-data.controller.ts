@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiQuery,
   ApiOperation,
   ApiTags,
   ApiResponse,
@@ -28,6 +29,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../../prisma/generated-client/client';
+import { Fakultas } from '../../../prisma/generated-client/client';
 
 @ApiTags('Master Data')
 @ApiBearerAuth('JWT-auth')
@@ -149,6 +151,15 @@ export class MasterDataController {
   @ApiResponse({ status: 200, description: 'Return all sub-divisions' })
   findAllSubDivisions(@Query('divisionId') divisionId?: string) {
     return this.masterDataService.findAllSubDivisions(divisionId);
+  }
+
+  @Get('program-studi')
+  @ApiOperation({ summary: 'Public: Get all study programs' })
+  @ApiQuery({ name: 'fakultas', required: false, enum: Fakultas })
+  @ApiResponse({ status: 200, description: 'Return study programs' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  findAllProgramStudi(@Query('fakultas') fakultas?: string) {
+    return this.masterDataService.findAllProgramStudi(fakultas);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -123,7 +123,7 @@ export default function Tugas() {
       <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
         {/* TITLE */}
         <h1 className="text-white text-lg md:text-xl font-bold">
-          Tugas OR 15 Neotelemetri XV
+          Tugas OR 15 Neo Telemetri
         </h1>
 
         {/* INFO DIVISI */}

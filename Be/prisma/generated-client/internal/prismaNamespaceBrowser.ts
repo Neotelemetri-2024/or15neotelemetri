@@ -59,6 +59,7 @@ export const ModelName = {
   Division: 'Division',
   SubDivision: 'SubDivision',
   Profile: 'Profile',
+  ProgramStudi: 'ProgramStudi',
   SubmissionVerification: 'SubmissionVerification',
   Payment: 'Payment',
   Exam: 'Exam',
@@ -178,7 +179,8 @@ export const ProfileScalarFieldEnum = {
   nickName: 'nickName',
   nim: 'nim',
   whatsappNumber: 'whatsappNumber',
-  studyProgram: 'studyProgram',
+  fakultas: 'fakultas',
+  studyProgramId: 'studyProgramId',
   departmentId: 'departmentId',
   divisionId: 'divisionId',
   subDivisionId: 'subDivisionId',
@@ -189,6 +191,17 @@ export const ProfileScalarFieldEnum = {
 } as const
 
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
+
+
+export const ProgramStudiScalarFieldEnum = {
+  id: 'id',
+  fakultas: 'fakultas',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProgramStudiScalarFieldEnum = (typeof ProgramStudiScalarFieldEnum)[keyof typeof ProgramStudiScalarFieldEnum]
 
 
 export const SubmissionVerificationScalarFieldEnum = {
@@ -335,6 +348,7 @@ export const AssignmentSubmissionScalarFieldEnum = {
   assignmentId: 'assignmentId',
   userId: 'userId',
   fileUrl: 'fileUrl',
+  textContent: 'textContent',
   submittedAt: 'submittedAt',
   score: 'score',
   feedback: 'feedback',

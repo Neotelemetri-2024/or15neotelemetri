@@ -21,6 +21,7 @@ export class DashboardService {
         department: true,
         division: true,
         subDivision: true,
+        programStudi: true,
       },
     });
 
@@ -35,7 +36,11 @@ export class DashboardService {
     });
 
     const timeline = await this.prisma.recruitmentTimeline.findMany({
-      orderBy: { orderIndex: 'asc' },
+      orderBy: [
+        { orderIndex: 'asc' },
+        { startAt: 'asc' },
+        { createdAt: 'asc' },
+      ],
     });
 
     // Check progress
@@ -43,7 +48,8 @@ export class DashboardService {
       profile?.fullName &&
       profile?.nim &&
       profile?.whatsappNumber &&
-      profile?.studyProgram &&
+      profile?.fakultas &&
+      profile?.studyProgramId &&
       profile?.departmentId &&
       profile?.divisionId &&
       profile?.subDivisionId

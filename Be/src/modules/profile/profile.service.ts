@@ -31,6 +31,7 @@ export class ProfileService {
         department: true,
         division: true,
         subDivision: true,
+        programStudi: true,
       },
     });
 
@@ -64,7 +65,39 @@ export class ProfileService {
   }
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
-    // Validasi Hierarki jika data diubah
+    const currentProfile = await this.prisma.profile.findUnique({
+      where: { userId },
+    });
+
+    if (!currentProfile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    const nextFakultas = dto.fakultas ?? currentProfile.fakultas;
+    const nextStudyProgramId = dto.studyProgramId ?? currentProfile.studyProgramId;
+
+    if (nextStudyProgramId) {
+      if (!nextFakultas) {
+        throw new BadRequestException(
+          'Fakultas harus dipilih sebelum program studi',
+        );
+      }
+
+      const programStudi = await this.prisma.programStudi.findUnique({
+        where: { id: nextStudyProgramId },
+      });
+
+      if (!programStudi) {
+        throw new BadRequestException('Program studi tidak ditemukan');
+      }
+
+      if (programStudi.fakultas !== nextFakultas) {
+        throw new BadRequestException(
+          'Program studi yang dipilih tidak sesuai dengan fakultas',
+        );
+      }
+    }
+
     if (dto.departmentId && dto.divisionId) {
       const division = await this.prisma.division.findUnique({
         where: { id: dto.divisionId },
@@ -92,6 +125,12 @@ export class ProfileService {
     const result = await this.prisma.profile.update({
       where: { userId },
       data: dto,
+      include: {
+        department: true,
+        division: true,
+        subDivision: true,
+        programStudi: true,
+      },
     });
 
     await this.cacheManager.del(`${this.CACHE_KEY_PREFIX}${userId}`);

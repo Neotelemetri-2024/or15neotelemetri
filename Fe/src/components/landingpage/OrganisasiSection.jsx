@@ -39,7 +39,7 @@ export default function OrganisasiSection() {
   };
 
   return (
-    <section id="division" className="relative py-20 lg:py-32">
+    <section  className="relative py-20 lg:py-32">
       {/* BACKGROUND */}
       <img
         src={circleBlue}
@@ -88,7 +88,7 @@ export default function OrganisasiSection() {
                       className="rounded-[24px] border-4 border-white h-full backdrop-blur-3xl"
                       style={{ backfaceVisibility: "hidden" }}
                     >
-                      <div className="flex flex-col h-[320px] lg:h-[400px] rounded-[24px] px-6 lg:px-8 py-8 lg:py-10 text-center">
+                      <div className="flex flex-col h-110 rounded-[24px] px-6 lg:px-8 py-8 lg:py-10 text-center">
                         <h3 className="text-xl lg:text-2xl font-semibold pb-6 lg:pb-8">
                           {item.title}
                         </h3>
@@ -106,7 +106,7 @@ export default function OrganisasiSection() {
                         transform: "rotateY(180deg)",
                       }}
                     >
-                      <div className="h-[320px] lg:h-[400px] w-full rounded-[24px] flex items-center justify-center">
+                      <div className="h-110 w-full rounded-[24px] flex items-center justify-center">
                         <span className="text-cyan-300 text-lg">Loading...</span>
                       </div>
                     </div>

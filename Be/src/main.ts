@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: ['https://or.neotelemetri.id', 'http://localhost:5173'],
     credentials: true,
   });
 
@@ -64,7 +64,7 @@ async function bootstrap() {
     customSiteTitle: 'OR Neo Telemetri 2026 API Docs',
   });
 
-  const port = process.env.PORT ?? 3000;
+  const port = process.env.PORT ?? 3001;
   await app.listen(port);
   console.log(`\nServer is running on http://localhost:${port}/api`);
   console.log(`Swagger documentation: http://localhost:${port}/docs\n`);

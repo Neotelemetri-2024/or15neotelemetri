@@ -3,6 +3,7 @@ import {
   ConflictException,
   NotFoundException,
   Inject,
+  BadRequestException,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -15,12 +16,14 @@ import {
   CreateSubDivisionDto,
   UpdateSubDivisionDto,
 } from './dto/master-data.dto';
+import { Fakultas } from '../../../prisma/generated-client/client';
 
 @Injectable()
 export class MasterDataService {
   private readonly CACHE_KEY_DEPARTMENTS = 'master_data:departments';
   private readonly CACHE_KEY_DIVISIONS = 'master_data:divisions';
   private readonly CACHE_KEY_SUBDIVISIONS = 'master_data:subdivisions';
+  private readonly CACHE_KEY_PROGRAM_STUDI = 'master_data:program_studi';
 
   constructor(
     private readonly prisma: PrismaService,
@@ -140,6 +143,27 @@ export class MasterDataService {
     return subDivisions;
   }
 
+  async findAllProgramStudi(fakultas?: string) {
+    if (fakultas && !Object.values(Fakultas).includes(fakultas as Fakultas)) {
+      throw new BadRequestException('Fakultas not found');
+    }
+
+    const cacheKey = fakultas
+      ? `${this.CACHE_KEY_PROGRAM_STUDI}:${fakultas}`
+      : this.CACHE_KEY_PROGRAM_STUDI;
+
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const programs = await this.prisma.programStudi.findMany({
+      where: fakultas ? { fakultas: fakultas as Fakultas } : {},
+      orderBy: { name: 'asc' },
+    });
+
+    await this.cacheManager.set(cacheKey, programs);
+    return programs;
+  }
+
   async createSubDivision(dto: CreateSubDivisionDto) {
     const existing = await this.prisma.subDivision.findUnique({
       where: {
@@ -199,6 +223,7 @@ export class MasterDataService {
     await this.cacheManager.del(this.CACHE_KEY_DEPARTMENTS);
     await this.cacheManager.del(this.CACHE_KEY_DIVISIONS);
     await this.cacheManager.del(this.CACHE_KEY_SUBDIVISIONS);
+    await this.cacheManager.del(this.CACHE_KEY_PROGRAM_STUDI);
 
     try {
       const store = (this.cacheManager as any).store;

@@ -61,3 +61,20 @@ export const AttendanceStatus = {
 } as const
 
 export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus]
+
+
+export const Fakultas = {
+  PERTANIAN: 'PERTANIAN',
+  KEDOKTERAN: 'KEDOKTERAN',
+  MIPA: 'MIPA',
+  PETERNAKAN: 'PETERNAKAN',
+  TEKNIK: 'TEKNIK',
+  TEKNOLOGI_PERTANIAN: 'TEKNOLOGI_PERTANIAN',
+  FARMASI: 'FARMASI',
+  TEKNOLOGI_INFORMASI: 'TEKNOLOGI_INFORMASI',
+  KEPERAWATAN: 'KEPERAWATAN',
+  KESEHATAN_MASYARAKAT: 'KESEHATAN_MASYARAKAT',
+  KEDOKTERAN_GIGI: 'KEDOKTERAN_GIGI'
+} as const
+
+export type Fakultas = (typeof Fakultas)[keyof typeof Fakultas]

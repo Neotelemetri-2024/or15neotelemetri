@@ -1,23 +1,80 @@
 import logoNeo from "../../assets/images/Logo_Neo_White.svg";
 import { Instagram, Facebook, Youtube, Twitter } from "lucide-react";
-import { FaTiktok, FaSpotify } from "react-icons/fa";
+import { FaTiktok } from "react-icons/fa";
 
-const quickLinks = ["Home", "Division", "Project", "Achievement", "FAQ"];
+const quickLinks = [
+  { name: "Home", id: "home" },
+  { name: "Division", id: "division" },
+  { name: "Project", id: "project" },
+  { name: "Achievement", id: "achievement" },
+  { name: "FAQ", id: "faq" },
+];
 
 const websiteTeam = [
-  { role: "Fronted Developer", name: "Reynard Ghazy Tsaqif" },
-  { role: "Backend Developer", name: "Rahmat Fajar Saputra" },
-  { role: "UI/UX Design", name: "Amara Marshinta" },
+  {
+    role: "Project Manager",
+    name: "Rizki Dafa Naldi",
+    ig: "https://www.instagram.com/daf_nal?igsh=bDYzN2FhbWtrdmcy",
+  },
+  {
+    role: "Fronted Developer",
+    name: "Reynard Ghazy Tsaqif",
+    ig: "https://www.instagram.com/reynard_ghazy?igsh=bmQybGxvZHRqYW44",
+  },
+  {
+    role: "Backend Developer",
+    name: "Rahmat Fajar Saputra",
+    ig: "https://www.instagram.com/jaaeyii__?igsh=MTU2djhlbnZnMGVrdA==",
+  },
+  {
+    role: "UI/UX Design",
+    name: "Amara Marshinta",
+    ig: "https://www.instagram.com/amararutaceae?igsh=dWdlM2l5bGxscmp2",
+  },
+];
+const socials = [
+  {
+    icon: Instagram,
+    href: "https://www.instagram.com/neotelemetri?igsh=MWNlZXVwNXBuNDlqNA==",
+    label: "Instagram",
+  },
+  {
+    icon: Facebook,
+    href: "https://www.facebook.com/share/1GehkvZfnQ/",
+    label: "Facebook",
+  },
+
+  { icon: Twitter, href: "https://x.com/neotelemetri", label: "X" },
+  {
+    icon: FaTiktok,
+    href: "https://www.tiktok.com/@neotelemetri.project?_r=1&_t=ZS-94lChUS75hE",
+    label: "TikTok",
+  },
+  {
+    icon: Youtube,
+    href: "https://youtube.com/@neotelemetri?si=xoBqWsWq3OFNzZ1X",
+    label: "Youtube",
+  },
 ];
 
-const socials = [
-  { icon: Instagram, href: "https://www.instagram.com/neotelemetri?igsh=MWNlZXVwNXBuNDlqNA==", label: "Instagram" },
-  { icon: Facebook, href: "https://www.facebook.com/share/1GehkvZfnQ/", label: "Facebook" },
-  { icon: FaSpotify, href: "https://spotify.com", label: "Spotify" },
-  { icon: Twitter, href: "https://x.com/neotelemetri", label: "X" },
-  { icon: FaTiktok, href: "https://www.tiktok.com/@neotelemetri.project?_r=1&_t=ZS-94lChUS75hE", label: "TikTok" },
-  { icon: Youtube, href: "https://youtube.com/@neotelemetri?si=xoBqWsWq3OFNzZ1X", label: "Youtube" },
-];
+const NAVBAR_HEIGHT = 72;
+
+const handleLinkClick = (e, id) => {
+  e.preventDefault();
+
+  if (id === "home") {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  window.scrollTo({
+    top: el.offsetTop - NAVBAR_HEIGHT,
+    behavior: "smooth",
+  });
+};
 
 export default function FooterSection() {
   return (
@@ -27,7 +84,6 @@ export default function FooterSection() {
 
       <div className="max-w-[1200px] mx-auto px-6 lg:px-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-10">
-
           {/* COL 1: LOGO + ALAMAT — full width di mobile */}
           <div className="col-span-2 lg:col-span-1 flex flex-col gap-4">
             <img src={logoNeo} alt="Neo Telemetri" className="w-[140px]" />
@@ -45,10 +101,11 @@ export default function FooterSection() {
             {quickLinks.map((link, i) => (
               <a
                 key={i}
-                href={`#${link.toLowerCase()}`}
-                className="text-white/50 text-sm hover:text-white transition-colors duration-200"
+                href={`#${link.id}`}
+                onClick={(e) => handleLinkClick(e, link.id)}
+                className="text-white/50 text-sm hover:text-white transition-colors duration-200 cursor-pointer"
               >
-                {link}
+                {link.name}
               </a>
             ))}
           </div>
@@ -60,8 +117,17 @@ export default function FooterSection() {
             </h4>
             {websiteTeam.map((member, i) => (
               <div key={i}>
-                <p className="text-white font-semibold text-sm">{member.role}</p>
-                <p className="text-white/50 text-sm">{member.name}</p>
+                <p className="text-white font-semibold text-sm">
+                  {member.role}
+                </p>
+                <a
+                  href={member.ig}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/50 text-sm hover:text-white hover:underline transition-colors duration-200"
+                >
+                  {member.name}
+                </a>
               </div>
             ))}
           </div>
@@ -92,8 +158,10 @@ export default function FooterSection() {
               <h4 className="text-white font-bold text-sm tracking-widest uppercase mb-2">
                 Contact Us
               </h4>
-              <p className="text-white/50 text-sm">+62-831-8195-9775</p>
-              <p className="text-white/50 text-sm">or.neotelemetri@gmail.com</p>
+              <p className="text-white/50 text-sm">
+                +62-831-8195-9775 ( Hafid )
+              </p>
+              <p className="text-white/50 text-sm">+62 812-6162-5026 ( Ima )</p>
             </div>
           </div>
         </div>

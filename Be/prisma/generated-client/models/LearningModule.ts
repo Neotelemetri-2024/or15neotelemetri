@@ -1365,11 +1365,6 @@ export type LearningModuleFindManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Skip the first `n` LearningModules.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of LearningModules.
-   */
   distinct?: Prisma.LearningModuleScalarFieldEnum | Prisma.LearningModuleScalarFieldEnum[]
 }
 

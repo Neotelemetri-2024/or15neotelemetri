@@ -58,6 +58,11 @@ export type SubDivision = Prisma.SubDivisionModel
  */
 export type Profile = Prisma.ProfileModel
 /**
+ * Model ProgramStudi
+ * 
+ */
+export type ProgramStudi = Prisma.ProgramStudiModel
+/**
  * Model SubmissionVerification
  * 
  */

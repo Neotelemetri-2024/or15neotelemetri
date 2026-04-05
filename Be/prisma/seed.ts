@@ -10,6 +10,7 @@ import {
   ExamType,
   AttemptStatus,
   AttendanceStatus,
+  Fakultas,
 } from './generated-client/client';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -33,6 +34,7 @@ async function main() {
   await prisma.submissionVerification.deleteMany();
   await prisma.profile.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.programStudi.deleteMany();
   await prisma.recruitmentTimeline.deleteMany();
   await prisma.subDivision.deleteMany();
   await prisma.division.deleteMany();
@@ -40,7 +42,7 @@ async function main() {
 
   console.log('Start seeding all features...');
 
-  const passwordHash = await bcrypt.hash('password', 10);
+  const passwordHash = await bcrypt.hash('#Neoters2026', 10);
 
   // 1. Departments, Divisions, SubDivisions
   const operasional = await prisma.department.create({
@@ -85,6 +87,78 @@ async function main() {
     data: { divisionId: skj.id, name: 'System' },
   });
 
+  // 1b. Program Studi
+  const programStudiData: Record<Fakultas, string[]> = {
+    [Fakultas.PERTANIAN]: [
+      'Agroteknologi',
+      'Agribisnis',
+      'Ilmu Tanah',
+      'Proteksi Tanaman',
+      'Penyuluhan Pertanian',
+      'Agroekoteknologi (Kampus III)',
+    ],
+    [Fakultas.KEDOKTERAN]: [
+      'Kedokteran',
+      'Psikologi',
+      'Kebidanan',
+      'Ilmu Biomedis',
+    ],
+    [Fakultas.MIPA]: [
+      'Kimia',
+      'Biologi',
+      'Matematika',
+      'Fisika',
+      'Statistika dan Sains Data',
+    ],
+    [Fakultas.PETERNAKAN]: [
+      'Peternakan',
+      'Peternakan (Kampus II)',
+      'Nutrisi dan Teknologi Pakan Ternak',
+    ],
+    [Fakultas.TEKNIK]: [
+      'Teknik Sipil',
+      'Teknik Mesin',
+      'Teknik Industri',
+      'Teknik Elektro',
+      'Teknik Lingkungan',
+      'Arsitektur',
+    ],
+    [Fakultas.TEKNOLOGI_PERTANIAN]: [
+      'Teknologi Pangan dan Hasil Pertanian',
+      'Teknik Pertanian dan Biosistem',
+      'Teknologi Industri Pertanian',
+    ],
+    [Fakultas.FARMASI]: ['Farmasi'],
+    [Fakultas.TEKNOLOGI_INFORMASI]: [
+      'Teknik Komputer',
+      'Sistem Informasi',
+      'Informatika',
+    ],
+    [Fakultas.KEPERAWATAN]: ['Keperawatan'],
+    [Fakultas.KESEHATAN_MASYARAKAT]: ['Kesehatan Masyarakat', 'Gizi'],
+    [Fakultas.KEDOKTERAN_GIGI]: ['Kedokteran Gigi'],
+  };
+
+  const programStudiMap = new Map<string, { id: string; fakultas: Fakultas; name: string }>();
+
+  for (const fakultas of Object.values(Fakultas)) {
+    const names = programStudiData[fakultas];
+    for (const name of names) {
+      const program = await prisma.programStudi.create({
+        data: { fakultas, name },
+      });
+      programStudiMap.set(`${fakultas}:${name}`, program);
+    }
+  }
+
+  const sistemInformasi = programStudiMap.get(
+    `${Fakultas.TEKNOLOGI_INFORMASI}:Sistem Informasi`,
+  );
+
+  if (!sistemInformasi) {
+    throw new Error('Seed program studi not found');
+  }
+
   // 2. Users (Admin & 3 Regular Users)
   const admin = await prisma.user.create({
     data: {
@@ -114,6 +188,8 @@ async function main() {
           departmentId: operasional.id,
           divisionId: programming.id,
           subDivisionId: webProg.id,
+          fakultas: Fakultas.TEKNOLOGI_INFORMASI,
+          studyProgramId: sistemInformasi.id,
         },
       },
     },
@@ -201,30 +277,7 @@ async function main() {
     },
   });
 
-  // 5. Recruitment Timelines
-  const timelines = [
-    {
-      title: 'Pendaftaran',
-      startAt: new Date('2026-03-01'),
-      endAt: new Date('2026-03-14'),
-      orderIndex: 1,
-    },
-    {
-      title: 'Pembayaran',
-      startAt: new Date('2026-03-15'),
-      endAt: new Date('2026-03-20'),
-      orderIndex: 2,
-    },
-    {
-      title: 'Opening Ceremony',
-      startAt: new Date('2026-03-21'),
-      endAt: new Date('2026-03-21'),
-      orderIndex: 3,
-    },
-  ];
-  await prisma.recruitmentTimeline.createMany({ data: timelines });
-
-  // 6. Activities & Attendance
+  // 5. Activities & Attendance
   const activity = await prisma.activity.create({
     data: {
       name: 'Workshop Web Programming',
@@ -254,7 +307,7 @@ async function main() {
     ],
   });
 
-  // 7. Exams, Questions, Choices
+  // 6. Exams, Questions, Choices
   const exam = await prisma.exam.create({
     data: {
       subDivisionId: webProg.id,
@@ -359,7 +412,7 @@ async function main() {
     ],
   });
 
-  // 8. Learning Modules
+  // 7. Learning Modules
   await prisma.learningModule.create({
     data: {
       subDivisionId: webProg.id,
@@ -370,7 +423,7 @@ async function main() {
     },
   });
 
-  // 9. Assignments & Submissions
+  // 8. Assignments & Submissions
   const assignment = await prisma.assignment.create({
     data: {
       subDivisionId: webProg.id,

@@ -23,6 +23,7 @@ import { AssignmentService } from './assignment.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 import { ScoreSubmissionDto } from './dto/score-submission.dto';
+import { SubmitAssignmentDto } from './dto/submit-assignment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -170,8 +171,11 @@ export class AssignmentController {
           format: 'binary',
           description: 'The assignment submission file',
         },
+        textContent: {
+          type: 'string',
+          description: 'Text content for assignment submission',
+        },
       },
-      required: ['file'],
     },
   })
   @UseInterceptors(
@@ -182,9 +186,10 @@ export class AssignmentController {
   submit(
     @Param('id') id: string,
     @GetUser('id') userId: string,
-    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: SubmitAssignmentDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.assignmentService.submit(id, userId, file);
+    return this.assignmentService.submit(id, userId, file, dto.textContent);
   }
 
   @Get(':id/submissions')
@@ -224,3 +229,5 @@ export class AssignmentController {
     return this.assignmentService.scoreSubmission(submissionId, dto);
   }
 }
+
+

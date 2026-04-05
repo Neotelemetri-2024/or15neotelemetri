@@ -1503,11 +1503,6 @@ export type ExamAnswerFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Skip the first `n` ExamAnswers.
    */
   skip?: number
-  /**
-   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-   * 
-   * Filter by unique combinations of ExamAnswers.
-   */
   distinct?: Prisma.ExamAnswerScalarFieldEnum | Prisma.ExamAnswerScalarFieldEnum[]
 }
 

@@ -27,6 +27,14 @@ const btnPrimary = {
   boxShadow: "0 2px 10px rgba(120,0,200,0.28)",
 };
 
+// Departemen yang TIDAK menggunakan sub divisi
+// Sesuaikan dengan nama persis di database kamu
+const DEPT_NO_SUBDIV = ["Organisasi"];
+
+const deptAllowsSubDiv = (deptName = "") =>
+  !DEPT_NO_SUBDIV.some((n) => deptName.toLowerCase() === n.toLowerCase());
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ message, type, onClose }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, []);
   const c = type === "error"
@@ -42,6 +50,7 @@ function Toast({ message, type, onClose }) {
   );
 }
 
+// ─── Modal ────────────────────────────────────────────────────────────────────
 function Modal({ title, value, onChange, onClose, onSave, saving, placeholder, error }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -73,6 +82,7 @@ function Modal({ title, value, onChange, onClose, onSave, saving, placeholder, e
   );
 }
 
+// ─── Confirm Delete ───────────────────────────────────────────────────────────
 function ConfirmDelete({ label, onClose, onConfirm, deleting }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -101,6 +111,7 @@ function ConfirmDelete({ label, onClose, onConfirm, deleting }) {
   );
 }
 
+// ─── Action Buttons ───────────────────────────────────────────────────────────
 function ActionBtns({ onEdit, onDelete }) {
   return (
     <div className="flex items-center gap-2 shrink-0">
@@ -116,6 +127,7 @@ function ActionBtns({ onEdit, onDelete }) {
   );
 }
 
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function DivisionAdmin() {
   const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -150,12 +162,15 @@ export default function DivisionAdmin() {
         depts.map(async (dept) => {
           const divRes = await getDivisions(dept.id);
           divMap[dept.id] = divRes.data;
-          await Promise.all(
-            divRes.data.map(async (div) => {
-              const subRes = await getSubDivisions(div.id);
-              subMap[div.id] = subRes.data;
-            })
-          );
+          // Hanya fetch sub divisi jika departemen mengizinkan
+          if (deptAllowsSubDiv(dept.name)) {
+            await Promise.all(
+              divRes.data.map(async (div) => {
+                const subRes = await getSubDivisions(div.id);
+                subMap[div.id] = subRes.data;
+              })
+            );
+          }
         })
       );
       setDivisionMap(divMap);
@@ -309,7 +324,10 @@ export default function DivisionAdmin() {
             {departments.map((dept) => {
               const divs = divisionMap[dept.id] || [];
               const isOpenDept = expandedDepts[dept.id];
-              const totalSubs = divs.reduce((acc, div) => acc + (subDivisionMap[div.id]?.length || 0), 0);
+              const allowSub = deptAllowsSubDiv(dept.name); // ← kunci utama
+              const totalSubs = allowSub
+                ? divs.reduce((acc, div) => acc + (subDivisionMap[div.id]?.length || 0), 0)
+                : null;
 
               return (
                 <div key={dept.id} className="rounded-2xl overflow-hidden" style={glassCard}>
@@ -319,7 +337,9 @@ export default function DivisionAdmin() {
                     onClick={() => toggleDept(dept.id)}>
                     <div className="w-6 h-6 flex items-center justify-center rounded-md"
                       style={{ background: "rgba(255,255,255,0.08)" }}>
-                      {isOpenDept ? <ChevronDown size={14} className="text-white/60" /> : <ChevronRight size={14} className="text-white/60" />}
+                      {isOpenDept
+                        ? <ChevronDown size={14} className="text-white/60" />
+                        : <ChevronRight size={14} className="text-white/60" />}
                     </div>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                       style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)" }}>
@@ -327,7 +347,10 @@ export default function DivisionAdmin() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-semibold text-sm">{dept.name}</p>
-                      <p className="text-white/40 text-xs">{divs.length} divisi · {totalSubs} sub divisi</p>
+                      <p className="text-white/40 text-xs">
+                        {divs.length} divisi
+                        {allowSub && ` · ${totalSubs} sub divisi`}
+                      </p>
                     </div>
                     <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2">
                       <button
@@ -347,36 +370,55 @@ export default function DivisionAdmin() {
                   {isOpenDept && (
                     <div className="px-5 py-4 flex flex-col gap-3">
                       {divs.length === 0 ? (
-                        <p className="text-white/30 text-xs py-2 flex items-center gap-2"><Layers size={13} />Belum ada divisi.</p>
+                        <p className="text-white/30 text-xs py-2 flex items-center gap-2">
+                          <Layers size={13} />Belum ada divisi.
+                        </p>
                       ) : divs.map((div) => {
-                        const subs = subDivisionMap[div.id] || [];
-                        const isOpenDiv = expandedDivs[div.id];
+                        const subs = allowSub ? (subDivisionMap[div.id] || []) : [];
+                        const isOpenDiv = allowSub ? expandedDivs[div.id] : false;
+
                         return (
                           <div key={div.id} className="rounded-xl overflow-hidden"
                             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
                             {/* DIV ROW */}
-                            <div className="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
+                            <div
+                              className={`flex items-center gap-3 px-4 py-3 select-none ${allowSub ? "cursor-pointer" : ""}`}
                               style={{ borderBottom: isOpenDiv ? "1px solid rgba(255,255,255,0.06)" : "none" }}
-                              onClick={() => toggleDiv(div.id)}>
-                              <div className="w-5 h-5 flex items-center justify-center rounded-md"
-                                style={{ background: "rgba(255,255,255,0.06)" }}>
-                                {isOpenDiv ? <ChevronDown size={12} className="text-white/50" /> : <ChevronRight size={12} className="text-white/50" />}
-                              </div>
+                              onClick={() => allowSub && toggleDiv(div.id)}
+                            >
+                              {/* Chevron hanya tampil jika allowSub */}
+                              {allowSub ? (
+                                <div className="w-5 h-5 flex items-center justify-center rounded-md"
+                                  style={{ background: "rgba(255,255,255,0.06)" }}>
+                                  {isOpenDiv
+                                    ? <ChevronDown size={12} className="text-white/50" />
+                                    : <ChevronRight size={12} className="text-white/50" />}
+                                </div>
+                              ) : (
+                                // Spacer agar layout tetap rapi
+                                <div className="w-5 h-5 shrink-0" />
+                              )}
+
                               <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                                 style={{ background: "rgba(56,189,248,0.12)", border: "1px solid rgba(56,189,248,0.25)" }}>
                                 <Layers size={13} style={{ color: "#38BDF8" }} />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-white/85 font-semibold text-xs">{div.name}</p>
-                                <p className="text-white/35 text-[10px]">{subs.length} sub divisi</p>
+                                {allowSub && (
+                                  <p className="text-white/35 text-[10px]">{subs.length} sub divisi</p>
+                                )}
                               </div>
                               <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2">
-                                <button
-                                  onClick={() => { openAdd("sub", div.id); setExpandedDivs((p) => ({ ...p, [div.id]: true })); }}
-                                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold hover:brightness-110"
-                                  style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#6EE7B7" }}>
-                                  <Plus size={10} /> Sub Divisi
-                                </button>
+                                {/* Tombol "+ Sub Divisi" HANYA muncul jika allowSub */}
+                                {allowSub && (
+                                  <button
+                                    onClick={() => { openAdd("sub", div.id); setExpandedDivs((p) => ({ ...p, [div.id]: true })); }}
+                                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold hover:brightness-110"
+                                    style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#6EE7B7" }}>
+                                    <Plus size={10} /> Sub Divisi
+                                  </button>
+                                )}
                                 <ActionBtns
                                   onEdit={() => openEdit("div", div, dept.id)}
                                   onDelete={() => setDeleteTarget({ type: "div", id: div.id, name: div.name })}
@@ -384,11 +426,13 @@ export default function DivisionAdmin() {
                               </div>
                             </div>
 
-                            {/* SUB DIVISIONS */}
-                            {isOpenDiv && (
+                            {/* SUB DIVISIONS — hanya render jika allowSub */}
+                            {allowSub && isOpenDiv && (
                               <div className="px-4 py-3 flex flex-col gap-2">
                                 {subs.length === 0 ? (
-                                  <p className="text-white/25 text-[10px] py-1 flex items-center gap-2"><GitBranch size={11} />Belum ada sub divisi.</p>
+                                  <p className="text-white/25 text-[10px] py-1 flex items-center gap-2">
+                                    <GitBranch size={11} />Belum ada sub divisi.
+                                  </p>
                                 ) : subs.map((sub) => (
                                   <div key={sub.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
                                     style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.15)" }}>
