@@ -1,3 +1,4 @@
+// src/components/admin/LayoutAdmin.jsx
 import circlePurple from "../../assets/images/Bulat_Ungu.png";
 import logoORWhite from "../../assets/images/Logo_OR_White.png";
 import { useState, useEffect } from "react";
@@ -21,6 +22,7 @@ import {
   History,
   Layers,
 } from "lucide-react";
+import { NotifProvider, useNotif } from "./NotifContext";
 
 const menuItems = [
   {
@@ -69,7 +71,8 @@ const menuItems = [
   },
 ];
 
-function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
+// ── SidebarItem dengan dukungan badge ────────────────────────────
+function SidebarItem({ item, isOpen: sidebarOpen, isMobile, badge = 0 }) {
   const location = useLocation();
   const hasChildren = item.children && item.children.length > 0;
 
@@ -100,24 +103,33 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
             }`
           }
         >
-          {/* Icon selalu di posisi kiri */}
-          <span className="shrink-0 w-[18px] flex items-center justify-center">
+          {/* Icon + dot badge saat collapsed */}
+          <span className="relative shrink-0 w-[18px] flex items-center justify-center">
             {item.icon}
+            {badge > 0 && !showLabel && (
+              <span className="absolute -top-1.5 -right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#501A5E] animate-pulse" />
+            )}
           </span>
 
-          {/* Label animate */}
+          {/* Label + count badge saat expanded */}
           <span
             className={`
+              flex items-center gap-2
               whitespace-nowrap overflow-hidden
               transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
               ${showLabel ? "opacity-100 max-w-[140px] ml-3" : "opacity-0 max-w-0 ml-0"}
             `}
           >
             {item.label}
+            {badge > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )}
           </span>
         </NavLink>
 
-        {/* Chevron toggle — hanya muncul saat label visible */}
+        {/* Chevron toggle */}
         {hasChildren && showLabel && (
           <button
             onClick={() => setExpanded((p) => !p)}
@@ -128,7 +140,7 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
         )}
       </div>
 
-      {/* Sub-menu — hanya muncul saat label visible */}
+      {/* Sub-menu */}
       {hasChildren && showLabel && expanded && (
         <div className="ml-4 mt-1 flex flex-col gap-1 border-l border-white/20 pl-3">
           {item.children.map((child) => (
@@ -153,11 +165,15 @@ function SidebarItem({ item, isOpen: sidebarOpen, isMobile }) {
   );
 }
 
-export default function AdminLayout({ children }) {
+// ── Inner layout (konsumsi context di sini) ───────────────────────
+function AdminLayoutInner({ children }) {
   const navigate = useNavigate();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+
+  // Ambil count dari context
+  const { verifikasiCount, pembayaranCount } = useNotif();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -172,8 +188,14 @@ export default function AdminLayout({ children }) {
     navigate("/login");
   };
 
-  // Sidebar terbuka jika: desktop hover, atau mobile open
   const sidebarOpen = isMobile ? isMobileOpen : isHovering;
+
+  // Map route → badge count
+  const getBadge = (to) => {
+    if (to === "/admin/verifikasi") return verifikasiCount;
+    if (to === "/admin/pembayaran") return pembayaranCount;
+    return 0;
+  };
 
   return (
     <div className="flex min-h-screen bg-[#1a0023] text-white overflow-hidden relative">
@@ -228,6 +250,7 @@ export default function AdminLayout({ children }) {
                 item={item}
                 isOpen={isHovering}
                 isMobile={isMobile}
+                badge={getBadge(item.to)}
               />
             ))}
           </nav>
@@ -253,7 +276,7 @@ export default function AdminLayout({ children }) {
         </button>
       </aside>
 
-      {/* HAMBURGER — floating, mobile only */}
+      {/* HAMBURGER — mobile only */}
       {isMobile && (
         <button
           onClick={() => setIsMobileOpen((p) => !p)}
@@ -273,5 +296,14 @@ export default function AdminLayout({ children }) {
         <div className="p-4 md:p-6">{children}</div>
       </main>
     </div>
+  );
+}
+
+// ── Export utama: wrap dengan NotifProvider ───────────────────────
+export default function AdminLayout({ children }) {
+  return (
+    <NotifProvider>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </NotifProvider>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from "../../services/userServices";
 import { getAllUsers } from "../../services/adminServices";
 import api from "../../components/api/axios";
+import { useNotif } from "../../components/admin/NotifContext";
 
 const getAllPayments = () => api.get("/payments");
 const reviewPayment = (id, payload) =>
@@ -178,6 +179,7 @@ export default function PembayaranAdmin() {
   const [actionLoading, setActionLoading] = useState(null);
   const [proofUrl, setProofUrl] = useState(null);
   const [users, setUsers] = useState([]);
+  const { refresh: refreshNotif } = useNotif();
 
   // ── FETCH ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -229,6 +231,7 @@ export default function PembayaranAdmin() {
         prev.map((p) => (p.id === id ? { ...p, status: "APPROVED" } : p)),
       );
       toast.success(`Pembayaran ${name || ""} disetujui`);
+      refreshNotif();
     } catch (err) {
       console.error("Gagal approve:", err);
       toast.error("Gagal menyetujui pembayaran");
@@ -253,6 +256,7 @@ export default function PembayaranAdmin() {
         ),
       );
       toast.error(`Pembayaran ${name || ""} ditolak`);
+      refreshNotif();
     } catch (err) {
       console.error("Gagal reject:", err);
       toast.error("Gagal menolak pembayaran");

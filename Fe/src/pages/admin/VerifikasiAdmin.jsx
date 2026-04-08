@@ -3,6 +3,7 @@ import { Search, User, ExternalLink, X, Check } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
+import { useNotif } from "../../components/admin/NotifContext";
 import {
   getAllVerifications,
   reviewVerification,
@@ -163,6 +164,7 @@ export default function VerifikasiAdmin() {
   const [actionLoading, setActionLoading] = useState(null);
 
   const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const { refresh: refreshNotif } = useNotif();
 
   // ── FETCH ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -216,6 +218,7 @@ export default function VerifikasiAdmin() {
         ),
       );
       toast.success(`Verifikasi ${name || ""} disetujui`);
+      refreshNotif();
     } catch (err) {
       console.error("Gagal approve:", err);
       toast.error("Gagal menyetujui verifikasi");
@@ -243,6 +246,7 @@ export default function VerifikasiAdmin() {
         ),
       );
       toast.error(`Verifikasi ${name || ""} ditolak`);
+      refreshNotif();
     } catch (err) {
       console.error("Gagal reject:", err);
       toast.error("Gagal menolak verifikasi");

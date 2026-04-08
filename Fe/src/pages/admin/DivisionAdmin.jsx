@@ -27,10 +27,7 @@ const btnPrimary = {
   boxShadow: "0 2px 10px rgba(120,0,200,0.28)",
 };
 
-// Departemen yang TIDAK menggunakan sub divisi
-// Sesuaikan dengan nama persis di database kamu
 const DEPT_NO_SUBDIV = ["Organisasi"];
-
 const deptAllowsSubDiv = (deptName = "") =>
   !DEPT_NO_SUBDIV.some((n) => deptName.toLowerCase() === n.toLowerCase());
 
@@ -41,11 +38,15 @@ function Toast({ message, type, onClose }) {
     ? { bg: "#FEF2F2", border: "#FECACA", text: "#DC2626" }
     : { bg: "#F0FDF4", border: "#BBF7D0", text: "#16A34A" };
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg"
-      style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+    <div
+      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-auto z-[100] flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg"
+      style={{ background: c.bg, border: `1px solid ${c.border}` }}
+    >
       <AlertCircle size={16} style={{ color: c.text }} />
-      <span className="text-sm font-medium" style={{ color: c.text }}>{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-50 hover:opacity-100"><X size={14} style={{ color: c.text }} /></button>
+      <span className="text-sm font-medium flex-1" style={{ color: c.text }}>{message}</span>
+      <button onClick={onClose} className="ml-2 opacity-50 hover:opacity-100">
+        <X size={14} style={{ color: c.text }} />
+      </button>
     </div>
   );
 }
@@ -53,27 +54,49 @@ function Toast({ message, type, onClose }) {
 // ─── Modal ────────────────────────────────────────────────────────────────────
 function Modal({ title, value, onChange, onClose, onSave, saving, placeholder, error }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}>
-      <div className="w-full max-w-[400px] rounded-2xl px-7 py-6 flex flex-col gap-5"
-        style={{ background: "white", boxShadow: "0 8px 48px rgba(120,0,200,0.25)" }}>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-0 sm:px-4"
+      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+    >
+      <div
+        className="w-full sm:max-w-[400px] rounded-t-3xl sm:rounded-2xl px-5 sm:px-7 py-6 flex flex-col gap-5"
+        style={{ background: "white", boxShadow: "0 8px 48px rgba(120,0,200,0.25)" }}
+      >
+        {/* Drag handle mobile */}
+        <div className="flex justify-center sm:hidden -mt-2 mb-1">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
         <div className="flex items-center justify-between">
           <h2 className="text-gray-800 font-bold text-base">{title}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-gray-700 font-semibold text-xs">Nama</label>
-          <input type="text" placeholder={placeholder} value={value}
+          <input
+            type="text" placeholder={placeholder} value={value}
             onChange={(e) => onChange(e.target.value)}
             style={{ ...inputStyle, borderColor: error ? "#FCA5A5" : "rgba(0,0,0,0.12)" }}
-            autoFocus onKeyDown={(e) => e.key === "Enter" && onSave()} />
-          {error && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle size={11} />{error}</p>}
+            autoFocus onKeyDown={(e) => e.key === "Enter" && onSave()}
+          />
+          {error && (
+            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+              <AlertCircle size={11} />{error}
+            </p>
+          )}
         </div>
-        <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-5 py-2 rounded-full text-gray-500 text-sm border border-gray-200 hover:bg-gray-50">Batal</button>
-          <button onClick={onSave} disabled={saving || !value.trim()}
-            className="px-6 py-2 rounded-full text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50"
-            style={btnPrimary}>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-full text-gray-500 text-sm border border-gray-200 hover:bg-gray-50"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onSave} disabled={saving || !value.trim()}
+            className="flex-1 py-2.5 rounded-full text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50"
+            style={btnPrimary}
+          >
             {saving ? "Menyimpan..." : "Simpan"}
           </button>
         </div>
@@ -85,10 +108,19 @@ function Modal({ title, value, onChange, onClose, onSave, saving, placeholder, e
 // ─── Confirm Delete ───────────────────────────────────────────────────────────
 function ConfirmDelete({ label, onClose, onConfirm, deleting }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}>
-      <div className="w-full max-w-[340px] rounded-2xl px-7 py-6 flex flex-col gap-4 text-center"
-        style={{ background: "white", boxShadow: "0 8px 48px rgba(120,0,200,0.25)" }}>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-0 sm:px-4"
+      style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+    >
+      <div
+        className="w-full sm:max-w-[340px] rounded-t-3xl sm:rounded-2xl px-6 sm:px-7 py-6 flex flex-col gap-4 text-center"
+        style={{ background: "white", boxShadow: "0 8px 48px rgba(120,0,200,0.25)" }}
+      >
+        {/* Drag handle mobile */}
+        <div className="flex justify-center sm:hidden -mt-2 mb-1">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto">
           <Trash2 size={20} className="text-red-500" />
         </div>
@@ -98,11 +130,18 @@ function ConfirmDelete({ label, onClose, onConfirm, deleting }) {
             Hapus <span className="font-semibold text-gray-700">"{label}"</span>? Semua data di dalamnya ikut terhapus.
           </p>
         </div>
-        <div className="flex gap-3 justify-center">
-          <button onClick={onClose} className="px-5 py-2 rounded-full text-gray-500 text-sm border border-gray-200 hover:bg-gray-50">Batal</button>
-          <button onClick={onConfirm} disabled={deleting}
-            className="px-6 py-2 rounded-full text-white text-sm font-semibold hover:brightness-110 disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg,#EE2222,#AA0000)" }}>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-full text-gray-500 text-sm border border-gray-200 hover:bg-gray-50"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onConfirm} disabled={deleting}
+            className="flex-1 py-2.5 rounded-full text-white text-sm font-semibold hover:brightness-110 disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg,#EE2222,#AA0000)" }}
+          >
             {deleting ? "Menghapus..." : "Hapus"}
           </button>
         </div>
@@ -114,13 +153,19 @@ function ConfirmDelete({ label, onClose, onConfirm, deleting }) {
 // ─── Action Buttons ───────────────────────────────────────────────────────────
 function ActionBtns({ onEdit, onDelete }) {
   return (
-    <div className="flex items-center gap-2 shrink-0">
-      <button onClick={onEdit} className="w-7 h-7 rounded-full flex items-center justify-center hover:brightness-110"
-        style={{ background: "#F0C000", boxShadow: "0 2px 8px rgba(200,160,0,0.3)" }}>
+    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <button
+        onClick={onEdit}
+        className="w-7 h-7 rounded-full flex items-center justify-center hover:brightness-110"
+        style={{ background: "#F0C000", boxShadow: "0 2px 8px rgba(200,160,0,0.3)" }}
+      >
         <Pencil size={12} className="text-white" />
       </button>
-      <button onClick={onDelete} className="w-7 h-7 rounded-full flex items-center justify-center hover:brightness-110"
-        style={{ background: "#EE2222", boxShadow: "0 2px 8px rgba(200,0,0,0.3)" }}>
+      <button
+        onClick={onDelete}
+        className="w-7 h-7 rounded-full flex items-center justify-center hover:brightness-110"
+        style={{ background: "#EE2222", boxShadow: "0 2px 8px rgba(200,0,0,0.3)" }}
+      >
         <Trash2 size={12} className="text-white" />
       </button>
     </div>
@@ -162,7 +207,6 @@ export default function DivisionAdmin() {
         depts.map(async (dept) => {
           const divRes = await getDivisions(dept.id);
           divMap[dept.id] = divRes.data;
-          // Hanya fetch sub divisi jika departemen mengizinkan
           if (deptAllowsSubDiv(dept.name)) {
             await Promise.all(
               divRes.data.map(async (div) => {
@@ -186,16 +230,10 @@ export default function DivisionAdmin() {
   useEffect(() => { fetchAll(); }, []);
 
   const toggleDept = (id) => setExpandedDepts((p) => ({ ...p, [id]: !p[id] }));
-  const toggleDiv = (id) => setExpandedDivs((p) => ({ ...p, [id]: !p[id] }));
+  const toggleDiv  = (id) => setExpandedDivs((p) => ({ ...p, [id]: !p[id] }));
 
-  const openAdd = (type, parentId) => {
-    setModal({ type, mode: "add", parentId });
-    setModalValue(""); setModalError("");
-  };
-  const openEdit = (type, target, parentId) => {
-    setModal({ type, mode: "edit", target, parentId });
-    setModalValue(target.name); setModalError("");
-  };
+  const openAdd  = (type, parentId) => { setModal({ type, mode: "add", parentId }); setModalValue(""); setModalError(""); };
+  const openEdit = (type, target, parentId) => { setModal({ type, mode: "edit", target, parentId }); setModalValue(target.name); setModalError(""); };
   const closeModal = () => { setModal(null); setModalValue(""); setModalError(""); };
 
   const handleSave = async () => {
@@ -267,40 +305,46 @@ export default function DivisionAdmin() {
 
   return (
     <AdminLayout>
-      <div className="min-h-screen flex flex-col gap-6 pt-10 md:pt-4">
+      <div className="min-h-screen flex flex-col gap-5 sm:gap-6 px-4 sm:px-0 pt-10 md:pt-4">
 
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">{adminUser.email || "Admin"}</span>
-          <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}>
+          <div
+            className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
+            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+          >
             <User size={18} className="text-white/70" />
           </div>
         </div>
 
-        {/* HEADER */}
-        <div className="flex items-center justify-between">
+        {/* HEADER: stack on mobile */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-white text-xl font-bold">Manajemen Divisi</h1>
+            <h1 className="text-white text-lg sm:text-xl font-bold">Manajemen Divisi</h1>
             <p className="text-white/40 text-xs mt-1">Kelola departemen, divisi, dan sub divisi</p>
           </div>
-          <button onClick={() => openAdd("dept")}
-            className="flex items-center gap-2 px-5 py-2 rounded-full text-white text-sm font-semibold hover:brightness-110"
-            style={btnPrimary}>
+          <button
+            onClick={() => openAdd("dept")}
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 sm:py-2 rounded-full text-white text-sm font-semibold hover:brightness-110"
+            style={btnPrimary}
+          >
             <Plus size={15} /> Add Departemen
           </button>
         </div>
 
         {/* LEGEND */}
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
           {[
             { icon: Building2, label: "Departemen", color: "#A78BFA" },
-            { icon: Layers, label: "Divisi", color: "#38BDF8" },
+            { icon: Layers,    label: "Divisi",     color: "#38BDF8" },
             { icon: GitBranch, label: "Sub Divisi", color: "#34D399" },
           ].map(({ icon: Icon, label, color }) => (
-            <div key={label} className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-md flex items-center justify-center"
-                style={{ background: color + "22", border: `1px solid ${color}55` }}>
+            <div key={label} className="flex items-center gap-1.5 sm:gap-2">
+              <div
+                className="w-5 h-5 rounded-md flex items-center justify-center"
+                style={{ background: color + "22", border: `1px solid ${color}55` }}
+              >
                 <Icon size={11} style={{ color }} />
               </div>
               <span className="text-white/50 text-xs">{label}</span>
@@ -313,51 +357,66 @@ export default function DivisionAdmin() {
           <div className="rounded-2xl py-12 flex flex-col items-center gap-3" style={glassCard}>
             <Building2 size={32} className="text-white/20" />
             <p className="text-white/40 text-sm">Belum ada departemen.</p>
-            <button onClick={() => openAdd("dept")}
+            <button
+              onClick={() => openAdd("dept")}
               className="flex items-center gap-2 px-4 py-2 rounded-full text-white text-xs font-semibold hover:brightness-110"
-              style={btnPrimary}>
+              style={btnPrimary}
+            >
               <Plus size={12} /> Tambah Departemen
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             {departments.map((dept) => {
-              const divs = divisionMap[dept.id] || [];
+              const divs      = divisionMap[dept.id] || [];
               const isOpenDept = expandedDepts[dept.id];
-              const allowSub = deptAllowsSubDiv(dept.name); // ← kunci utama
+              const allowSub  = deptAllowsSubDiv(dept.name);
               const totalSubs = allowSub
                 ? divs.reduce((acc, div) => acc + (subDivisionMap[div.id]?.length || 0), 0)
                 : null;
 
               return (
                 <div key={dept.id} className="rounded-2xl overflow-hidden" style={glassCard}>
+
                   {/* DEPT ROW */}
-                  <div className="flex items-center gap-3 px-5 py-4 cursor-pointer select-none"
+                  <div
+                    className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-3 sm:py-4 cursor-pointer select-none"
                     style={{ borderBottom: isOpenDept ? "1px solid rgba(255,255,255,0.08)" : "none" }}
-                    onClick={() => toggleDept(dept.id)}>
-                    <div className="w-6 h-6 flex items-center justify-center rounded-md"
+                    onClick={() => toggleDept(dept.id)}
+                  >
+                    {/* Chevron */}
+                    <div className="w-6 h-6 flex items-center justify-center rounded-md shrink-0"
                       style={{ background: "rgba(255,255,255,0.08)" }}>
                       {isOpenDept
                         ? <ChevronDown size={14} className="text-white/60" />
                         : <ChevronRight size={14} className="text-white/60" />}
                     </div>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+
+                    {/* Icon */}
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0"
                       style={{ background: "rgba(167,139,250,0.15)", border: "1px solid rgba(167,139,250,0.3)" }}>
-                      <Building2 size={15} style={{ color: "#A78BFA" }} />
+                      <Building2 size={14} style={{ color: "#A78BFA" }} />
                     </div>
+
+                    {/* Label */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold text-sm">{dept.name}</p>
+                      <p className="text-white font-semibold text-sm truncate">{dept.name}</p>
                       <p className="text-white/40 text-xs">
                         {divs.length} divisi
                         {allowSub && ` · ${totalSubs} sub divisi`}
                       </p>
                     </div>
-                    <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2">
+
+                    {/* Actions — stop propagation */}
+                    <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <button
                         onClick={() => { openAdd("div", dept.id); setExpandedDepts((p) => ({ ...p, [dept.id]: true })); }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold hover:brightness-110"
-                        style={{ background: "rgba(56,189,248,0.18)", border: "1px solid rgba(56,189,248,0.35)", color: "#7DD3FC" }}>
-                        <Plus size={11} /> Divisi
+                        className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold hover:brightness-110"
+                        style={{ background: "rgba(56,189,248,0.18)", border: "1px solid rgba(56,189,248,0.35)", color: "#7DD3FC" }}
+                      >
+                        <Plus size={11} />
+                        {/* Label hidden on very small screens */}
+                        <span className="hidden xs:inline sm:inline">Divisi</span>
                       </button>
                       <ActionBtns
                         onEdit={() => openEdit("dept", dept)}
@@ -368,55 +427,58 @@ export default function DivisionAdmin() {
 
                   {/* DIVISIONS */}
                   {isOpenDept && (
-                    <div className="px-5 py-4 flex flex-col gap-3">
+                    <div className="px-3 sm:px-5 py-3 sm:py-4 flex flex-col gap-2 sm:gap-3">
                       {divs.length === 0 ? (
                         <p className="text-white/30 text-xs py-2 flex items-center gap-2">
                           <Layers size={13} />Belum ada divisi.
                         </p>
                       ) : divs.map((div) => {
-                        const subs = allowSub ? (subDivisionMap[div.id] || []) : [];
+                        const subs      = allowSub ? (subDivisionMap[div.id] || []) : [];
                         const isOpenDiv = allowSub ? expandedDivs[div.id] : false;
 
                         return (
                           <div key={div.id} className="rounded-xl overflow-hidden"
                             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+
                             {/* DIV ROW */}
                             <div
-                              className={`flex items-center gap-3 px-4 py-3 select-none ${allowSub ? "cursor-pointer" : ""}`}
+                              className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 select-none ${allowSub ? "cursor-pointer" : ""}`}
                               style={{ borderBottom: isOpenDiv ? "1px solid rgba(255,255,255,0.06)" : "none" }}
                               onClick={() => allowSub && toggleDiv(div.id)}
                             >
-                              {/* Chevron hanya tampil jika allowSub */}
+                              {/* Chevron or spacer */}
                               {allowSub ? (
-                                <div className="w-5 h-5 flex items-center justify-center rounded-md"
+                                <div className="w-5 h-5 flex items-center justify-center rounded-md shrink-0"
                                   style={{ background: "rgba(255,255,255,0.06)" }}>
                                   {isOpenDiv
                                     ? <ChevronDown size={12} className="text-white/50" />
                                     : <ChevronRight size={12} className="text-white/50" />}
                                 </div>
                               ) : (
-                                // Spacer agar layout tetap rapi
                                 <div className="w-5 h-5 shrink-0" />
                               )}
 
-                              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center shrink-0"
                                 style={{ background: "rgba(56,189,248,0.12)", border: "1px solid rgba(56,189,248,0.25)" }}>
-                                <Layers size={13} style={{ color: "#38BDF8" }} />
+                                <Layers size={12} style={{ color: "#38BDF8" }} />
                               </div>
+
                               <div className="flex-1 min-w-0">
-                                <p className="text-white/85 font-semibold text-xs">{div.name}</p>
+                                <p className="text-white/85 font-semibold text-xs truncate">{div.name}</p>
                                 {allowSub && (
                                   <p className="text-white/35 text-[10px]">{subs.length} sub divisi</p>
                                 )}
                               </div>
-                              <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-2">
-                                {/* Tombol "+ Sub Divisi" HANYA muncul jika allowSub */}
+
+                              <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 shrink-0">
                                 {allowSub && (
                                   <button
                                     onClick={() => { openAdd("sub", div.id); setExpandedDivs((p) => ({ ...p, [div.id]: true })); }}
-                                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold hover:brightness-110"
-                                    style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#6EE7B7" }}>
-                                    <Plus size={10} /> Sub Divisi
+                                    className="flex items-center gap-1 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold hover:brightness-110"
+                                    style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#6EE7B7" }}
+                                  >
+                                    <Plus size={10} />
+                                    <span className="hidden sm:inline">Sub Divisi</span>
                                   </button>
                                 )}
                                 <ActionBtns
@@ -426,21 +488,23 @@ export default function DivisionAdmin() {
                               </div>
                             </div>
 
-                            {/* SUB DIVISIONS — hanya render jika allowSub */}
+                            {/* SUB DIVISIONS */}
                             {allowSub && isOpenDiv && (
-                              <div className="px-4 py-3 flex flex-col gap-2">
+                              <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex flex-col gap-2">
                                 {subs.length === 0 ? (
                                   <p className="text-white/25 text-[10px] py-1 flex items-center gap-2">
                                     <GitBranch size={11} />Belum ada sub divisi.
                                   </p>
                                 ) : subs.map((sub) => (
-                                  <div key={sub.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-                                    style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.15)" }}>
+                                  <div key={sub.id}
+                                    className="flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-xl"
+                                    style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.15)" }}
+                                  >
                                     <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
                                       style={{ background: "rgba(52,211,153,0.15)" }}>
                                       <GitBranch size={10} style={{ color: "#34D399" }} />
                                     </div>
-                                    <p className="flex-1 text-white/70 text-xs font-medium">{sub.name}</p>
+                                    <p className="flex-1 text-white/70 text-xs font-medium truncate">{sub.name}</p>
                                     <ActionBtns
                                       onEdit={() => openEdit("sub", sub, div.id)}
                                       onDelete={() => setDeleteTarget({ type: "sub", id: sub.id, name: sub.name })}
@@ -462,13 +526,17 @@ export default function DivisionAdmin() {
       </div>
 
       {modal && (
-        <Modal title={modalTitle()} placeholder={modalPlaceholder()}
+        <Modal
+          title={modalTitle()} placeholder={modalPlaceholder()}
           value={modalValue} onChange={(v) => { setModalValue(v); setModalError(""); }}
-          onClose={closeModal} onSave={handleSave} saving={saving} error={modalError} />
+          onClose={closeModal} onSave={handleSave} saving={saving} error={modalError}
+        />
       )}
       {deleteTarget && (
-        <ConfirmDelete label={deleteTarget.name}
-          onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} deleting={deleting} />
+        <ConfirmDelete
+          label={deleteTarget.name}
+          onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} deleting={deleting}
+        />
       )}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </AdminLayout>
