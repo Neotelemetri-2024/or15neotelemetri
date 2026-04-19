@@ -209,7 +209,8 @@ export default function TimelineAdmin() {
                         </button>
                         <button
                           onClick={() => setDeleteId(item.id)}
-                          className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:brightness-110"
+                          className="w-8 h-8 rounded-full flex items-center justify-center 
+                          transition-all hover:brightness-110"
                           style={{ background: "#EE2222", boxShadow: "0 2px 8px rgba(200,0,0,0.3)" }}
                         >
                           <Trash2 size={13} className="text-white" />

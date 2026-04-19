@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Search, X, Check } from "lucide-react";
+import { User, Search, X, Check, Download, ChevronDown } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
@@ -11,6 +11,7 @@ import {
 import { getAllUsers } from "../../services/adminServices";
 import api from "../../components/api/axios";
 import { useNotif } from "../../components/admin/NotifContext";
+import * as XLSX from "xlsx";
 
 const getAllPayments = () => api.get("/payments");
 const reviewPayment = (id, payload) =>
@@ -178,6 +179,7 @@ export default function PembayaranAdmin() {
   const [rejectTarget, setRejectTarget] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [proofUrl, setProofUrl] = useState(null);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const { refresh: refreshNotif } = useNotif();
 
@@ -289,6 +291,93 @@ export default function PembayaranAdmin() {
     }).format(amount);
   };
 
+  // ── Export helpers ─────────────────────────────────────────────
+  const applyHeaderStyle = (ws, headers) => {
+    headers.forEach((_, colIdx) => {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIdx });
+      if (!ws[cellRef]) return;
+      ws[cellRef].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" }, name: "Arial", sz: 11 },
+        fill: { fgColor: { rgb: "7B2FBE" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+        border: { bottom: { style: "thin", color: { rgb: "5A1F9A" } } },
+      };
+    });
+  };
+
+  const setColWidths = (ws, headers) => {
+    ws["!cols"] = headers.map((h) => ({ wch: Math.max(h.length + 4, 18) }));
+  };
+
+  const buildPaymentRows = (paymentList) =>
+    paymentList.map((p) => ({
+      Nama: p.user?.profile?.fullName || "-",
+      NIM: p.user?.profile?.nim || "-",
+      Email: p.user?.email || "-",
+      "Sub Divisi": getSubDivName(userMap[p.userId]),
+      Jumlah: p.amount || 0,
+      Status: p.status || "-",
+    }));
+
+  const handleExportCurrentDivision = () => {
+    const divName = activeDivision?.name || "Semua";
+    const approvedInDiv = filtered.filter(
+      (p) => p.status === "APPROVED" || p.status === "PAID",
+    );
+    const rows = buildPaymentRows(approvedInDiv);
+    if (rows.length === 0) {
+      alert("Tidak ada data pembayaran yang disetujui.");
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const headers = Object.keys(rows[0]);
+    applyHeaderStyle(ws, headers);
+    setColWidths(ws, headers);
+    ws["!rows"] = [{ hpt: 22 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, divName.slice(0, 31));
+    XLSX.writeFile(
+      wb,
+      `Pembayaran_${divName}_${new Date().toLocaleDateString("id-ID").replace(/\//g, "-")}.xlsx`,
+    );
+    setExportMenuOpen(false);
+  };
+
+  const handleExportAllDivisions = () => {
+    const wb = XLSX.utils.book_new();
+    const headers = ["Nama", "NIM", "Email", "Sub Divisi", "Jumlah", "Status"];
+
+    divisions.forEach((div) => {
+      const subIds = (subDivisionMap[div.id] || []).map((s) => s.id);
+      const divPayments = payments.filter((p) => {
+        const userSubDivId = userMap[p.userId];
+        const inDiv = !userSubDivId || subIds.includes(userSubDivId);
+        return inDiv && (p.status === "APPROVED" || p.status === "PAID");
+      });
+
+      const rows = buildPaymentRows(divPayments);
+      const ws =
+        rows.length > 0
+          ? XLSX.utils.json_to_sheet(rows)
+          : XLSX.utils.json_to_sheet([
+              Object.fromEntries(headers.map((h) => [h, ""])),
+            ]);
+
+      applyHeaderStyle(ws, headers);
+      setColWidths(ws, headers);
+      ws["!rows"] = [{ hpt: 22 }];
+      XLSX.utils.book_append_sheet(wb, ws, div.name.slice(0, 31));
+    });
+
+    XLSX.writeFile(
+      wb,
+      `Pembayaran_Semua_Divisi_${new Date().toLocaleDateString("id-ID").replace(/\//g, "-")}.xlsx`,
+    );
+    setExportMenuOpen(false);
+  };
+
   // ── FILTER ─────────────────────────────────────────────────────
   const activeDivision = divisions[activeTabIndex];
   const subIdsInActive = activeDivision
@@ -372,16 +461,18 @@ export default function PembayaranAdmin() {
                 boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
               }}
             >
-              {/* SEARCH */}
+              {/* SEARCH + EXPORT */}
               <div
-                className="flex items-center gap-3 px-4 py-3 border-b"
+                className="flex flex-wrap items-center gap-2 px-4 py-3 border-b"
                 style={{ borderColor: "rgba(0,0,0,0.06)" }}
               >
+                {/* Search */}
                 <div
-                  className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
+                  className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1 min-w-0"
                   style={{
                     background: "rgba(0,0,0,0.05)",
                     border: "1px solid rgba(0,0,0,0.10)",
+                    minWidth: "120px",
                   }}
                 >
                   <input
@@ -392,9 +483,79 @@ export default function PembayaranAdmin() {
                       setSearch(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="bg-transparent text-xs text-gray-600 outline-none flex-1 placeholder-gray-400"
+                    className="bg-transparent text-xs text-gray-600 outline-none flex-1 min-w-0 placeholder-gray-400"
                   />
                   <Search size={13} className="text-gray-400 shrink-0" />
+                </div>
+
+                {/* Tombol Export */}
+                <div className="relative shrink-0">
+                  <button
+                    onClick={() => setExportMenuOpen((prev) => !prev)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap"
+                    style={{
+                      background: "#7B2FBE",
+                      color: "white",
+                      border: "1px solid #6a27a3",
+                    }}
+                  >
+                    <Download size={13} />
+                    <span>Ekspor</span>
+                    <ChevronDown
+                      size={12}
+                      style={{
+                        transform: exportMenuOpen
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
+                        transition: "transform 0.2s",
+                      }}
+                    />
+                  </button>
+
+                  {exportMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setExportMenuOpen(false)}
+                      />
+                      <div
+                        className="absolute z-[999] rounded-xl shadow-xl overflow-hidden"
+                        style={{
+                          background: "white",
+                          border: "1px solid rgba(0,0,0,0.09)",
+                          width: "220px",
+                          top: "calc(100% + 8px)",
+                          right: 0,
+                        }}
+                      >
+                        <button
+                          onClick={handleExportCurrentDivision}
+                          className="w-full text-left px-4 py-3 text-xs text-gray-700 hover:bg-purple-50 transition-colors flex flex-col gap-0.5"
+                        >
+                          <span className="font-semibold text-purple-700">
+                            Ekspor Divisi Ini
+                          </span>
+                          <span className="text-gray-400">
+                            {activeDivision?.name || "Semua"} · Sudah disetujui
+                          </span>
+                        </button>
+                        <div
+                          style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}
+                        />
+                        <button
+                          onClick={handleExportAllDivisions}
+                          className="w-full text-left px-4 py-3 text-xs text-gray-700 hover:bg-purple-50 transition-colors flex flex-col gap-0.5"
+                        >
+                          <span className="font-semibold text-purple-700">
+                            Ekspor Semua Divisi
+                          </span>
+                          <span className="text-gray-400">
+                            {divisions.length} sheet · Sudah disetujui
+                          </span>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

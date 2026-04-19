@@ -550,11 +550,11 @@ export default function Login() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
-                <div className="text-right mt-1">
+                {/* <div className="text-right mt-1">
                   <span className="text-sm text-[#868686] cursor-pointer transition">
                     Lupa Kata Sandi?
                   </span>
-                </div>
+                </div> */}
               </div>
 
               {/* Error Message */}
