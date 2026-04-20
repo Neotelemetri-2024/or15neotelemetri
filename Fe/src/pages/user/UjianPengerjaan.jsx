@@ -31,12 +31,12 @@ export default function UjianPengerjaan() {
       try {
         // 1. Mulai attempt
         const attemptRes = await startExam(examId);
-        console.log("=== startExam response ===", attemptRes.data);
+        
         setAttempt(attemptRes.data);
 
         // 2. Fetch soal dari endpoint user (GET /exams/user/:id)
         const examRes = await api.get(`/exams/user/${examId}`);
-        console.log("=== exam detail response ===", examRes.data);
+        
 
         const qs = examRes.data.questions || [];
         setQuestions([...qs].sort((a, b) => a.orderIndex - b.orderIndex));
@@ -44,7 +44,7 @@ export default function UjianPengerjaan() {
         const duration = examRes.data.durationMinutes || 60;
         setTimeLeft(duration * 60);
       } catch (err) {
-        console.log("=== ERROR ===", err.response?.status, err.response?.data);
+        
         setErrorMsg(err.response?.data?.message || "Gagal memulai ujian.");
       } finally {
         setLoading(false);

@@ -42,7 +42,6 @@ function TypeBadge({ type }) {
   const map = {
     MCQ: { label: "PG", bg: "#EDE9FE", color: "#7C3AED" },
     TRUE_FALSE: { label: "B/S", bg: "#FEF9C3", color: "#CA8A04" },
-    SHORT_TEXT: { label: "Isian", bg: "#DCFCE7", color: "#16A34A" },
   };
   const s = map[type] || map.MCQ;
   return (
@@ -84,17 +83,39 @@ function QuestionForm({ onAdd, saving }) {
 
   const handleAdd = () => {
     if (!form.prompt.trim()) return;
-    const payload = {
-      type: form.type,
-      prompt: form.prompt,
-      points: form.points,
-      orderIndex: form.orderIndex,
-      ...(form.type === "MCQ" && { choices: form.choices }),
-      ...(form.type !== "MCQ" &&
-        form.correctTextAnswer && {
-          correctTextAnswer: form.correctTextAnswer,
-        }),
-    };
+
+    let payload;
+
+    if (form.type === "TRUE_FALSE") {
+      // Kirim sebagai MCQ dengan 2 pilihan Benar/Salah
+      payload = {
+        type: "MCQ",
+        prompt: form.prompt,
+        points: form.points,
+        orderIndex: form.orderIndex,
+        choices: [
+          {
+            label: "Benar",
+            isCorrect: form.correctTextAnswer === "Benar",
+            orderIndex: 0,
+          },
+          {
+            label: "Salah",
+            isCorrect: form.correctTextAnswer === "Salah",
+            orderIndex: 1,
+          },
+        ],
+      };
+    } else {
+      payload = {
+        type: form.type,
+        prompt: form.prompt,
+        points: form.points,
+        orderIndex: form.orderIndex,
+        ...(form.type === "MCQ" && { choices: form.choices }),
+      };
+    }
+
     onAdd(payload);
     setForm((p) => ({
       ...p,
@@ -116,7 +137,6 @@ function QuestionForm({ onAdd, saving }) {
           {[
             { val: "MCQ", lbl: "Pilihan Ganda" },
             { val: "TRUE_FALSE", lbl: "Benar / Salah" },
-            { val: "SHORT_TEXT", lbl: "Isian Singkat" },
           ].map(({ val, lbl }) => (
             <button
               key={val}
@@ -230,22 +250,6 @@ function QuestionForm({ onAdd, saving }) {
               </button>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Short text */}
-      {form.type === "SHORT_TEXT" && (
-        <div className="flex flex-col gap-1">
-          <label className={labelCls}>Jawaban yang Benar</label>
-          <input
-            type="text"
-            placeholder="Jawaban yang benar..."
-            value={form.correctTextAnswer}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, correctTextAnswer: e.target.value }))
-            }
-            style={inputStyle}
-          />
         </div>
       )}
 
@@ -676,7 +680,6 @@ export default function UjianAdminDetail() {
                 {[
                   { type: "MCQ", label: "PG", color: "#7C3AED" },
                   { type: "TRUE_FALSE", label: "B/S", color: "#CA8A04" },
-                  { type: "SHORT_TEXT", label: "Isian", color: "#16A34A" },
                 ].map(({ type, label: lbl, color }) => (
                   <span
                     key={type}
@@ -758,12 +761,11 @@ export default function UjianAdminDetail() {
                               ))}
                           </div>
                         )}
-                        {(q.type === "TRUE_FALSE" || q.type === "SHORT_TEXT") &&
-                          q.correctTextAnswer && (
-                            <p className="mt-1 text-[11px] text-green-400">
-                              ✓ {q.correctTextAnswer}
-                            </p>
-                          )}
+                        {q.type === "TRUE_FALSE" && q.correctTextAnswer && (
+                          <p className="mt-1 text-[11px] text-green-400">
+                            ✓ {q.correctTextAnswer}
+                          </p>
+                        )}
                       </div>
                       {/* Delete */}
                       <button
@@ -879,8 +881,6 @@ export default function UjianAdminDetail() {
           </div>
         </div>
       )}
-
-
     </AdminLayout>
   );
 }

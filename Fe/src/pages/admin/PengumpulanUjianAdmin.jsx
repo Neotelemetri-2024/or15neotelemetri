@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { User, Search, SlidersHorizontal } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
-import { getDepartments, getDivisionsByDepartment, getSubDivisionsByDivision } from "../../services/userServices";
+import {
+  getDepartments,
+  getDivisionsByDepartment,
+  getSubDivisionsByDivision,
+} from "../../services/userServices";
 import api from "../../components/api/axios";
 
 const ROWS_PER_PAGE = 10;
@@ -33,7 +37,7 @@ export default function HasilUjianAdmin() {
         setAttempts(attemptsRes.data);
 
         const opDept = deptRes.data.find((d) =>
-          d.name.toLowerCase().includes("operasional")
+          d.name.toLowerCase().includes("operasional"),
         );
         if (opDept) {
           const divRes = await getDivisionsByDepartment(opDept.id);
@@ -45,7 +49,7 @@ export default function HasilUjianAdmin() {
             divList.map(async (div) => {
               const subRes = await getSubDivisionsByDivision(div.id);
               subMap[div.id] = subRes.data;
-            })
+            }),
           );
           setSubDivisionMap(subMap);
         }
@@ -65,7 +69,9 @@ export default function HasilUjianAdmin() {
     .filter((a) => {
       // Filter berdasarkan divisi aktif lewat sub divisi user
       if (activeDivision) {
-        const subIds = (subDivisionMap[activeDivision.id] || []).map((s) => s.id);
+        const subIds = (subDivisionMap[activeDivision.id] || []).map(
+          (s) => s.id,
+        );
         const userSubDivId = a.user?.profile?.subDivisionId;
         // Jika user tidak punya sub divisi → tampil di semua tab
         if (userSubDivId && !subIds.includes(userSubDivId)) return false;
@@ -87,7 +93,7 @@ export default function HasilUjianAdmin() {
   const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
   const paginated = filtered.slice(
     (currentPage - 1) * ROWS_PER_PAGE,
-    currentPage * ROWS_PER_PAGE
+    currentPage * ROWS_PER_PAGE,
   );
 
   const handleTabChange = (_, i) => {
@@ -123,7 +129,6 @@ export default function HasilUjianAdmin() {
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
-
         {/* TOP RIGHT */}
         <div className="flex justify-end items-center gap-3">
           <span className="text-white font-semibold text-sm">
@@ -131,7 +136,10 @@ export default function HasilUjianAdmin() {
           </span>
           <div
             className="w-10 h-10 rounded-md flex items-center justify-center shrink-0"
-            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
           >
             <User size={18} className="text-white/70" />
           </div>
@@ -153,11 +161,12 @@ export default function HasilUjianAdmin() {
                 className="flex items-center gap-3 px-4 py-3 border-b"
                 style={{ borderColor: "rgba(0,0,0,0.06)" }}
               >
-                
-
                 <div
                   className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
-                  style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.10)" }}
+                  style={{
+                    background: "rgba(0,0,0,0.05)",
+                    border: "1px solid rgba(0,0,0,0.10)",
+                  }}
                 >
                   <input
                     type="text"
@@ -174,7 +183,9 @@ export default function HasilUjianAdmin() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[480px]">
                   <thead>
-                    <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
+                    <tr
+                      style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                    >
                       {columns.map((col) => (
                         <th
                           key={col}
@@ -192,9 +203,10 @@ export default function HasilUjianAdmin() {
                         key={a.id}
                         className="transition-colors duration-150 hover:bg-purple-50 cursor-pointer"
                         style={{
-                          borderBottom: i < paginated.length - 1
-                            ? "1px solid rgba(0,0,0,0.05)"
-                            : "none",
+                          borderBottom:
+                            i < paginated.length - 1
+                              ? "1px solid rgba(0,0,0,0.05)"
+                              : "none",
                         }}
                       >
                         <td className="px-4 py-4 text-gray-800 text-xs whitespace-nowrap">
@@ -225,14 +237,14 @@ export default function HasilUjianAdmin() {
                                 (a.score ?? 0) >= 80
                                   ? "rgba(34,197,94,0.15)"
                                   : (a.score ?? 0) >= 60
-                                  ? "rgba(245,158,11,0.15)"
-                                  : "rgba(239,68,68,0.15)",
+                                    ? "rgba(245,158,11,0.15)"
+                                    : "rgba(239,68,68,0.15)",
                               color:
                                 (a.score ?? 0) >= 80
                                   ? "#16a34a"
                                   : (a.score ?? 0) >= 60
-                                  ? "#d97706"
-                                  : "#dc2626",
+                                    ? "#d97706"
+                                    : "#dc2626",
                             }}
                           >
                             {parseFloat(a.score ?? 0).toFixed(1)}
@@ -243,7 +255,10 @@ export default function HasilUjianAdmin() {
 
                     {paginated.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="text-center py-10 text-gray-400 text-sm">
+                        <td
+                          colSpan={6}
+                          className="text-center py-10 text-gray-400 text-sm"
+                        >
                           {search
                             ? "Tidak ada data yang cocok."
                             : "Belum ada peserta yang mengumpulkan ujian."}
@@ -256,24 +271,34 @@ export default function HasilUjianAdmin() {
 
               {/* PAGINATION */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-400">
+                <div
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                  style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                >
+                  <span className="text-xs text-gray-500">
                     {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)} dari{" "}
-                    {filtered.length} peserta
+                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
+                    dari {filtered.length} peserta
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       ← Prev
                     </button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
-                      .filter((p) =>
-                        p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          Math.abs(p - currentPage) <= 1,
                       )
                       .reduce((acc, p, idx, arr) => {
                         if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
@@ -282,27 +307,48 @@ export default function HasilUjianAdmin() {
                       }, [])
                       .map((p, idx) =>
                         p === "..." ? (
-                          <span key={`dot-${idx}`} className="px-2 text-xs text-gray-400">...</span>
+                          <span
+                            key={`dot-${idx}`}
+                            className="px-2 text-xs text-gray-400 select-none"
+                          >
+                            •••
+                          </span>
                         ) : (
                           <button
                             key={p}
                             onClick={() => setCurrentPage(p)}
-                            className="px-3 py-1 text-xs rounded-lg border transition"
+                            className="w-8 h-8 text-xs rounded-lg font-semibold transition-all"
                             style={{
-                              borderColor: currentPage === p ? "#7B2FBE" : "rgba(0,0,0,0.1)",
-                              background: currentPage === p ? "#7B2FBE" : "transparent",
-                              color: currentPage === p ? "white" : "inherit",
+                              background:
+                                currentPage === p
+                                  ? "#7B2FBE"
+                                  : "rgba(0,0,0,0.04)",
+                              color: currentPage === p ? "white" : "#374151",
+                              border:
+                                currentPage === p
+                                  ? "1px solid #7B2FBE"
+                                  : "1px solid rgba(0,0,0,0.10)",
+                              boxShadow:
+                                currentPage === p
+                                  ? "0 2px 8px rgba(123,47,190,0.3)"
+                                  : "none",
                             }}
                           >
                             {p}
                           </button>
-                        )
+                        ),
                       )}
                     <button
-                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(p + 1, totalPages))
+                      }
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       Next →
                     </button>

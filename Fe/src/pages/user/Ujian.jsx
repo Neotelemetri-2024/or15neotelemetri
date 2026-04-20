@@ -12,7 +12,7 @@ const rules = [
   "Ujian harus dikerjakan menggunakan koneksi jaringan yang stabil untuk menghindari kendala teknis selama pengerjaan.",
   "Peserta wajib menjawab semua soal secara jujur dan mandiri tanpa bantuan pihak lain atau sumber eksternal.",
   "Selama ujian berlangsung, peserta tidak diperbolehkan keluar atau berpindah dari halaman ujian, kecuali jika telah selesai mengerjakan.",
-  "Setiap peserta hanya memiliki satu kali kesempatan untuk mengikuti ujian, jadi pastikan mempersiapkan diri dengan baik.",
+  "Setiap peserta hanya memiliki tiga kali kesempatan untuk mengikuti ujian, jadi pastikan mempersiapkan diri dengan baik.",
   "Peserta yang terbukti melakukan kecurangan, keluar dari halaman ujian tanpa alasan jelas, atau melanggar aturan akan didiskualifikasi dari proses seleksi.",
   "Jika ada pertanyaan atau kendala, hubungi Hafid (0831-8195-9775), Daffa (0877-3905-9370)",
 ];

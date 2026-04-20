@@ -366,7 +366,7 @@ export default function Login() {
       setLoading(true);
       setError("");
 
-      console.log("Submit jalan");
+      
 
       const res = await login(form);
 
@@ -377,7 +377,7 @@ export default function Login() {
 
       navigate("/dashboard");
     } catch (err) {
-      console.log("ERROR:", err);
+      
 
       const message = err?.response?.data?.message;
 
