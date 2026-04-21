@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Search, SlidersHorizontal } from "lucide-react";
+import { User, Search } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 import {
@@ -7,12 +7,15 @@ import {
   getDivisionsByDepartment,
   getSubDivisionsByDivision,
 } from "../../services/userServices";
+import { getAllUsers } from "../../services/adminServices";
 import api from "../../components/api/axios";
 
 const ROWS_PER_PAGE = 10;
-const columns = ["Nama", "NIM", "Sub Divisi", "Benar", "Salah", "Nilai"];
+const COLUMNS_SUDAH = ["Nama", "NIM", "Sub Divisi", "Benar", "Salah", "Nilai"];
+const COLUMNS_BELUM = ["Nama", "NIM", "Sub Divisi", "Status"];
 
 const getAllAttempts = () => api.get("/exams/attempts/all");
+const getAllPayments = () => api.get("/payments");
 
 export default function HasilUjianAdmin() {
   const [attempts, setAttempts] = useState([]);
@@ -22,19 +25,33 @@ export default function HasilUjianAdmin() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [usersNotAttempted, setUsersNotAttempted] = useState([]);
+  const [viewMode, setViewMode] = useState("sudah"); // "sudah" | "belum"
 
   const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // ── FETCH ──────────────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
       try {
-        const [attemptsRes, deptRes] = await Promise.all([
-          getAllAttempts(),
-          getDepartments(),
-        ]);
+        const [attemptsRes, deptRes, usersRes, paymentsRes] = await Promise.all(
+          [getAllAttempts(), getDepartments(), getAllUsers(), getAllPayments()],
+        );
 
         setAttempts(attemptsRes.data);
+
+        const attemptedUserIds = new Set(attemptsRes.data.map((a) => a.userId));
+        const approvedUserIds = new Set(
+          paymentsRes.data
+            .filter((p) => p.status === "APPROVED")
+            .map((p) => p.userId),
+        );
+        const notAttempted = usersRes.data.filter(
+          (u) =>
+            u.role === "USER" &&
+            approvedUserIds.has(u.id) &&
+            !attemptedUserIds.has(u.id),
+        );
+        setUsersNotAttempted(notAttempted);
 
         const opDept = deptRes.data.find((d) =>
           d.name.toLowerCase().includes("operasional"),
@@ -62,36 +79,56 @@ export default function HasilUjianAdmin() {
     init();
   }, []);
 
-  // ── FILTER per tab divisi ──────────────────────────────────────
   const activeDivision = divisions[activeTabIndex];
 
-  const filtered = attempts
-    .filter((a) => {
-      // Filter berdasarkan divisi aktif lewat sub divisi user
+  const filterByDivisionAndSearch = (list, getSubDivId) => {
+    return list.filter((item) => {
       if (activeDivision) {
         const subIds = (subDivisionMap[activeDivision.id] || []).map(
           (s) => s.id,
         );
-        const userSubDivId = a.user?.profile?.subDivisionId;
-        // Jika user tidak punya sub divisi → tampil di semua tab
+        const userSubDivId = getSubDivId(item);
         if (userSubDivId && !subIds.includes(userSubDivId)) return false;
       }
-      // Filter search
       if (search) {
         const q = search.toLowerCase();
+        const name =
+          viewMode === "sudah"
+            ? item.user?.profile?.fullName
+            : item.profile?.fullName;
+        const nim =
+          viewMode === "sudah" ? item.user?.profile?.nim : item.profile?.nim;
         return (
-          a.user?.profile?.fullName?.toLowerCase().includes(q) ||
-          a.user?.profile?.nim?.toLowerCase().includes(q)
+          name?.toLowerCase().includes(q) || nim?.toLowerCase().includes(q)
         );
       }
       return true;
-    })
-    // Urutkan nilai tertinggi ke terendah
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    });
+  };
 
-  // ── PAGINATION ─────────────────────────────────────────────────
-  const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
-  const paginated = filtered.slice(
+  const bestAttemptPerUser = Object.values(
+    attempts.reduce((acc, a) => {
+      const uid = a.userId;
+      if (!acc[uid] || (a.score ?? 0) > (acc[uid].score ?? 0)) {
+        acc[uid] = a;
+      }
+      return acc;
+    }, {}),
+  );
+
+  const filteredSudah = filterByDivisionAndSearch(
+    bestAttemptPerUser,
+    (a) => a.user?.profile?.subDivisionId,
+  ).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+  const filteredBelum = filterByDivisionAndSearch(
+    usersNotAttempted,
+    (u) => u.profile?.subDivisionId,
+  );
+
+  const activeData = viewMode === "sudah" ? filteredSudah : filteredBelum;
+  const totalPages = Math.ceil(activeData.length / ROWS_PER_PAGE);
+  const paginated = activeData.slice(
     (currentPage - 1) * ROWS_PER_PAGE,
     currentPage * ROWS_PER_PAGE,
   );
@@ -107,7 +144,12 @@ export default function HasilUjianAdmin() {
     setCurrentPage(1);
   };
 
-  // Helper: nama sub divisi
+  const handleViewMode = (mode) => {
+    setViewMode(mode);
+    setCurrentPage(1);
+    setSearch("");
+  };
+
   const getSubDivisionName = (subDivisionId) => {
     for (const subs of Object.values(subDivisionMap)) {
       const found = subs.find((s) => s.id === subDivisionId);
@@ -125,6 +167,8 @@ export default function HasilUjianAdmin() {
       </AdminLayout>
     );
   }
+
+  const columns = viewMode === "sudah" ? COLUMNS_SUDAH : COLUMNS_BELUM;
 
   return (
     <AdminLayout>
@@ -156,16 +200,18 @@ export default function HasilUjianAdmin() {
               className="flex flex-col bg-white"
               style={{ borderRadius: "0 0 16px 16px" }}
             >
-              {/* FILTER + SEARCH */}
+              {/* FILTER + SEARCH + TOGGLE */}
               <div
-                className="flex items-center gap-3 px-4 py-3 border-b"
+                className="flex items-center gap-3 px-4 py-3 border-b flex-wrap"
                 style={{ borderColor: "rgba(0,0,0,0.06)" }}
               >
+                {/* Search */}
                 <div
                   className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
                   style={{
                     background: "rgba(0,0,0,0.05)",
                     border: "1px solid rgba(0,0,0,0.10)",
+                    minWidth: "160px",
                   }}
                 >
                   <input
@@ -176,6 +222,72 @@ export default function HasilUjianAdmin() {
                     className="bg-transparent text-xs text-gray-600 outline-none flex-1 placeholder-gray-400"
                   />
                   <Search size={13} className="text-gray-400 shrink-0" />
+                </div>
+
+                {/* Toggle Sudah / Belum */}
+                <div
+                  className="flex items-center rounded-full p-[3px] shrink-0"
+                  style={{
+                    background: "rgba(0,0,0,0.06)",
+                    border: "1px solid rgba(0,0,0,0.10)",
+                  }}
+                >
+                  <button
+                    onClick={() => handleViewMode("sudah")}
+                    className="text-xs font-semibold px-4 py-[6px] rounded-full transition-all duration-200 whitespace-nowrap"
+                    style={
+                      viewMode === "sudah"
+                        ? {
+                            background: "#7B2FBE",
+                            color: "white",
+                            boxShadow: "0 2px 8px rgba(123,47,190,0.30)",
+                          }
+                        : { color: "#6b7280" }
+                    }
+                  >
+                    ✓ Sudah Ujian
+                    {viewMode === "sudah" && filteredSudah.length > 0 && (
+                      <span
+                        className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px]"
+                        style={{ background: "rgba(255,255,255,0.25)" }}
+                      >
+                        {filteredSudah.length}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleViewMode("belum")}
+                    className="text-xs font-semibold px-4 py-[6px] rounded-full transition-all duration-200 whitespace-nowrap"
+                    style={
+                      viewMode === "belum"
+                        ? {
+                            background: "#dc2626",
+                            color: "white",
+                            boxShadow: "0 2px 8px rgba(220,38,38,0.25)",
+                          }
+                        : {
+                            color:
+                              filteredBelum.length > 0 ? "#dc2626" : "#6b7280",
+                          }
+                    }
+                  >
+                    ✕ Belum Ujian
+                    {filteredBelum.length > 0 && (
+                      <span
+                        className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                        style={
+                          viewMode === "belum"
+                            ? { background: "rgba(255,255,255,0.25)" }
+                            : {
+                                background: "rgba(220,38,38,0.12)",
+                                color: "#dc2626",
+                              }
+                        }
+                      >
+                        {filteredBelum.length}
+                      </span>
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -198,70 +310,111 @@ export default function HasilUjianAdmin() {
                   </thead>
 
                   <tbody>
-                    {paginated.map((a, i) => (
-                      <tr
-                        key={a.id}
-                        className="transition-colors duration-150 hover:bg-purple-50 cursor-pointer"
-                        style={{
-                          borderBottom:
-                            i < paginated.length - 1
-                              ? "1px solid rgba(0,0,0,0.05)"
-                              : "none",
-                        }}
-                      >
-                        <td className="px-4 py-4 text-gray-800 text-xs whitespace-nowrap">
-                          <div className="font-semibold">
-                            {a.user?.profile?.fullName || "-"}
-                          </div>
-                          <div className="text-gray-400 text-[10px]">
-                            {a.exam?.title || "-"}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-gray-600 text-xs whitespace-nowrap">
-                          {a.user?.profile?.nim || "-"}
-                        </td>
-                        <td className="px-4 py-4 text-gray-600 text-xs whitespace-nowrap">
-                          {getSubDivisionName(a.user?.profile?.subDivisionId)}
-                        </td>
-                        <td className="px-4 py-4 text-green-600 text-xs font-semibold">
-                          {a.correctCount ?? "-"}
-                        </td>
-                        <td className="px-4 py-4 text-red-500 text-xs font-semibold">
-                          {a.wrongCount ?? "-"}
-                        </td>
-                        <td className="px-4 py-4 text-xs font-bold">
-                          <span
-                            className="px-2 py-1 rounded-full text-xs"
+                    {viewMode === "sudah"
+                      ? paginated.map((a, i) => (
+                          <tr
+                            key={a.id}
+                            className="transition-colors duration-150 hover:bg-purple-50 cursor-pointer"
                             style={{
-                              background:
-                                (a.score ?? 0) >= 80
-                                  ? "rgba(34,197,94,0.15)"
-                                  : (a.score ?? 0) >= 60
-                                    ? "rgba(245,158,11,0.15)"
-                                    : "rgba(239,68,68,0.15)",
-                              color:
-                                (a.score ?? 0) >= 80
-                                  ? "#16a34a"
-                                  : (a.score ?? 0) >= 60
-                                    ? "#d97706"
-                                    : "#dc2626",
+                              borderBottom:
+                                i < paginated.length - 1
+                                  ? "1px solid rgba(0,0,0,0.05)"
+                                  : "none",
                             }}
                           >
-                            {parseFloat(a.score ?? 0).toFixed(1)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                            <td className="px-4 py-4 text-gray-800 text-xs whitespace-nowrap">
+                              <div className="font-semibold">
+                                {a.user?.profile?.fullName || "-"}
+                              </div>
+                              <div className="text-gray-400 text-[10px]">
+                                {a.exam?.title || "-"}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-gray-600 text-xs whitespace-nowrap">
+                              {a.user?.profile?.nim || "-"}
+                            </td>
+                            <td className="px-4 py-4 text-gray-600 text-xs whitespace-nowrap">
+                              {getSubDivisionName(
+                                a.user?.profile?.subDivisionId,
+                              )}
+                            </td>
+                            <td className="px-4 py-4 text-green-600 text-xs font-semibold">
+                              {a.correctCount ?? "-"}
+                            </td>
+                            <td className="px-4 py-4 text-red-500 text-xs font-semibold">
+                              {a.wrongCount ?? "-"}
+                            </td>
+                            <td className="px-4 py-4 text-xs font-bold">
+                              <span
+                                className="px-2 py-1 rounded-full text-xs"
+                                style={{
+                                  background:
+                                    (a.score ?? 0) >= 80
+                                      ? "rgba(34,197,94,0.15)"
+                                      : (a.score ?? 0) >= 60
+                                        ? "rgba(245,158,11,0.15)"
+                                        : "rgba(239,68,68,0.15)",
+                                  color:
+                                    (a.score ?? 0) >= 80
+                                      ? "#16a34a"
+                                      : (a.score ?? 0) >= 60
+                                        ? "#d97706"
+                                        : "#dc2626",
+                                }}
+                              >
+                                {parseFloat(a.score ?? 0).toFixed(1)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      : paginated.map((u, i) => (
+                          <tr
+                            key={u.id}
+                            style={{
+                              borderBottom:
+                                i < paginated.length - 1
+                                  ? "0.5px solid rgba(0,0,0,0.05)"
+                                  : "none",
+                              background:
+                                i % 2 === 0
+                                  ? "rgba(239,68,68,0.018)"
+                                  : "transparent",
+                            }}
+                          >
+                            <td className="px-4 py-3 text-gray-800 text-xs font-semibold whitespace-nowrap">
+                              {u.profile?.fullName || "-"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                              {u.profile?.nim || "-"}
+                            </td>
+                            <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                              {getSubDivisionName(u.profile?.subDivisionId)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className="px-2 py-1 rounded-full text-[10px] font-semibold"
+                                style={{
+                                  background: "rgba(239,68,68,0.10)",
+                                  color: "#dc2626",
+                                }}
+                              >
+                                Belum Ujian
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
 
                     {paginated.length === 0 && (
                       <tr>
                         <td
-                          colSpan={6}
+                          colSpan={columns.length}
                           className="text-center py-10 text-gray-400 text-sm"
                         >
                           {search
                             ? "Tidak ada data yang cocok."
-                            : "Belum ada peserta yang mengumpulkan ujian."}
+                            : viewMode === "sudah"
+                              ? "Belum ada peserta yang mengumpulkan ujian."
+                              : "Semua peserta sudah mengerjakan ujian!"}
                         </td>
                       </tr>
                     )}
@@ -277,8 +430,8 @@ export default function HasilUjianAdmin() {
                 >
                   <span className="text-xs text-gray-500">
                     {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
-                    dari {filtered.length} peserta
+                    {Math.min(currentPage * ROWS_PER_PAGE, activeData.length)}{" "}
+                    dari {activeData.length} peserta
                   </span>
                   <div className="flex items-center gap-1 flex-wrap">
                     <button
