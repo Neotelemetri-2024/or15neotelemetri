@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import UserLayout from "../../components/user/LayoutUser";
 import { getMyProfile } from "../../services/userServices";
+import { previewFile, downloadFile } from "../../utils/fileUtils";
 import api from "../../components/api/axios";
 
 import logoProgramming from "../../assets/images/Logo_Programming.png";
@@ -26,10 +27,11 @@ const getLogoByDivisionName = (name = "") => {
   return logoProgramming;
 };
 
-const getModules = () => api.get("/learning-modules", {
-  headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
-  params: { _: Date.now() },
-});
+const getModules = () =>
+  api.get("/learning-modules", {
+    headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+    params: { _: Date.now() },
+  });
 
 export default function Materi() {
   const [profile, setProfile] = useState(null);
@@ -37,28 +39,8 @@ export default function Materi() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Tambah setelah useState declarations
-  const handleDownload = async (url, filename) => {
-    try {
-      const ext = url.split(".").pop().split("?")[0];
-      const filenameWithExt = filename.endsWith(`.${ext}`)
-        ? filename
-        : `${filename}.${ext}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filenameWithExt;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("Gagal download:", err);
-      window.open(url, "_blank");
-    }
-  };
+  const handlePreview = (id) => previewFile(id, "learning-modules");
+  const handleDownload = (id) => downloadFile(id, "learning-modules");
 
   useEffect(() => {
     const init = async () => {
@@ -151,10 +133,7 @@ export default function Materi() {
               modules.map((materi) => (
                 <button
                   key={materi.id}
-                  onClick={() =>
-                    materi.fileUrl &&
-                    handleDownload(materi.fileUrl, materi.title)
-                  }
+                  onClick={() => downloadFile(materi.id, "learning-modules")}
                   className="flex items-center gap-4 px-5 py-4 rounded-full text-left text-white font-semibold text-sm transition-all duration-200 hover:scale-[1.02] hover:brightness-110"
                   style={{
                     background:

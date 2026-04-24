@@ -2,12 +2,17 @@ import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Upload, FileText } from "lucide-react";
 import UserLayout from "../../components/user/LayoutUser";
+import { downloadFile, previewFile } from "../../utils/fileUtils";
 import api from "../../components/api/axios";
 
-const submitAssignment = (assignmentId, formData) =>
+// Ganti fungsi API submit
+const submitAssignmentFile = (assignmentId, formData) =>
   api.post(`/assignments/${assignmentId}/submit`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+
+const submitAssignmentText = (assignmentId, textContent) =>
+  api.post(`/assignments/${assignmentId}/submit`, { textContent });
 
 const inputStyle = {
   background: "white",
@@ -26,6 +31,8 @@ export default function TugasKumpul() {
   const navigate = useNavigate();
   const location = useLocation();
   const fileInputRef = useRef();
+  const [submitType, setSubmitType] = useState("file"); // "file" | "link"
+  const [linkUrl, setLinkUrl] = useState("");
 
   // Data dari halaman Tugas via navigate state
   const {
@@ -60,8 +67,12 @@ export default function TugasKumpul() {
   };
 
   const handleSubmit = async () => {
-    if (!file) {
+    if (submitType === "file" && !file) {
       setErrorMsg("File tugas wajib diupload.");
+      return;
+    }
+    if (submitType === "link" && !linkUrl.trim()) {
+      setErrorMsg("Link tugas wajib diisi.");
       return;
     }
     setSubmitting(true);
@@ -69,9 +80,13 @@ export default function TugasKumpul() {
     setErrorMsg("");
 
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      await submitAssignment(assignmentId, fd);
+      if (submitType === "file") {
+        const fd = new FormData();
+        fd.append("file", file);
+        await submitAssignmentFile(assignmentId, fd);
+      } else {
+        await submitAssignmentText(assignmentId, linkUrl.trim());
+      }
       setSuccessMsg("Tugas berhasil dikumpulkan!");
       setTimeout(() => navigate("/tugas"), 1500);
     } catch (err) {
@@ -82,27 +97,8 @@ export default function TugasKumpul() {
     }
   };
 
-  const handleDownload = async (url, filename) => {
-    try {
-      const ext = url.split(".").pop().split("?")[0];
-      const filenameWithExt = filename.endsWith(`.${ext}`)
-        ? filename
-        : `${filename}.${ext}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filenameWithExt;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("Gagal download:", err);
-      window.open(url, "_blank");
-    }
-  };
+  const handlePreview = (id) => previewFile(id, "assignments");
+  const handleDownload = (id) => downloadFile(id, "assignments");
 
   return (
     <UserLayout>
@@ -151,17 +147,24 @@ export default function TugasKumpul() {
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={() =>
-                    handleDownload(
-                      existingSubmission.fileUrl,
-                      `submission-${title}`,
-                    )
-                  }
-                  className="text-xs text-blue-500 hover:underline"
-                >
-                  Lihat file lama
-                </button>
+                {existingSubmission.textContent &&
+                /^https?:\/\//.test(existingSubmission.textContent) ? (
+                  <a
+                    href={existingSubmission.textContent}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-blue-500 hover:underline truncate max-w-[150px]"
+                  >
+                    Lihat link lama
+                  </a>
+                ) : existingSubmission.fileUrl ? (
+                  <button
+                    onClick={() => previewFile(assignmentId, "assignments")}
+                    className="text-xs text-blue-500 hover:underline"
+                  >
+                    Lihat file lama
+                  </button>
+                ) : null}
               </div>
             )}
 
@@ -176,71 +179,132 @@ export default function TugasKumpul() {
               />
             </div>
 
-            {/* UPLOAD FILE */}
+            {/* TOGGLE TIPE SUBMIT */}
             <div>
-              <label className={labelStyle}>
-                File Tugas *{" "}
-                {existingSubmission ? "(Upload file baru untuk mengganti)" : ""}
-              </label>
-              <div
-                className="relative flex flex-col items-center justify-center gap-3 py-8 rounded-xl transition-all duration-200 cursor-pointer"
-                style={{
-                  border: `2px dashed ${dragging ? "#7B2FBE" : "rgba(0,0,0,0.12)"}`,
-                  background: dragging
-                    ? "rgba(120,0,200,0.04)"
-                    : "rgba(0,0,0,0.02)",
-                  minHeight: "130px",
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragging(true);
-                }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.docx,.pptx,.zip,.rar,.doc,.ppt"
-                  onChange={(e) => handleFile(e.target.files[0])}
-                />
-                {file ? (
-                  <div className="flex items-center gap-2 text-gray-600 text-xs font-medium px-4">
-                    <FileText size={16} className="text-purple-500 shrink-0" />
-                    <span className="truncate max-w-[200px]">{file.name}</span>
-                  </div>
-                ) : (
-                  <>
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{
-                        background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
-                      }}
-                    >
-                      <Upload size={18} className="text-white" />
-                    </div>
-                    <p className="text-gray-400 text-xs text-center px-4">
-                      Seret dan lepas file tugasmu di sini
-                    </p>
-                  </>
-                )}
+              <label className={labelStyle}>Jenis Pengumpulan</label>
+              <div className="flex gap-2">
                 <button
-                  type="button"
-                  className="mt-2 md:mt-0 md:absolute md:right-4 md:bottom-4 px-5 py-2 rounded-full text-white text-xs font-semibold hover:brightness-110 transition-all"
+                  onClick={() => setSubmitType("file")}
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold border transition"
                   style={{
-                    background: "linear-gradient(135deg,#00AA55,#007733)",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    fileInputRef.current.click();
+                    background:
+                      submitType === "file"
+                        ? "linear-gradient(135deg,#7B2FBE,#501A5E)"
+                        : "transparent",
+                    color: submitType === "file" ? "white" : "#666",
+                    borderColor:
+                      submitType === "file" ? "#7B2FBE" : "rgba(0,0,0,0.12)",
                   }}
                 >
-                  Pilih File
+                  Upload File
+                </button>
+                <button
+                  onClick={() => setSubmitType("link")}
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold border transition"
+                  style={{
+                    background:
+                      submitType === "link"
+                        ? "linear-gradient(135deg,#7B2FBE,#501A5E)"
+                        : "transparent",
+                    color: submitType === "link" ? "white" : "#666",
+                    borderColor:
+                      submitType === "link" ? "#7B2FBE" : "rgba(0,0,0,0.12)",
+                  }}
+                >
+                  Link URL
                 </button>
               </div>
             </div>
+
+            {/* INPUT LINK (jika pilih link) */}
+            {submitType === "link" && (
+              <div>
+                <label className={labelStyle}>Link Tugas *</label>
+                <input
+                  type="url"
+                  placeholder="https://drive.google.com/..."
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            )}
+
+            {submitType === "file" && (
+              <div>
+                <label className={labelStyle}>
+                  File Tugas *{" "}
+                  {existingSubmission
+                    ? "(Upload file baru untuk mengganti)"
+                    : ""}
+                </label>
+                <div
+                  className="relative flex flex-col items-center justify-center gap-3 py-8 rounded-xl transition-all duration-200 cursor-pointer"
+                  style={{
+                    border: `2px dashed ${dragging ? "#7B2FBE" : "rgba(0,0,0,0.12)"}`,
+                    background: dragging
+                      ? "rgba(120,0,200,0.04)"
+                      : "rgba(0,0,0,0.02)",
+                    minHeight: "130px",
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
+                  }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    accept=".pdf,.docx,.pptx,.zip,.rar,.doc,.ppt"
+                    onChange={(e) => handleFile(e.target.files[0])}
+                  />
+                  {file ? (
+                    <div className="flex items-center gap-2 text-gray-600 text-xs font-medium px-4">
+                      <FileText
+                        size={16}
+                        className="text-purple-500 shrink-0"
+                      />
+                      <span className="truncate max-w-[200px]">
+                        {file.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                        style={{
+                          background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
+                        }}
+                      >
+                        <Upload size={18} className="text-white" />
+                      </div>
+                      <p className="text-gray-400 text-xs text-center px-4">
+                        Seret dan lepas file tugasmu di sini
+                      </p>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    className="mt-2 md:mt-0 md:absolute md:right-4 md:bottom-4 px-5 py-2 rounded-full text-white text-xs font-semibold hover:brightness-110 transition-all"
+                    style={{
+                      background: "linear-gradient(135deg,#00AA55,#007733)",
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current.click();
+                    }}
+                  >
+                    Pilih File
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* UPLOAD FILE */}
 
             {/* PESAN */}
             {successMsg && (
@@ -256,7 +320,10 @@ export default function TugasKumpul() {
             <div className="flex justify-end mt-1">
               <button
                 onClick={handleSubmit}
-                disabled={submitting || !file}
+                disabled={
+                  submitting ||
+                  (submitType === "file" ? !file : !linkUrl.trim())
+                }
                 className="w-full md:w-auto px-7 py-[10px] rounded-full text-white text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(120,0,200,0.4)] disabled:opacity-50 disabled:scale-100"
                 style={{
                   background:

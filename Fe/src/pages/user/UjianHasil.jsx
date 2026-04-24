@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { Check, X } from "lucide-react";
 import UserLayout from "../../components/user/LayoutUser";
 
@@ -10,20 +11,28 @@ export default function UjianHasil() {
   // result: { score, correctCount, wrongCount, totalQuestions, exam: { title } }
   const result = location.state?.result;
 
-  const benar  = result?.correctCount  ?? location.state?.benar  ?? 0;
-  const salah  = result?.wrongCount    ?? location.state?.salah  ?? 0;
-  const nilai  = result?.score != null
-    ? parseFloat(result.score).toFixed(1)
-    : (location.state?.nilai ?? 0);
-  const divisi = result?.exam?.title
-    ?? result?.exam?.subDivision?.name
-    ?? location.state?.divisi
-    ?? "Ujian Divisi";
+  const benar = result?.correctCount ?? location.state?.benar ?? 0;
+  const salah = result?.wrongCount ?? location.state?.salah ?? 0;
+  const nilai =
+    result?.score != null
+      ? parseFloat(result.score).toFixed(1)
+      : (location.state?.nilai ?? 0);
+  const divisi =
+    result?.exam?.title ??
+    result?.exam?.subDivision?.name ??
+    location.state?.divisi ??
+    "Ujian Divisi";
+
+  // UjianHasil.jsx — tambahkan ini
+  useEffect(() => {
+    if (result) {
+      localStorage.setItem("examDone", "true");
+    }
+  }, [result]);
 
   return (
     <UserLayout>
       <div className="min-h-screen flex flex-col gap-8 pt-10 md:pt-8">
-
         {/* TITLE */}
         <h1 className="text-white text-lg md:text-xl font-bold">
           Hasil Akhir Ujian
@@ -48,7 +57,8 @@ export default function UjianHasil() {
               <div
                 className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center"
                 style={{
-                  background: "radial-gradient(circle, #22c55e 30%, #16a34a 100%)",
+                  background:
+                    "radial-gradient(circle, #22c55e 30%, #16a34a 100%)",
                   boxShadow: "0 0 16px #22c55e88",
                 }}
               >
@@ -60,7 +70,10 @@ export default function UjianHasil() {
           </div>
 
           {/* DIVIDER */}
-          <div className="w-full h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+          <div
+            className="w-full h-px"
+            style={{ background: "rgba(255,255,255,0.08)" }}
+          />
 
           {/* SALAH */}
           <div className="flex items-center justify-between">
@@ -68,7 +81,8 @@ export default function UjianHasil() {
               <div
                 className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center"
                 style={{
-                  background: "radial-gradient(circle, #ef4444 30%, #b91c1c 100%)",
+                  background:
+                    "radial-gradient(circle, #ef4444 30%, #b91c1c 100%)",
                   boxShadow: "0 0 12px #ef444466",
                 }}
               >
@@ -80,7 +94,10 @@ export default function UjianHasil() {
           </div>
 
           {/* DIVIDER */}
-          <div className="w-full h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+          <div
+            className="w-full h-px"
+            style={{ background: "rgba(255,255,255,0.08)" }}
+          />
 
           {/* NILAI */}
           <div className="flex items-center justify-between pl-[52px]">

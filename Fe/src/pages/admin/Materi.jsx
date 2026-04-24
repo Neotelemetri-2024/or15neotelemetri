@@ -9,7 +9,7 @@ import {
   getSubDivisionsByDivision,
 } from "../../services/userServices";
 import api from "../../components/api/axios";
-import { getSecureFileUrl } from "../../utils/fileUtils";
+import { previewFile, downloadFile } from "../../utils/fileUtils";
 
 const getAllModules = () =>
   api.get("/learning-modules", {
@@ -82,23 +82,26 @@ export default function MateriAdmin() {
     }
   };
 
-  // Tambah setelah handleDelete
-  const handleDownload = async (id) => {
-    const secureUrl = await getSecureFileUrl(
-      `/learning-modules/${id}/download`,
-    );
-    if (secureUrl) {
-      window.location.href = secureUrl;
-    }
-  };
+  const handlePreview = (id) => previewFile(id, "learning-modules");
+const handleDownload = (id) => downloadFile(id, "learning-modules");
 
-  // Untuk preview/open tetap pakai fileUrl langsung
-  const handlePreview = async (id) => {
-    const secureUrl = await getSecureFileUrl(`/learning-modules/${id}/preview`);
-    if (secureUrl) {
-      window.open(secureUrl, "_blank");
-    }
-  };
+  // Tambah setelah handleDelete
+  // const handleDownload = async (id) => {
+  //   const secureUrl = await getSecureFileUrl(
+  //     `/learning-modules/${id}/download`,
+  //   );
+  //   if (secureUrl) {
+  //     window.location.href = secureUrl;
+  //   }
+  // };
+
+  // // Untuk preview/open tetap pakai fileUrl langsung
+  // const handlePreview = async (id) => {
+  //   const secureUrl = await getSecureFileUrl(`/learning-modules/${id}/preview`);
+  //   if (secureUrl) {
+  //     window.open(secureUrl, "_blank");
+  //   }
+  // };
 
   // ── FILTER per tab divisi ──────────────────────────────────────
   const activeDivision = divisions[activeTabIndex];

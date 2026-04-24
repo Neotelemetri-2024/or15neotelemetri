@@ -8,6 +8,8 @@ import {
   getDivisionsByDepartment,
   getSubDivisionsByDivision,
 } from "../../services/userServices";
+import { previewFile, downloadFile } from "../../utils/fileUtils";
+import { ExternalLink, Download } from "lucide-react";
 import api from "../../components/api/axios";
 
 const getAllAssignments = () => api.get("/assignments");
@@ -19,6 +21,7 @@ const columns = [
   "Description",
   "Sub Divisi",
   "Deadline",
+  "File",
   "Submitted",
   "Action",
 ];
@@ -181,7 +184,7 @@ export default function TugasAdmin() {
                           key={col}
                           className="p-5 text-xs font-bold text-gray-700 whitespace-nowrap"
                           style={{
-                            textAlign: ["No", "Submitted", "Action"].includes(
+                            textAlign: ["No", "File", "Submitted", "Action"].includes(
                               col,
                             )
                               ? "center"
@@ -222,6 +225,42 @@ export default function TugasAdmin() {
                         </td>
                         <td className="p-5 text-gray-600 text-xs whitespace-nowrap">
                           {formatDate(a.dueAt)}
+                        </td>
+                        <td className="p-5 text-center">
+                          {a.fileUrl ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => previewFile(a.id, "assignments")}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#0077CC,#004499)",
+                                  boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
+                                }}
+                                title="Buka file"
+                              >
+                                <ExternalLink size={10} />
+                                Buka
+                              </button>
+                              <button
+                                onClick={() =>
+                                  downloadFile(a.id, "assignments")
+                                }
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#00AA55,#007733)",
+                                  boxShadow: "0 2px 8px rgba(0,150,80,0.3)",
+                                }}
+                                title="Unduh file"
+                              >
+                                <Download size={10} />
+                                Download
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-gray-300 text-xs">—</span>
+                          )}
                         </td>
                         <td className="p-5 text-gray-600 text-xs text-center">
                           <span

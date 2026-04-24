@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Folder, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import UserLayout from "../../components/user/LayoutUser";
 import { getMyProfile } from "../../services/userServices";
+import { downloadFile, previewFile } from "../../utils/fileUtils";
 import api from "../../components/api/axios";
 
 import logoProgramming from "../../assets/images/Logo_Programming.png";
@@ -38,27 +39,9 @@ export default function Tugas() {
   const [errorMsg, setErrorMsg] = useState("");
 
   // Tambah fungsi setelah useState declarations
-  const handleDownload = async (url, filename) => {
-    try {
-      const ext = url.split(".").pop().split("?")[0];
-      const filenameWithExt = filename.endsWith(`.${ext}`)
-        ? filename
-        : `${filename}.${ext}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filenameWithExt;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("Gagal download:", err);
-      window.open(url, "_blank");
-    }
-  };
+  const handlePreview = (id) => previewFile(id, "assignments");
+  const handleDownload = (id) => downloadFile(id, "assignments");
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -271,20 +254,32 @@ export default function Tugas() {
                             <p className="text-gray-700 font-semibold text-sm mb-1">
                               File Tugas :
                             </p>
-                            <button
-                              onClick={() =>
-                                handleDownload(tugas.fileUrl, tugas.title)
-                              }
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-xs font-semibold transition-all hover:brightness-110"
-                              style={{
-                                background:
-                                  "linear-gradient(135deg,#0077CC,#004499)",
-                                boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
-                              }}
-                            >
-                              <ExternalLink size={12} />
-                              Download
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  previewFile(tugas.id, "assignments")
+                                }
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-xs font-semibold"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#0077CC,#004499)",
+                                }}
+                              >
+                                <ExternalLink size={12} /> Buka
+                              </button>
+                              <button
+                                onClick={() =>
+                                  downloadFile(tugas.id, "assignments")
+                                }
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-xs font-semibold"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#00AA55,#007733)",
+                                }}
+                              >
+                                Download
+                              </button>
+                            </div>
                           </div>
                         )}
 

@@ -17,6 +17,7 @@ import {
   getDivisionsByDepartment,
   getSubDivisionsByDivision,
 } from "../../services/userServices";
+import { previewFile, downloadFile } from "../../utils/fileUtils";
 import api from "../../components/api/axios";
 
 // ── API ────────────────────────────────────────────────────────
@@ -177,20 +178,8 @@ export default function AddTugasAdmin() {
     }
   };
 
-  // Ganti fungsi handleDownload lama dengan ini
-  const handleDownload = (id, title) => {
-    const url = `${api.defaults.baseURL}/assignments/${id}/download`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = title;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
-  const handlePreview = (fileUrl) => {
-    window.open(fileUrl, "_blank");
-  };
+  const handlePreview = (id) => previewFile(id, "assignments");
+const handleDownload = (id) => downloadFile(id, "assignments");
 
   // Filter assignments berdasarkan tab divisi aktif
   const activeDivision = divisions[activeTabIndex];
@@ -465,14 +454,14 @@ export default function AddTugasAdmin() {
                           {a.fileUrl && (
                             <>
                               <button
-                                onClick={() => handlePreview(a.fileUrl)}
+                                onClick={() => handlePreview(a.id)}
                                 className="text-blue-400 hover:text-blue-600 transition"
                                 title="Buka file"
                               >
                                 <ExternalLink size={14} />
                               </button>
                               <button
-                                onClick={() => handleDownload(a.id, a.title)}
+                                onClick={() => handleDownload(a.id)}
                                 className="text-purple-500 hover:text-purple-700 transition"
                                 title="Unduh file"
                               >

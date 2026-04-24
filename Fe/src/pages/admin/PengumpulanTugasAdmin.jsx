@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { User, Search, SlidersHorizontal, ExternalLink } from "lucide-react";
+import {
+  User,
+  Search,
+  SlidersHorizontal,
+  ExternalLink,
+  Download,
+} from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 import {
@@ -7,6 +13,7 @@ import {
   getDivisionsByDepartment,
   getSubDivisionsByDivision,
 } from "../../services/userServices";
+import { previewFile, downloadFile } from "../../utils/fileUtils";
 import api from "../../components/api/axios";
 
 const getAllAssignments = () => api.get("/assignments");
@@ -139,28 +146,6 @@ export default function PengumpulanTugasAdmin() {
     setCurrentPage(1);
   };
 
-  const handleDownload = async (url, filename) => {
-    try {
-      const ext = url.split(".").pop().split("?")[0];
-      const filenameWithExt = filename.endsWith(`.${ext}`)
-        ? filename
-        : `${filename}.${ext}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filenameWithExt;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("Gagal download:", err);
-      window.open(url, "_blank");
-    }
-  };
-
   // ── BERI NILAI ────────────────────────────────────────────────
   const openScoreModal = (row) => {
     setScoreTarget(row);
@@ -267,7 +252,6 @@ export default function PengumpulanTugasAdmin() {
                 className="flex items-center gap-3 px-4 py-3 border-b"
                 style={{ borderColor: "rgba(0,0,0,0.06)" }}
               >
-                
                 <div
                   className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
                   style={{
@@ -340,23 +324,56 @@ export default function PengumpulanTugasAdmin() {
                         </td>
                         {/* File submission */}
                         <td className="p-4 text-center">
-                          <button
-                            onClick={() =>
-                              handleDownload(
-                                row.fileUrl,
-                                `${row.user?.profile?.fullName || "submission"}-${row.assignment?.title || "tugas"}`,
-                              )
-                            }
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
-                            style={{
-                              background:
-                                "linear-gradient(135deg,#0077CC,#004499)",
-                              boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
-                            }}
-                          >
-                            <ExternalLink size={10} />
-                            Lihat
-                          </button>
+                          {row.fileUrl ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() =>
+                                  previewFile(row.id, "submissions")
+                                }
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#0077CC,#004499)",
+                                  boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
+                                }}
+                              >
+                                <ExternalLink size={10} />
+                                Lihat
+                              </button>
+                              <button
+                                onClick={() =>
+                                  downloadFile(row.id, "submissions")
+                                }
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#00AA55,#007733)",
+                                  boxShadow: "0 2px 8px rgba(0,150,80,0.3)",
+                                }}
+                              >
+                                <Download size={10} />
+                                Download
+                              </button>
+                            </div>
+                          ) : row.textContent &&
+                            /^https?:\/\//.test(row.textContent) ? (
+                            <a
+                              href={row.textContent}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg,#0077CC,#004499)",
+                                boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
+                              }}
+                            >
+                              <ExternalLink size={10} />
+                              Buka Link
+                            </a>
+                          ) : (
+                            <span className="text-gray-300 text-xs">—</span>
+                          )}
                         </td>
                         {/* Waktu kumpul */}
                         <td className="p-4 text-gray-500 text-xs whitespace-nowrap">

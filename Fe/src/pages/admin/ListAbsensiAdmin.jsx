@@ -171,9 +171,9 @@ export default function ListAbsensiAdmin() {
                             ? "1px solid rgba(0,0,0,0.05)"
                             : "none",
                       }}
-                      onClick={() =>
-                        navigate(`/admin/absensi/${row.id}/detail`)
-                      }
+                      // onClick={() =>
+                      //   navigate(`/admin/absensi/${row.id}/detail`)
+                      // }
                     >
                       <td className="p-4 text-gray-500 text-xs text-center">
                         {i + 1}

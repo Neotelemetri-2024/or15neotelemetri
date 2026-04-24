@@ -18,6 +18,7 @@ import {
   getSubDivisionsByDivision,
 } from "../../services/userServices";
 import api from "../../components/api/axios";
+import { previewFile, downloadFile } from "../../utils/fileUtils";
 
 // ── API ────────────────────────────────────────────────────────
 const getAllModules = () => api.get("/learning-modules");
@@ -163,18 +164,8 @@ export default function AddMateriAdmin() {
     }
   };
 
-  const handleDownload = async (id) => {
-      const secureUrl = await getSecureFileUrl(
-        `/learning-modules/${id}/download`,
-      );
-      if (secureUrl) {
-        window.location.href = secureUrl;
-      }
-    };
-
-  const handlePreview = (fileUrl) => {
-    window.open(fileUrl, "_blank");
-  };
+  const handlePreview = (id) => previewFile(id, "learning-modules");
+const handleDownload = (id) => downloadFile(id, "learning-modules");
 
   // ── HAPUS MATERI ─────────────────────────────────────────────
   const handleDelete = async (id) => {
@@ -444,14 +435,14 @@ export default function AddMateriAdmin() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
-                            onClick={() => handlePreview(m.fileUrl)}
+                            onClick={() => handlePreview(m.id)}
                             className="text-blue-400 hover:text-blue-600 transition"
                             title="Buka file"
                           >
                             <ExternalLink size={14} />
                           </button>
                           <button
-                            onClick={() => handleDownload(m.id, m.title)}
+                            onClick={() => handleDownload(m.id)}
                             className="text-purple-500 hover:text-purple-700 transition"
                             title="Unduh file"
                           >

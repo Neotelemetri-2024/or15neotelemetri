@@ -7,20 +7,26 @@ import logoORWarna from "../../assets/images/Logo_OR_Warna.png";
 import { ShieldAlert, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const getMyAttendances  = () => api.get("/attendances/me");
+const getMyAttendances = () => api.get("/attendances/me");
 const getAvailableExams = () => api.get("/exams/user/available");
 
 function StatusBadge({ status }) {
   const map = {
-    PRESENT: { label: "Hadir",     bg: "bg-green-100",  text: "text-green-700"  },
-    ABSENT:  { label: "Absen",     bg: "bg-red-100",    text: "text-red-600"    },
-    EXCUSED: { label: "Izin",      bg: "bg-yellow-100", text: "text-yellow-700" },
-    SICK:    { label: "Sakit",     bg: "bg-blue-100",   text: "text-blue-600"   },
-    LATE:    { label: "Terlambat", bg: "bg-orange-100", text: "text-orange-600" },
+    PRESENT: { label: "Hadir", bg: "bg-green-100", text: "text-green-700" },
+    ABSENT: { label: "Absen", bg: "bg-red-100", text: "text-red-600" },
+    EXCUSED: { label: "Izin", bg: "bg-yellow-100", text: "text-yellow-700" },
+    SICK: { label: "Sakit", bg: "bg-blue-100", text: "text-blue-600" },
+    LATE: { label: "Terlambat", bg: "bg-orange-100", text: "text-orange-600" },
   };
-  const s = map[status] || { label: status, bg: "bg-gray-100", text: "text-gray-600" };
+  const s = map[status] || {
+    label: status,
+    bg: "bg-gray-100",
+    text: "text-gray-600",
+  };
   return (
-    <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}>
+    <span
+      className={`px-2 py-1 rounded-full text-[10px] font-semibold ${s.bg} ${s.text}`}
+    >
       {s.label}
     </span>
   );
@@ -32,15 +38,20 @@ function ExamNotCompleted() {
     <div className="flex flex-col items-center justify-center gap-6 py-16 px-4">
       <div
         className="w-20 h-20 rounded-full flex items-center justify-center"
-        style={{ background: "rgba(255,0,255,0.12)", border: "1.5px solid rgba(255,0,255,0.25)" }}
+        style={{
+          background: "rgba(255,0,255,0.12)",
+          border: "1.5px solid rgba(255,0,255,0.25)",
+        }}
       >
         <ShieldAlert size={36} className="text-fuchsia-400" />
       </div>
       <div className="text-center flex flex-col gap-2">
-        <p className="text-white font-bold text-base">QR Absensi Belum Tersedia</p>
+        <p className="text-white font-bold text-base">
+          QR Absensi Belum Tersedia
+        </p>
         <p className="text-white/50 text-sm leading-relaxed max-w-xs">
-          QR Code absensimu akan muncul setelah kamu menyelesaikan ujian seleksi.
-          Selesaikan ujian terlebih dahulu untuk mendapatkan akses.
+          QR Code absensimu akan muncul setelah kamu menyelesaikan ujian
+          seleksi. Selesaikan ujian terlebih dahulu untuk mendapatkan akses.
         </p>
       </div>
       <button
@@ -59,11 +70,11 @@ function ExamNotCompleted() {
 }
 
 export default function Absensi() {
-  const [profile,     setProfile]     = useState(null);
+  const [profile, setProfile] = useState(null);
   const [attendances, setAttendances] = useState([]);
-  const [qrDataUrl,   setQrDataUrl]   = useState("");
-  const [loading,     setLoading]     = useState(true);
-  const [examDone,    setExamDone]    = useState(false); // ← FIX: state yang hilang
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [examDone, setExamDone] = useState(false); // ← FIX: state yang hilang
 
   const generateQrWithLogo = async (text) => {
     const qrData = await QRCode.toDataURL(text, {
@@ -73,25 +84,30 @@ export default function Absensi() {
     });
 
     return new Promise((resolve) => {
-      const qrImg   = new Image();
+      const qrImg = new Image();
       const logoImg = new Image();
-      qrImg.src   = qrData;
+      qrImg.src = qrData;
       logoImg.src = logoORWarna;
 
       qrImg.onload = () => {
         const canvas = document.createElement("canvas");
-        const ctx    = canvas.getContext("2d");
-        canvas.width  = qrImg.width;
+        const ctx = canvas.getContext("2d");
+        canvas.width = qrImg.width;
         canvas.height = qrImg.height;
         ctx.drawImage(qrImg, 0, 0);
 
         logoImg.onload = () => {
           const logoSize = canvas.width * 0.1;
-          const x        = (canvas.width  - logoSize) / 2;
-          const y        = (canvas.height - logoSize) / 2;
-          const padding  = 3;
+          const x = (canvas.width - logoSize) / 2;
+          const y = (canvas.height - logoSize) / 2;
+          const padding = 3;
           ctx.fillStyle = "#ffffff";
-          ctx.fillRect(x - padding, y - padding, logoSize + padding * 2, logoSize + padding * 2);
+          ctx.fillRect(
+            x - padding,
+            y - padding,
+            logoSize + padding * 2,
+            logoSize + padding * 2,
+          );
           ctx.drawImage(logoImg, x, y, logoSize, logoSize);
           resolve(canvas.toDataURL());
         };
@@ -102,28 +118,39 @@ export default function Absensi() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [profileRes, attendRes, examsRes] = await Promise.all([
+        const cachedDone = localStorage.getItem("examDone") === "true";
+
+        const [profileRes, attendRes] = await Promise.all([
           getMyProfile(),
           getMyAttendances(),
-          getAvailableExams(),
         ]);
 
-        const p     = profileRes.data;
-        const exams = examsRes.data;
+        const p = profileRes.data;
+        let completed = cachedDone;
 
-        const completed =
-          Array.isArray(exams) &&
-          exams.some(
-            (exam) =>
-              Array.isArray(exam.attempts) &&
-              exam.attempts.some((a) => a.status === "SUBMITTED"),
-          );
+        if (!completed) {
+          try {
+            const examsRes = await getAvailableExams();
+            const exams = examsRes.data;
+            const doneFromApi =
+              Array.isArray(exams) &&
+              exams.some(
+                (exam) =>
+                  Array.isArray(exam.attempts) &&
+                  exam.attempts.some((a) => a.status === "SUBMITTED"),
+              );
+
+            if (doneFromApi) {
+              completed = true;
+              localStorage.setItem("examDone", "true"); // cache permanen
+            }
+          } catch (_) {}
+        }
 
         setProfile(p);
         setAttendances(attendRes.data);
         setExamDone(completed);
 
-        // ← FIX: QR hanya di-generate kalau ujian sudah selesai
         if (completed) {
           const userLocal = JSON.parse(localStorage.getItem("user") || "{}");
           const uid = userLocal.id || p.userId || "";
@@ -141,10 +168,56 @@ export default function Absensi() {
     init();
   }, []);
 
+  
+
+  // useEffect(() => {
+  //   const init = async () => {
+  //     try {
+  //       const [profileRes, attendRes, examsRes] = await Promise.all([
+  //         getMyProfile(),
+  //         getMyAttendances(),
+  //         getAvailableExams(),
+  //       ]);
+
+  //       const p     = profileRes.data;
+  //       const exams = examsRes.data;
+
+  //       const completed =
+  //         Array.isArray(exams) &&
+  //         exams.some(
+  //           (exam) =>
+  //             Array.isArray(exam.attempts) &&
+  //             exam.attempts.some((a) => a.status === "SUBMITTED"),
+  //         );
+
+  //       setProfile(p);
+  //       setAttendances(attendRes.data);
+  //       setExamDone(completed);
+
+  //       // ← FIX: QR hanya di-generate kalau ujian sudah selesai
+  //       if (completed) {
+  //         const userLocal = JSON.parse(localStorage.getItem("user") || "{}");
+  //         const uid = userLocal.id || p.userId || "";
+  //         if (uid) {
+  //           const dataUrl = await generateQrWithLogo(uid);
+  //           setQrDataUrl(dataUrl);
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Gagal load absensi:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   init();
+  // }, []);
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString("id-ID", {
-      day: "numeric", month: "long", year: "numeric",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
@@ -194,14 +267,17 @@ export default function Absensi() {
               <p className="text-white font-semibold text-sm">
                 {profile?.fullName || "-"}
               </p>
-              <p className="text-white/50 text-xs mt-0.5">{profile?.nim || "-"}</p>
+              <p className="text-white/50 text-xs mt-0.5">
+                {profile?.nim || "-"}
+              </p>
               <p className="text-white/50 text-xs">
                 {profile?.subDivision?.name || "-"}
               </p>
             </div>
 
             <p className="text-xs text-white/50 text-center max-w-xs leading-relaxed">
-              *Tunjukkan QR Code ini kepada panitia untuk dipindai sebagai bukti kehadiran.
+              *Tunjukkan QR Code ini kepada panitia untuk dipindai sebagai bukti
+              kehadiran.
             </p>
           </div>
         )}
