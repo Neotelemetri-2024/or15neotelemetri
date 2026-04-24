@@ -384,7 +384,7 @@ export default function EditProfile() {
       }
 
       // 2. Simpan twibbon link
-      if (form.linkTwibbon) {
+      if (form.linkTwibbon && verif?.status !== "APPROVED") {
         const fd = new FormData();
         fd.append("twibbonLink", form.linkTwibbon);
         await submitVerification(fd);
@@ -499,7 +499,6 @@ export default function EditProfile() {
               onChange={set("nickName")}
             />
           </div>
-
           {/* ROW 2 — NIM & Email (readonly) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
@@ -516,7 +515,6 @@ export default function EditProfile() {
               readOnly
             />
           </div>
-
           {/* ROW 3 — No WA */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
@@ -527,7 +525,6 @@ export default function EditProfile() {
             />
             <div /> {/* spacer */}
           </div>
-
           {/* ROW 4 — Fakultas & Program Studi (dari DB) */}
           {/*
             Alur:
@@ -561,7 +558,6 @@ export default function EditProfile() {
               nameKey="name"
             />
           </div>
-
           {/* ROW 5 — Divisi & Sub Divisi */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SelectField
@@ -584,15 +580,23 @@ export default function EditProfile() {
               disabled={subDivisions.length === 0}
             />
           </div>
-
           {/* ROW 6 — Link Twibbon */}
-          <InputField
-            label="Link Twibbon : https://twb.nz/or15neotelemteri"
-            placeholder="Masukkan Link Twibbon"
-            value={form.linkTwibbon}
-            onChange={set("linkTwibbon")}
-          />
-
+          // SESUDAH
+          <div className="flex flex-col gap-1">
+            <InputField
+              label="Link Twibbon : https://twb.nz/or15neotelemteri"
+              placeholder="Masukkan Link Twibbon"
+              value={form.linkTwibbon}
+              onChange={set("linkTwibbon")}
+              readOnly={verif?.status === "APPROVED"}
+            />
+            {verif?.status === "APPROVED" && (
+              <p className="text-green-400/70 text-[11px] flex items-center gap-1 mt-0.5">
+                <CheckCircle2 size={11} />
+                Verifikasi sudah disetujui, twibbon tidak dapat diubah.
+              </p>
+            )}
+          </div>
           {/* PESAN */}
           {successMsg && (
             <p className="text-green-400 text-sm text-center">{successMsg}</p>
@@ -600,7 +604,6 @@ export default function EditProfile() {
           {errorMsg && (
             <p className="text-red-400 text-sm text-center">{errorMsg}</p>
           )}
-
           {/* TOMBOL SIMPAN */}
           <button
             onClick={handleSimpan}

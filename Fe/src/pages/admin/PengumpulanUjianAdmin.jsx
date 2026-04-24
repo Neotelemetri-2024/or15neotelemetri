@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { User, Search } from "lucide-react";
+import { User, Search, Download, ChevronDown } from "lucide-react";
+import * as XLSX from "xlsx";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
 import {
@@ -26,7 +27,8 @@ export default function HasilUjianAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [usersNotAttempted, setUsersNotAttempted] = useState([]);
-  const [viewMode, setViewMode] = useState("sudah"); // "sudah" | "belum"
+  const [viewMode, setViewMode] = useState("sudah");
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   const adminUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -170,6 +172,109 @@ export default function HasilUjianAdmin() {
 
   const columns = viewMode === "sudah" ? COLUMNS_SUDAH : COLUMNS_BELUM;
 
+  const buildRows = (list) =>
+    list.map((a) => ({
+      Nama: a.user?.profile?.fullName || a.profile?.fullName || "-",
+      NIM: a.user?.profile?.nim || a.profile?.nim || "-",
+      "Sub Divisi": getSubDivisionName(
+        a.user?.profile?.subDivisionId || a.profile?.subDivisionId,
+      ),
+      ...(viewMode === "sudah"
+        ? {
+            Benar: a.correctCount ?? "-",
+            Salah: a.wrongCount ?? "-",
+            Nilai: parseFloat(a.score ?? 0).toFixed(1),
+          }
+        : { Status: "Belum Ujian" }),
+    }));
+
+  const applyHeaderStyle = (ws, headers) => {
+    headers.forEach((_, colIdx) => {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIdx });
+      if (!ws[cellRef]) return;
+      ws[cellRef].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" }, name: "Arial", sz: 11 },
+        fill: { fgColor: { rgb: "7B2FBE" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+        border: { bottom: { style: "thin", color: { rgb: "5A1F9A" } } },
+      };
+    });
+  };
+
+  const setColWidths = (ws, headers) => {
+    ws["!cols"] = headers.map((h) => ({ wch: Math.max(h.length + 4, 18) }));
+  };
+
+  const handleExportCurrentDivision = () => {
+    const divName = activeDivision?.name || "Semua";
+    const rows = buildRows(activeData);
+    if (rows.length === 0) {
+      alert("Tidak ada data untuk diekspor.");
+      return;
+    }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const headers = Object.keys(rows[0]);
+    applyHeaderStyle(ws, headers);
+    setColWidths(ws, headers);
+    ws["!rows"] = [{ hpt: 22 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, divName.slice(0, 31));
+    XLSX.writeFile(
+      wb,
+      `Hasil_Ujian_${divName}_${new Date().toLocaleDateString("id-ID").replace(/\//g, "-")}.xlsx`,
+    );
+    setExportMenuOpen(false);
+  };
+
+  const handleExportAllDivisions = () => {
+    const wb = XLSX.utils.book_new();
+    divisions.forEach((div) => {
+      const subIds = (subDivisionMap[div.id] || []).map((s) => s.id);
+      const divData =
+        viewMode === "sudah"
+          ? bestAttemptPerUser
+              .filter(
+                (a) =>
+                  !a.user?.profile?.subDivisionId ||
+                  subIds.includes(a.user.profile.subDivisionId),
+              )
+              .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+          : usersNotAttempted.filter(
+              (u) =>
+                !u.profile?.subDivisionId ||
+                subIds.includes(u.profile.subDivisionId),
+            );
+      const rows = buildRows(divData);
+      const headers = Object.keys(
+        viewMode === "sudah"
+          ? {
+              Nama: "",
+              NIM: "",
+              "Sub Divisi": "",
+              Benar: "",
+              Salah: "",
+              Nilai: "",
+            }
+          : { Nama: "", NIM: "", "Sub Divisi": "", Status: "" },
+      );
+      const ws =
+        rows.length > 0
+          ? XLSX.utils.json_to_sheet(rows)
+          : XLSX.utils.json_to_sheet([
+              Object.fromEntries(headers.map((h) => [h, ""])),
+            ]);
+      applyHeaderStyle(ws, headers);
+      setColWidths(ws, headers);
+      ws["!rows"] = [{ hpt: 22 }];
+      XLSX.utils.book_append_sheet(wb, ws, div.name.slice(0, 31));
+    });
+    XLSX.writeFile(
+      wb,
+      `Hasil_Ujian_Semua_Divisi_${new Date().toLocaleDateString("id-ID").replace(/\//g, "-")}.xlsx`,
+    );
+    setExportMenuOpen(false);
+  };
+
   return (
     <AdminLayout>
       <div className="min-h-screen flex flex-col gap-4 pt-10 md:pt-4">
@@ -222,6 +327,76 @@ export default function HasilUjianAdmin() {
                     className="bg-transparent text-xs text-gray-600 outline-none flex-1 placeholder-gray-400"
                   />
                   <Search size={13} className="text-gray-400 shrink-0" />
+                </div>
+
+                {/* Tombol Ekspor */}
+                <div className="relative shrink-0">
+                  <button
+                    onClick={() => setExportMenuOpen((prev) => !prev)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap"
+                    style={{
+                      background: "#7B2FBE",
+                      color: "white",
+                      border: "1px solid #6a27a3",
+                    }}
+                  >
+                    <Download size={13} />
+                    <span>Ekspor</span>
+                    <ChevronDown
+                      size={12}
+                      style={{
+                        transform: exportMenuOpen
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
+                        transition: "transform 0.2s",
+                      }}
+                    />
+                  </button>
+
+                  {exportMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setExportMenuOpen(false)}
+                      />
+                      <div
+                        className="absolute z-20 rounded-xl shadow-xl overflow-hidden"
+                        style={{
+                          background: "white",
+                          border: "1px solid rgba(0,0,0,0.09)",
+                          width: "208px",
+                          top: "calc(100% + 8px)",
+                          right: 0,
+                        }}
+                      >
+                        <button
+                          onClick={handleExportCurrentDivision}
+                          className="w-full text-left px-4 py-3 text-xs text-gray-700 hover:bg-purple-50 transition-colors flex flex-col gap-0.5"
+                        >
+                          <span className="font-semibold text-purple-700">
+                            Ekspor Divisi Ini
+                          </span>
+                          <span className="text-gray-400">
+                            {activeDivision?.name || "Semua"} · 1 sheet
+                          </span>
+                        </button>
+                        <div
+                          style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}
+                        />
+                        <button
+                          onClick={handleExportAllDivisions}
+                          className="w-full text-left px-4 py-3 text-xs text-gray-700 hover:bg-purple-50 transition-colors flex flex-col gap-0.5"
+                        >
+                          <span className="font-semibold text-purple-700">
+                            Ekspor Semua Divisi
+                          </span>
+                          <span className="text-gray-400">
+                            {divisions.length} sheet
+                          </span>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Toggle Sudah / Belum */}

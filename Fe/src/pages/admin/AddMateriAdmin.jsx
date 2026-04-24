@@ -8,6 +8,7 @@ import {
   Trash2,
   FileText,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
@@ -162,29 +163,17 @@ export default function AddMateriAdmin() {
     }
   };
 
-  // ✅ Tambah fungsi ini sebelum return
-  const handleDownload = async (url, filename) => {
-    try {
-      // ✅ Ambil ekstensi dari URL Cloudinary
-      const ext = url.split(".").pop().split("?")[0]; // ambil ekstensi dari URL
-      const filenameWithExt = filename.endsWith(`.${ext}`)
-        ? filename
-        : `${filename}.${ext}`;
+  const handleDownload = async (id) => {
+      const secureUrl = await getSecureFileUrl(
+        `/learning-modules/${id}/download`,
+      );
+      if (secureUrl) {
+        window.location.href = secureUrl;
+      }
+    };
 
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filenameWithExt; // ✅ nama file dengan ekstensi
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("Gagal download:", err);
-      window.open(url, "_blank");
-    }
+  const handlePreview = (fileUrl) => {
+    window.open(fileUrl, "_blank");
   };
 
   // ── HAPUS MATERI ─────────────────────────────────────────────
@@ -455,13 +444,19 @@ export default function AddMateriAdmin() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
-                            onClick={() => handleDownload(m.fileUrl, m.title)}
-                            className="text-purple-500 hover:text-purple-700 transition"
-                            title="Unduh file"
+                            onClick={() => handlePreview(m.fileUrl)}
+                            className="text-blue-400 hover:text-blue-600 transition"
+                            title="Buka file"
                           >
                             <ExternalLink size={14} />
                           </button>
-                          
+                          <button
+                            onClick={() => handleDownload(m.id, m.title)}
+                            className="text-purple-500 hover:text-purple-700 transition"
+                            title="Unduh file"
+                          >
+                            <Download size={14} />
+                          </button>
                           <button
                             onClick={() => handleDelete(m.id)}
                             className="text-red-400 hover:text-red-600 transition"

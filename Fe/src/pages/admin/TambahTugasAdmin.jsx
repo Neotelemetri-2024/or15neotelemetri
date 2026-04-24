@@ -8,6 +8,7 @@ import {
   FileText,
   Trash2,
   ExternalLink,
+  Download
 } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
@@ -176,26 +177,19 @@ export default function AddTugasAdmin() {
     }
   };
 
-  const handleDownload = async (url, filename) => {
-    try {
-      const ext = url.split(".").pop().split("?")[0];
-      const filenameWithExt = filename.endsWith(`.${ext}`)
-        ? filename
-        : `${filename}.${ext}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filenameWithExt;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("Gagal download:", err);
-      window.open(url, "_blank");
-    }
+  // Ganti fungsi handleDownload lama dengan ini
+  const handleDownload = (id, title) => {
+    const url = `${api.defaults.baseURL}/assignments/${id}/download`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = title;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handlePreview = (fileUrl) => {
+    window.open(fileUrl, "_blank");
   };
 
   // Filter assignments berdasarkan tab divisi aktif
@@ -469,13 +463,22 @@ export default function AddTugasAdmin() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {a.fileUrl && (
-                            <button
-                              onClick={() => handleDownload(a.fileUrl, a.title)}
-                              className="text-purple-500 hover:text-purple-700 transition"
-                              title="Unduh file"
-                            >
-                              <ExternalLink size={14} />
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handlePreview(a.fileUrl)}
+                                className="text-blue-400 hover:text-blue-600 transition"
+                                title="Buka file"
+                              >
+                                <ExternalLink size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDownload(a.id, a.title)}
+                                className="text-purple-500 hover:text-purple-700 transition"
+                                title="Unduh file"
+                              >
+                                <Download size={14} />
+                              </button>
+                            </>
                           )}
                           <button
                             onClick={() => handleDelete(a.id)}

@@ -26,7 +26,10 @@ const getLogoByDivisionName = (name = "") => {
   return logoProgramming;
 };
 
-const getModules = () => api.get("/learning-modules");
+const getModules = () => api.get("/learning-modules", {
+  headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" },
+  params: { _: Date.now() },
+});
 
 export default function Materi() {
   const [profile, setProfile] = useState(null);

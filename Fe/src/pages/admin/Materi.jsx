@@ -9,8 +9,13 @@ import {
   getSubDivisionsByDivision,
 } from "../../services/userServices";
 import api from "../../components/api/axios";
+import { getSecureFileUrl } from "../../utils/fileUtils";
 
-const getAllModules = () => api.get("/learning-modules");
+const getAllModules = () =>
+  api.get("/learning-modules", {
+    headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+    params: { _: Date.now() },
+  });
 const deleteModule = (id) => api.delete(`/learning-modules/${id}`);
 
 const columns = ["No", "Title", "Sub Divisi", "File", "Action"];
@@ -70,36 +75,28 @@ export default function MateriAdmin() {
       await deleteModule(deleteModuleId);
 
       setModules((p) => p.filter((m) => m.id !== deleteModuleId));
-
-      
     } catch (err) {
       console.error("Gagal hapus materi:", err);
-      
     } finally {
       setDeleteModuleId(null);
     }
   };
 
   // Tambah setelah handleDelete
-  const handleDownload = async (url, filename) => {
-    try {
-      const ext = url.split(".").pop().split("?")[0];
-      const filenameWithExt = filename.endsWith(`.${ext}`)
-        ? filename
-        : `${filename}.${ext}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = filenameWithExt;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    } catch (err) {
-      console.error("Gagal download:", err);
-      window.open(url, "_blank");
+  const handleDownload = async (id) => {
+    const secureUrl = await getSecureFileUrl(
+      `/learning-modules/${id}/download`,
+    );
+    if (secureUrl) {
+      window.location.href = secureUrl;
+    }
+  };
+
+  // Untuk preview/open tetap pakai fileUrl langsung
+  const handlePreview = async (id) => {
+    const secureUrl = await getSecureFileUrl(`/learning-modules/${id}/preview`);
+    if (secureUrl) {
+      window.open(secureUrl, "_blank");
     }
   };
 
@@ -244,18 +241,31 @@ export default function MateriAdmin() {
 
                         {/* File */}
                         <td className="p-5 text-center">
-                          <button
-                            onClick={() => handleDownload(m.fileUrl, m.title)}
-                            className="inline-flex items-center gap-1 px-4 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
-                            style={{
-                              background:
-                                "linear-gradient(135deg,#0077CC,#004499)",
-                              boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
-                            }}
-                          >
-                            <ExternalLink size={11} />
-                            Lihat
-                          </button>
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => handlePreview(m.id)}
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg,#0077CC,#004499)",
+                                boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
+                              }}
+                            >
+                              <ExternalLink size={11} />
+                              Buka
+                            </button>
+                            <button
+                              onClick={() => handleDownload(m.id, m.title)}
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110 whitespace-nowrap"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg,#00AA55,#007733)",
+                                boxShadow: "0 2px 8px rgba(0,150,80,0.3)",
+                              }}
+                            >
+                              Download
+                            </button>
+                          </div>
                         </td>
 
                         {/* Action */}
