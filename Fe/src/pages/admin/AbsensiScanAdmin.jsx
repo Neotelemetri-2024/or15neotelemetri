@@ -10,6 +10,7 @@ import {
   CameraOff,
   RefreshCw,
   Download,
+  ChevronDown,
 } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import {
@@ -17,6 +18,13 @@ import {
   scanAttendance,
   updateAttendance,
 } from "../../services/attendanceService";
+import {
+  getDepartments,
+  getDivisionsByDepartment,
+  getSubDivisionsByDivision,
+} from "../../services/userServices";
+import { getAllUsers } from "../../services/adminServices";
+import DivisionTabs from "../../components/admin/DivisionsTab";
 import { Html5Qrcode } from "html5-qrcode";
 import * as XLSX from "xlsx";
 
@@ -165,6 +173,15 @@ export default function ScanAbsensiAdmin() {
   const [editLoading, setEditLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [divisions, setDivisions] = useState([]);
+  const [subWithDivMap, setSubWithDivMap] = useState({}); // { subId: divisionId }
+  const [activeDivisionId, setActiveDivisionId] = useState("all");
+
+  const [subDivisionNameMap, setSubDivisionNameMap] = useState({}); // { subId: divName }
+  const [userSubDivIdMap, setUserSubDivIdMap] = useState({}); // { userId: subDivisionId }
+  const [activeTabDivisionIndex, setActiveTabDivisionIndex] = useState(0);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   const showToast = (result) => {
     setToast(result);
@@ -187,6 +204,50 @@ export default function ScanAbsensiAdmin() {
 
   useEffect(() => {
     fetchActivity();
+
+    const fetchDivisions = async () => {
+      try {
+        const [deptRes, usersRes] = await Promise.all([
+          getDepartments(),
+          getAllUsers(),
+        ]);
+
+        // Build userSubDivIdMap: { userId → subDivisionId }
+        const uMap = {};
+        usersRes.data.forEach((u) => {
+          if (u.profile?.subDivisionId) uMap[u.id] = u.profile.subDivisionId;
+        });
+        setUserSubDivIdMap(uMap);
+
+        const allDivisions = [];
+        const subDivMap = {}; // { subId → divId }  — untuk filter tab
+        const subNameMap = {}; // { subId → name }   — untuk tampil di kolom
+
+        await Promise.all(
+          deptRes.data.map(async (dept) => {
+            try {
+              const divRes = await getDivisionsByDepartment(dept.id);
+              allDivisions.push(...divRes.data);
+              await Promise.all(
+                divRes.data.map(async (div) => {
+                  const subRes = await getSubDivisionsByDivision(div.id);
+                  subRes.data.forEach((sub) => {
+                    subDivMap[sub.id] = div.id;
+                    subNameMap[sub.id] = sub.name; // ← simpan nama
+                  });
+                }),
+              );
+            } catch {}
+          }),
+        );
+
+        setDivisions(allDivisions);
+        setSubWithDivMap(subDivMap);
+        setSubDivisionNameMap(subNameMap);
+      } catch {}
+    };
+
+    fetchDivisions();
   }, [activityId]);
 
   const cooldownRef = useRef(false);
@@ -285,12 +346,48 @@ export default function ScanAbsensiAdmin() {
     excused: attendances.filter((a) => a.status === "EXCUSED").length,
   };
 
-  // ── Pagination ─────────────────────────────────────────────
-  const totalPages = Math.ceil(attendances.length / ROWS_PER_PAGE);
-  const paginatedAttendances = attendances.slice(
+  const STATUS_ORDER = { PRESENT: 0, EXCUSED: 1, SICK: 2, ABSENT: 3 };
+
+  const activeDivision = divisions[activeTabDivisionIndex];
+  const subIdsInActive = activeDivision
+    ? Object.entries(subWithDivMap)
+        .filter(([, divId]) => divId === activeDivision.id)
+        .map(([subId]) => subId)
+    : [];
+
+  const filteredAttendances = attendances
+    .filter((att) => {
+      if (activeDivision) {
+        // Gunakan userSubDivIdMap sama persis seperti PembayaranAdmin
+        const userSubDivId = userSubDivIdMap[att.user?.id];
+        if (userSubDivId && !subIdsInActive.includes(userSubDivId))
+          return false;
+      }
+      const q = search.toLowerCase();
+      if (!q) return true;
+      const name = (
+        att.user?.profile?.fullName ||
+        att.user?.email ||
+        ""
+      ).toLowerCase();
+      const nim = (att.user?.profile?.nim || "").toLowerCase();
+      return name.includes(q) || nim.includes(q);
+    })
+    .sort((a, b) => {
+      const orderA = STATUS_ORDER[a.status] ?? 99;
+      const orderB = STATUS_ORDER[b.status] ?? 99;
+      return orderA - orderB;
+    });
+
+  const totalPages = Math.ceil(filteredAttendances.length / ROWS_PER_PAGE);
+  const paginatedAttendances = filteredAttendances.slice(
     (currentPage - 1) * ROWS_PER_PAGE,
     currentPage * ROWS_PER_PAGE,
   );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   // ── Export Excel ────────────────────────────────────────────
   const STATUS_LABEL_EXPORT = {
@@ -300,16 +397,13 @@ export default function ScanAbsensiAdmin() {
     EXCUSED: "Izin",
   };
 
-  const handleExportExcel = () => {
-    if (attendances.length === 0) {
-      alert("Tidak ada data untuk diekspor.");
-      return;
-    }
-
-    const rows = paginatedAttendances.map((att, i) => ({
+  const handleExportCurrentDivision = () => {
+    const divName = activeDivision?.name || "Semua";
+    const rows = filteredAttendances.map((att, i) => ({
       No: i + 1,
       Nama: att.user?.profile?.fullName || att.user?.email || "-",
       NIM: att.user?.profile?.nim || "-",
+      "Sub Divisi": subDivisionNameMap[userSubDivIdMap[att.user?.id]] || "-",
       "Check-in": att.checkInTime
         ? `${fmt(att.checkInTime, "date")} ${fmt(att.checkInTime, "time")}`
         : "-",
@@ -317,39 +411,87 @@ export default function ScanAbsensiAdmin() {
       Catatan: att.notes || "-",
     }));
 
+    if (rows.length === 0) {
+      alert("Tidak ada data.");
+      return;
+    }
+
     const ws = XLSX.utils.json_to_sheet(rows);
-
-    // Style header
-    const headers = Object.keys(rows[0]);
-    headers.forEach((_, colIdx) => {
-      const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIdx });
-      if (!ws[cellRef]) return;
-      ws[cellRef].s = {
-        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
-        fill: { fgColor: { rgb: "6E3FBF" } },
-        alignment: { horizontal: "center", vertical: "center" },
-      };
-    });
-
-    // Lebar kolom
     ws["!cols"] = [
-      { wch: 5 }, // No
-      { wch: 28 }, // Nama
-      { wch: 16 }, // NIM
-      { wch: 20 }, // Check-in
-      { wch: 10 }, // Status
-      { wch: 30 }, // Catatan
+      { wch: 5 },
+      { wch: 28 },
+      { wch: 16 },
+      { wch: 18 },
+      { wch: 20 },
+      { wch: 10 },
+      { wch: 30 },
     ];
-
     const wb = XLSX.utils.book_new();
-    const sheetName = (activity?.name || "Absensi").slice(0, 31);
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.utils.book_append_sheet(wb, ws, divName.slice(0, 31));
     XLSX.writeFile(
       wb,
-      `Absensi_${activity?.name || "kegiatan"}_${new Date()
-        .toLocaleDateString("id-ID")
-        .replace(/\//g, "-")}.xlsx`,
+      `Absensi_${divName}_${new Date().toLocaleDateString("id-ID").replace(/\//g, "-")}.xlsx`,
     );
+    setExportMenuOpen(false);
+  };
+
+  const handleExportAllDivisions = () => {
+    const wb = XLSX.utils.book_new();
+
+    divisions.forEach((div) => {
+      const subIds = Object.entries(subWithDivMap)
+        .filter(([, divId]) => divId === div.id)
+        .map(([subId]) => subId);
+
+      const divAttendances = attendances.filter((att) => {
+        const userSubDivId = userSubDivIdMap[att.user?.id];
+        return !userSubDivId || subIds.includes(userSubDivId);
+      });
+
+      const rows = divAttendances.map((att, i) => ({
+        No: i + 1,
+        Nama: att.user?.profile?.fullName || att.user?.email || "-",
+        NIM: att.user?.profile?.nim || "-",
+        "Sub Divisi": subDivisionNameMap[userSubDivIdMap[att.user?.id]] || "-",
+        "Check-in": att.checkInTime
+          ? `${fmt(att.checkInTime, "date")} ${fmt(att.checkInTime, "time")}`
+          : "-",
+        Status: STATUS_LABEL_EXPORT[att.status] ?? att.status,
+        Catatan: att.notes || "-",
+      }));
+
+      const ws =
+        rows.length > 0
+          ? XLSX.utils.json_to_sheet(rows)
+          : XLSX.utils.json_to_sheet([
+              {
+                No: "",
+                Nama: "",
+                NIM: "",
+                "Sub Divisi": "",
+                "Check-in": "",
+                Status: "",
+                Catatan: "",
+              },
+            ]);
+
+      ws["!cols"] = [
+        { wch: 5 },
+        { wch: 28 },
+        { wch: 16 },
+        { wch: 18 },
+        { wch: 20 },
+        { wch: 10 },
+        { wch: 30 },
+      ];
+      XLSX.utils.book_append_sheet(wb, ws, div.name.slice(0, 31));
+    });
+
+    XLSX.writeFile(
+      wb,
+      `Absensi_Semua_Divisi_${new Date().toLocaleDateString("id-ID").replace(/\//g, "-")}.xlsx`,
+    );
+    setExportMenuOpen(false);
   };
 
   return (
@@ -363,33 +505,50 @@ export default function ScanAbsensiAdmin() {
         }}
       >
         {toast && (
-          <div
-            className="flex items-start gap-3 px-4 py-3 rounded-2xl shadow-2xl pointer-events-auto transition-all duration-300"
-            style={{
-              background: toast.success ? "#dcfce7" : "#fee2e2",
-              border: `1.5px solid ${toast.success ? "#86efac" : "#fca5a5"}`,
-              animation: "slideDown 0.3s ease",
-            }}
-          >
-            {toast.success ? (
-              <CheckCircle
-                size={20}
-                className="text-green-600 shrink-0 mt-0.5"
-              />
-            ) : (
-              <XCircle size={20} className="text-red-500   shrink-0 mt-0.5" />
-            )}
-            <div className="flex-1 min-w-0">
+          <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
+            <div
+              className="flex flex-col items-center gap-3 px-8 py-6 rounded-3xl shadow-2xl pointer-events-auto"
+              style={{
+                background: toast.success ? "#fff" : "#fff",
+                border: `2px solid ${toast.success ? "#86efac" : "#fca5a5"}`,
+                minWidth: "260px",
+                maxWidth: "340px",
+                animation: "popIn 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+                boxShadow: toast.success
+                  ? "0 8px 48px rgba(22,163,74,0.18)"
+                  : "0 8px 48px rgba(220,38,38,0.18)",
+              }}
+            >
+              {toast.success ? (
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: "#dcfce7" }}
+                >
+                  <CheckCircle size={36} className="text-green-500" />
+                </div>
+              ) : (
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ background: "#fee2e2" }}
+                >
+                  <XCircle size={36} className="text-red-400" />
+                </div>
+              )}
+
               <p
-                className="text-xs font-bold"
+                className="text-base font-bold text-center"
                 style={{ color: toast.success ? "#16a34a" : "#dc2626" }}
               >
                 {toast.message}
               </p>
+
               {toast.success && (toast.name !== "—" || toast.nim !== "—") && (
-                <p className="text-xs text-gray-600 mt-0.5 truncate">
-                  {toast.name} · {toast.nim}
-                </p>
+                <div className="flex flex-col items-center gap-0.5">
+                  <p className="text-sm font-semibold text-gray-700">
+                    {toast.name}
+                  </p>
+                  <p className="text-xs text-gray-400">{toast.nim}</p>
+                </div>
               )}
             </div>
           </div>
@@ -404,6 +563,10 @@ export default function ScanAbsensiAdmin() {
     @keyframes scanline {
       0%, 100% { top: 10%; }
       50%       { top: 88%; }
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: 1; transform: scale(1);   }
     }
   `}</style>
 
@@ -434,39 +597,43 @@ export default function ScanAbsensiAdmin() {
             {
               label: "Hadir",
               value: stats.present,
-              color: "#16a34a",
-              bg: "#dcfce7",
+              color: "#22c55e",
+              glow: "rgba(34,197,94,0.25)",
             },
             {
               label: "Alfa",
               value: stats.absent,
-              color: "#dc2626",
-              bg: "#fee2e2",
+              color: "#f87171",
+              glow: "rgba(248,113,113,0.25)",
             },
             {
               label: "Sakit",
               value: stats.sick,
-              color: "#d97706",
-              bg: "#fef3c7",
+              color: "#fbbf24",
+              glow: "rgba(251,191,36,0.25)",
             },
             {
               label: "Izin",
               value: stats.excused,
-              color: "#2563eb",
-              bg: "#dbeafe",
+              color: "#60a5fa",
+              glow: "rgba(96,165,250,0.25)",
             },
           ].map((s) => (
             <div
               key={s.label}
-              className="rounded-xl px-3 py-3 flex flex-col items-center gap-1"
-              style={{ background: s.bg }}
+              className="rounded-2xl flex flex-col items-center justify-center gap-1 py-4"
+              style={{
+                background: "rgba(255,255,255,0.07)",
+                border: `1.5px solid ${s.glow}`,
+                backdropFilter: "blur(12px)",
+              }}
             >
-              <span className="text-xl font-bold" style={{ color: s.color }}>
+              <span className="text-2xl font-bold" style={{ color: s.color }}>
                 {s.value}
               </span>
               <span
-                className="text-xs font-semibold"
-                style={{ color: s.color }}
+                className="text-[11px] font-semibold"
+                style={{ color: s.color, opacity: 0.85 }}
               >
                 {s.label}
               </span>
@@ -609,251 +776,389 @@ export default function ScanAbsensiAdmin() {
 
         {/* TAB LIST */}
         {activeTab === "list" && (
-          <div
-            style={{
-              background: "white",
-              borderRadius: "16px",
-              boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
-            }}
-          >
-            <div
-              className="px-5 py-4 border-b flex items-center justify-between gap-3"
-              style={{ borderColor: "rgba(0,0,0,0.06)" }}
+          <div className="mt-7">
+            <DivisionTabs
+              divisions={divisions.map((d) => d.name)}
+              bgColor="#1a0023"
+              onChange={(_, i) => {
+                setActiveTabDivisionIndex(i);
+                setCurrentPage(1);
+                setSearch("");
+              }}
             >
-              <div>
-                <p className="text-gray-800 font-bold text-sm">
-                  Daftar Kehadiran
-                </p>
-                <p className="text-gray-400 text-xs mt-0.5">
-                  {attendances.length} peserta terdaftar
-                </p>
-              </div>
-              <button
-                onClick={handleExportExcel}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-semibold hover:brightness-110 transition-all shrink-0"
-                style={{ background: "#16a34a" }}
+              <div
+                className="flex flex-col bg-white"
+                style={{
+                  borderRadius: "0 0 16px 16px",
+                  boxShadow: "0 8px 48px rgba(120,0,200,0.18)",
+                }}
               >
-                <Download size={13} /> Export Excel
-              </button>
-            </div>
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm min-w-[560px]">
-                <thead>
-                  <tr style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}>
-                    {["No", "Nama", "NIM", "Check-in", "Status", "Action"].map(
-                      (col) => (
-                        <th
-                          key={col}
-                          className="p-4 text-xs font-bold text-gray-700 whitespace-nowrap"
+                {/* Header: judul + search + export */}
+                <div
+                  className="flex flex-wrap items-center gap-2 px-4 py-3 border-b"
+                  style={{ borderColor: "rgba(0,0,0,0.06)" }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-800 font-bold text-sm">
+                      Daftar Kehadiran
+                    </p>
+                    <p className="text-gray-400 text-xs mt-0.5">
+                      {search
+                        ? `${filteredAttendances.length} hasil`
+                        : `${attendances.length} peserta terdaftar`}
+                    </p>
+                  </div>
+
+                  {/* Search */}
+                  <div
+                    className="flex items-center gap-2 px-3 py-[7px] rounded-full"
+                    style={{
+                      background: "rgba(0,0,0,0.05)",
+                      border: "1px solid rgba(0,0,0,0.10)",
+                      minWidth: "180px",
+                      maxWidth: "260px",
+                      flex: "1 1 180px",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Cari nama atau NIM..."
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="bg-transparent text-xs text-gray-600 outline-none flex-1 min-w-0 placeholder-gray-400"
+                    />
+                  </div>
+
+                  {/* Export Button */}
+                  <div className="relative shrink-0">
+                    <button
+                      onClick={() => setExportMenuOpen((p) => !p)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap"
+                      style={{
+                        background: "#7B2FBE",
+                        color: "white",
+                        border: "1px solid #6a27a3",
+                      }}
+                    >
+                      <Download size={13} />
+                      <span>Ekspor</span>
+                      <ChevronDown
+                        size={12}
+                        style={{
+                          transform: exportMenuOpen
+                            ? "rotate(180deg)"
+                            : "rotate(0deg)",
+                          transition: "transform 0.2s",
+                        }}
+                      />
+                    </button>
+
+                    {exportMenuOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setExportMenuOpen(false)}
+                        />
+                        <div
+                          className="absolute z-[999] rounded-xl shadow-xl overflow-hidden"
                           style={{
-                            textAlign: col === "Nama" ? "left" : "center",
+                            background: "white",
+                            border: "1px solid rgba(0,0,0,0.09)",
+                            width: "220px",
+                            top: "calc(100% + 8px)",
+                            right: 0,
                           }}
                         >
-                          {col}
-                        </th>
-                      ),
+                          <button
+                            onClick={handleExportCurrentDivision}
+                            className="w-full text-left px-4 py-3 text-xs text-gray-700 hover:bg-purple-50 transition-colors flex flex-col gap-0.5"
+                          >
+                            <span className="font-semibold text-purple-700">
+                              Ekspor Divisi Ini
+                            </span>
+                            <span className="text-gray-400">
+                              {activeDivision?.name || "Semua"}
+                            </span>
+                          </button>
+                          <div
+                            style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}
+                          />
+                          <button
+                            onClick={handleExportAllDivisions}
+                            className="w-full text-left px-4 py-3 text-xs text-gray-700 hover:bg-purple-50 transition-colors flex flex-col gap-0.5"
+                          >
+                            <span className="font-semibold text-purple-700">
+                              Ekspor Semua Divisi
+                            </span>
+                            <span className="text-gray-400">
+                              {divisions.length} sheet
+                            </span>
+                          </button>
+                        </div>
+                      </>
                     )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="text-center py-10 text-gray-400 text-sm"
-                      >
-                        Memuat...
-                      </td>
-                    </tr>
-                  ) : attendances.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="text-center py-10 text-gray-400 text-sm"
-                      >
-                        Belum ada data.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedAttendances.map((att, i) => (
+                  </div>
+                </div>
+
+                {/* TABLE — Desktop */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm min-w-[580px]">
+                    <thead>
                       <tr
-                        key={att.id}
-                        className="hover:bg-purple-50 transition-colors"
+                        style={{ borderBottom: "1.5px solid rgba(0,0,0,0.07)" }}
+                      >
+                        {[
+                          "No",
+                          "Nama",
+                          "Sub Divisi",
+                          "Check-in",
+                          "Status",
+                          "Action",
+                        ].map((col) => (
+                          <th
+                            key={col}
+                            className="p-4 text-xs font-bold text-gray-700 whitespace-nowrap"
+                            style={{
+                              textAlign: col === "Nama" ? "left" : "center",
+                            }}
+                          >
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="text-center py-10 text-gray-400 text-sm"
+                          >
+                            Memuat...
+                          </td>
+                        </tr>
+                      ) : filteredAttendances.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="text-center py-10 text-gray-400 text-sm"
+                          >
+                            {search
+                              ? "Tidak ada data yang cocok."
+                              : "Belum ada data."}
+                          </td>
+                        </tr>
+                      ) : (
+                        paginatedAttendances.map((att, i) => {
+                          // Ambil nama subdiv: prioritas dari relasi, fallback ke map
+                          const userSubDivId =
+                            userSubDivIdMap[att.user?.id] || // dari getAllUsers (paling reliable)
+                            att.user?.profile?.subDivisionId; // fallback dari response attendance
+                          const subDivName =
+                            subDivisionNameMap[userSubDivId] || "-";
+                          return (
+                            <tr
+                              key={att.id}
+                              className="hover:bg-purple-50 transition-colors"
+                              style={{
+                                borderBottom:
+                                  i < paginatedAttendances.length - 1
+                                    ? "1px solid rgba(0,0,0,0.05)"
+                                    : "none",
+                              }}
+                            >
+                              <td className="p-4 text-gray-500 text-xs text-center">
+                                {(currentPage - 1) * ROWS_PER_PAGE + i + 1}
+                              </td>
+                              <td className="p-4 text-xs whitespace-nowrap">
+                                <div className="font-semibold text-gray-800">
+                                  {att.user?.profile?.fullName ||
+                                    att.user?.email ||
+                                    "-"}
+                                </div>
+                                <div className="text-gray-400 text-[10px]">
+                                  {att.user?.profile?.nim || ""}
+                                </div>
+                              </td>
+                              <td className="p-4 text-gray-500 text-xs text-center whitespace-nowrap">
+                                {subDivName}
+                              </td>
+                              <td className="p-4 text-gray-500 text-xs text-center whitespace-nowrap">
+                                {att.checkInTime
+                                  ? `${fmt(att.checkInTime, "date")} ${fmt(att.checkInTime, "time")}`
+                                  : "-"}
+                              </td>
+                              <td className="p-4 text-center">
+                                <StatusBadge status={att.status} />
+                              </td>
+                              <td className="p-4 text-center">
+                                <button
+                                  onClick={() => handleOpenEdit(att)}
+                                  className="flex items-center gap-1 mx-auto px-3 py-1 rounded-full text-xs font-semibold text-white hover:brightness-110"
+                                  style={{ background: "#7B2FBE" }}
+                                >
+                                  <FileText size={11} /> Edit
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile list */}
+                <div className="md:hidden flex flex-col divide-y divide-black/5">
+                  {loading ? (
+                    <p className="text-center py-10 text-gray-400 text-sm">
+                      Memuat...
+                    </p>
+                  ) : filteredAttendances.length === 0 ? (
+                    <p className="text-center py-10 text-gray-400 text-sm">
+                      {search
+                        ? "Tidak ada data yang cocok."
+                        : "Belum ada data."}
+                    </p>
+                  ) : (
+                    paginatedAttendances.map((att) => {
+                      const userSubDivId =
+                        userSubDivIdMap[att.user?.id] || // dari getAllUsers (paling reliable)
+                        att.user?.profile?.subDivisionId; // fallback dari response attendance
+                      const subDivName =
+                        subDivisionNameMap[userSubDivId] || "-";
+                      return (
+                        <div
+                          key={att.id}
+                          className="px-5 py-4 flex items-center justify-between gap-3"
+                        >
+                          <div className="flex flex-col gap-1 flex-1 min-w-0">
+                            <p className="text-gray-800 text-sm font-semibold truncate">
+                              {att.user?.profile?.fullName ||
+                                att.user?.email ||
+                                "-"}
+                            </p>
+                            <p className="text-gray-400 text-xs">
+                              {att.user?.profile?.nim || ""} · {subDivName}
+                            </p>
+                            <p className="text-gray-400 text-xs">
+                              {att.checkInTime
+                                ? `${fmt(att.checkInTime, "date")} ${fmt(att.checkInTime, "time")}`
+                                : "Belum check-in"}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            <StatusBadge status={att.status} />
+                            <button
+                              onClick={() => handleOpenEdit(att)}
+                              className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white"
+                              style={{ background: "#7B2FBE" }}
+                            >
+                              <FileText size={11} /> Edit
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div
+                    className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                    style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                  >
+                    <span className="text-xs text-gray-500">
+                      {(currentPage - 1) * ROWS_PER_PAGE + 1}–
+                      {Math.min(
+                        currentPage * ROWS_PER_PAGE,
+                        filteredAttendances.length,
+                      )}{" "}
+                      dari {filteredAttendances.length}
+                    </span>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <button
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(p - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
                         style={{
-                          borderBottom:
-                            i < attendances.length - 1
-                              ? "1px solid rgba(0,0,0,0.05)"
-                              : "none",
+                          background: "rgba(123,47,190,0.08)",
+                          color: "#7B2FBE",
+                          border: "1px solid rgba(123,47,190,0.2)",
                         }}
                       >
-                        <td className="p-4 text-gray-500 text-xs text-center">
-                          {(currentPage - 1) * ROWS_PER_PAGE + i + 1}
-                        </td>
-                        <td className="p-4 text-gray-800 text-xs whitespace-nowrap">
-                          {att.user?.profile?.fullName ||
-                            att.user?.email ||
-                            "-"}
-                        </td>
-                        <td className="p-4 text-gray-500 text-xs text-center">
-                          {att.user?.profile?.nim || "-"}
-                        </td>
-                        <td className="p-4 text-gray-500 text-xs text-center whitespace-nowrap">
-                          {att.checkInTime
-                            ? `${fmt(att.checkInTime, "date")} ${fmt(att.checkInTime, "time")}`
-                            : "-"}
-                        </td>
-                        <td className="p-4 text-center">
-                          <StatusBadge status={att.status} />
-                        </td>
-                        <td className="p-4 text-center">
-                          <button
-                            onClick={() => handleOpenEdit(att)}
-                            className="flex items-center gap-1 mx-auto px-3 py-1 rounded-full text-xs font-semibold text-white hover:brightness-110"
-                            style={{ background: "#7B2FBE" }}
-                          >
-                            <FileText size={11} /> Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile list */}
-            <div className="md:hidden flex flex-col divide-y divide-black/5">
-              {loading ? (
-                <p className="text-center py-10 text-gray-400 text-sm">
-                  Memuat...
-                </p>
-              ) : attendances.length === 0 ? (
-                <p className="text-center py-10 text-gray-400 text-sm">
-                  Belum ada data.
-                </p>
-              ) : (
-                paginatedAttendances.map((att) => (
-                  <div
-                    key={att.id}
-                    className="px-5 py-4 flex items-center justify-between gap-3"
-                  >
-                    <div className="flex flex-col gap-1 flex-1 min-w-0">
-                      <p className="text-gray-800 text-sm font-semibold truncate">
-                        {att.user?.profile?.fullName || att.user?.email || "-"}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        NIM: {att.user?.profile?.nim || "-"}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        {att.checkInTime
-                          ? `${fmt(att.checkInTime, "date")} ${fmt(att.checkInTime, "time")}`
-                          : "Belum check-in"}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <StatusBadge status={att.status} />
+                        ← Prev
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(
+                          (p) =>
+                            p === 1 ||
+                            p === totalPages ||
+                            Math.abs(p - currentPage) <= 1,
+                        )
+                        .reduce((acc, p, idx, arr) => {
+                          if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((p, idx) =>
+                          p === "..." ? (
+                            <span
+                              key={`dot-${idx}`}
+                              className="px-2 text-xs text-gray-400 select-none"
+                            >
+                              •••
+                            </span>
+                          ) : (
+                            <button
+                              key={p}
+                              onClick={() => setCurrentPage(p)}
+                              className="w-8 h-8 text-xs rounded-lg font-semibold transition-all"
+                              style={{
+                                background:
+                                  currentPage === p
+                                    ? "#7B2FBE"
+                                    : "rgba(0,0,0,0.04)",
+                                color: currentPage === p ? "white" : "#374151",
+                                border:
+                                  currentPage === p
+                                    ? "1px solid #7B2FBE"
+                                    : "1px solid rgba(0,0,0,0.10)",
+                                boxShadow:
+                                  currentPage === p
+                                    ? "0 2px 8px rgba(123,47,190,0.3)"
+                                    : "none",
+                              }}
+                            >
+                              {p}
+                            </button>
+                          ),
+                        )}
                       <button
-                        onClick={() => handleOpenEdit(att)}
-                        className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white"
-                        style={{ background: "#7B2FBE" }}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(p + 1, totalPages))
+                        }
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                        style={{
+                          background: "rgba(123,47,190,0.08)",
+                          color: "#7B2FBE",
+                          border: "1px solid rgba(123,47,190,0.2)",
+                        }}
                       >
-                        <FileText size={11} /> Edit
+                        Next →
                       </button>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-
-            {/* PAGINATION */}
-            {totalPages > 1 && (
-              <div
-                className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
-                style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
-              >
-                <span className="text-xs text-gray-500">
-                  {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                  {Math.min(currentPage * ROWS_PER_PAGE, attendances.length)}{" "}
-                  dari {attendances.length}
-                </span>
-
-                <div className="flex items-center gap-1 flex-wrap">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
-                    style={{
-                      background: "rgba(110,63,191,0.08)",
-                      color: "#6E3FBF",
-                      border: "1px solid rgba(110,63,191,0.2)",
-                    }}
-                  >
-                    ← Prev
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(
-                      (p) =>
-                        p === 1 ||
-                        p === totalPages ||
-                        Math.abs(p - currentPage) <= 1,
-                    )
-                    .reduce((acc, p, idx, arr) => {
-                      if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
-                      acc.push(p);
-                      return acc;
-                    }, [])
-                    .map((p, idx) =>
-                      p === "..." ? (
-                        <span
-                          key={`dot-${idx}`}
-                          className="px-2 text-xs text-gray-400 select-none"
-                        >
-                          •••
-                        </span>
-                      ) : (
-                        <button
-                          key={p}
-                          onClick={() => setCurrentPage(p)}
-                          className="w-8 h-8 text-xs rounded-lg font-semibold transition-all"
-                          style={{
-                            background:
-                              currentPage === p
-                                ? "#6E3FBF"
-                                : "rgba(0,0,0,0.04)",
-                            color: currentPage === p ? "white" : "#374151",
-                            border:
-                              currentPage === p
-                                ? "1px solid #6E3FBF"
-                                : "1px solid rgba(0,0,0,0.10)",
-                            boxShadow:
-                              currentPage === p
-                                ? "0 2px 8px rgba(110,63,191,0.3)"
-                                : "none",
-                          }}
-                        >
-                          {p}
-                        </button>
-                      ),
-                    )}
-
-                  <button
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(p + 1, totalPages))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
-                    style={{
-                      background: "rgba(110,63,191,0.08)",
-                      color: "#6E3FBF",
-                      border: "1px solid rgba(110,63,191,0.2)",
-                    }}
-                  >
-                    Next →
-                  </button>
-                </div>
+                )}
               </div>
-            )}
+            </DivisionTabs>
           </div>
         )}
       </div>

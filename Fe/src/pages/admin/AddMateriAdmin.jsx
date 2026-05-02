@@ -117,8 +117,16 @@ export default function AddMateriAdmin() {
   };
 
   // ── FILE HANDLER ─────────────────────────────────────────────
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
   const handleFile = (file) => {
-    if (file) setForm((p) => ({ ...p, file }));
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      setErrorMsg("Ukuran file terlalu besar. Maksimal 10MB.");
+      return;
+    }
+    setErrorMsg("");
+    setForm((p) => ({ ...p, file }));
   };
   const handleDrop = (e) => {
     e.preventDefault();
@@ -165,7 +173,7 @@ export default function AddMateriAdmin() {
   };
 
   const handlePreview = (id) => previewFile(id, "learning-modules");
-const handleDownload = (id) => downloadFile(id, "learning-modules");
+  const handleDownload = (id) => downloadFile(id, "learning-modules");
 
   // ── HAPUS MATERI ─────────────────────────────────────────────
   const handleDelete = async (id) => {

@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Upload, FileText } from "lucide-react";
 import UserLayout from "../../components/user/LayoutUser";
-import { downloadFile, previewFile } from "../../utils/fileUtils";
+import { previewFile } from "../../utils/fileUtils";
+
 import api from "../../components/api/axios";
 
 // Ganti fungsi API submit
@@ -50,6 +51,9 @@ export default function TugasKumpul() {
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  // Tambah state untuk track submission terkini
+  const [currentSubmission, setCurrentSubmission] =
+    useState(existingSubmission);
 
   // Jika tidak ada assignmentId (akses langsung), redirect
   if (!assignmentId) {
@@ -57,9 +61,18 @@ export default function TugasKumpul() {
     return null;
   }
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const handleFile = (f) => {
-    if (f) setFile(f);
+    if (!f) return;
+    if (f.size > MAX_FILE_SIZE) {
+      setErrorMsg("Ukuran file terlalu besar. Maksimal 10MB.");
+      return;
+    }
+    setErrorMsg("");
+    setFile(f);
   };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
@@ -80,13 +93,23 @@ export default function TugasKumpul() {
     setErrorMsg("");
 
     try {
+      let res;
       if (submitType === "file") {
         const fd = new FormData();
         fd.append("file", file);
-        await submitAssignmentFile(assignmentId, fd);
+        res = await submitAssignmentFile(assignmentId, fd);
       } else {
-        await submitAssignmentText(assignmentId, linkUrl.trim());
+        res = await submitAssignmentText(assignmentId, linkUrl.trim());
       }
+
+      // ✅ Update submission terkini dari response BE
+      setCurrentSubmission({
+        ...res.data,
+        textContent: submitType === "link" ? linkUrl.trim() : null,
+        fileUrl: submitType === "file" ? res.data.fileUrl : null,
+      });
+      setFile(null);
+      setLinkUrl("");
       setSuccessMsg("Tugas berhasil dikumpulkan!");
       setTimeout(() => navigate("/tugas"), 1500);
     } catch (err) {
@@ -96,9 +119,6 @@ export default function TugasKumpul() {
       setSubmitting(false);
     }
   };
-
-  const handlePreview = (id) => previewFile(id, "assignments");
-  const handleDownload = (id) => downloadFile(id, "assignments");
 
   return (
     <UserLayout>
@@ -129,7 +149,7 @@ export default function TugasKumpul() {
             </div>
 
             {/* SUDAH DIKUMPULKAN SEBELUMNYA */}
-            {existingSubmission && (
+            {currentSubmission && (
               <div
                 className="flex items-center justify-between px-4 py-3 rounded-xl"
                 style={{
@@ -141,25 +161,42 @@ export default function TugasKumpul() {
                   <p className="text-green-700 text-xs font-semibold">
                     ✓ Sudah dikumpulkan sebelumnya
                   </p>
-                  {existingSubmission.score != null && (
+                  {/* Tampilkan tipe submission sebelumnya */}
+                  <p className="text-green-600 text-[10px] mt-0.5">
+                    {currentSubmission.textContent
+                      ? "Tipe: Link/Teks"
+                      : "Tipe: File"}
+                  </p>
+                  {currentSubmission.score != null && (
                     <p className="text-green-600 text-xs mt-0.5">
-                      Nilai: {parseFloat(existingSubmission.score).toFixed(1)}
+                      Nilai: {parseFloat(currentSubmission.score).toFixed(1)}
                     </p>
                   )}
                 </div>
-                {existingSubmission.textContent &&
-                /^https?:\/\//.test(existingSubmission.textContent) ? (
-                  <a
-                    href={existingSubmission.textContent}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-500 hover:underline truncate max-w-[150px]"
-                  >
-                    Lihat link lama
-                  </a>
-                ) : existingSubmission.fileUrl ? (
+                {/* Cek textContent DULU sebelum fileUrl */}
+                {currentSubmission.textContent ? (
+                  /^https?:\/\//.test(currentSubmission.textContent) ? (
+                    <a
+                      href={currentSubmission.textContent}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-500 hover:underline truncate max-w-[150px]"
+                    >
+                      Lihat link lama
+                    </a>
+                  ) : (
+                    <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                      {currentSubmission.textContent}
+                    </span>
+                  )
+                ) : currentSubmission.fileUrl ? (
                   <button
-                    onClick={() => previewFile(assignmentId, "assignments")}
+                    onClick={() =>
+                      previewFile(
+                        currentSubmission.id,
+                        "assignments/submissions",
+                      )
+                    }
                     className="text-xs text-blue-500 hover:underline"
                   >
                     Lihat file lama
@@ -214,6 +251,25 @@ export default function TugasKumpul() {
                   Link URL
                 </button>
               </div>
+              {currentSubmission && (
+                <div
+                  className="flex items-start gap-2 mt-2 px-3 py-2 rounded-xl"
+                  style={{
+                    background: "rgba(245,158,11,0.10)",
+                    border: "1px solid rgba(245,158,11,0.30)",
+                  }}
+                >
+                  <span className="text-yellow-600 text-xs mt-0.5">⚠️</span>
+                  <p className="text-yellow-700 text-xs leading-relaxed">
+                    Kamu sudah mengumpulkan dalam bentuk{" "}
+                    <strong>
+                      {currentSubmission.textContent ? "link/teks" : "file"}
+                    </strong>
+                    . Untuk mengganti, pastikan pilih jenis pengumpulan yang
+                    sama. Jangan tukar antara file dan link.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* INPUT LINK (jika pilih link) */}
@@ -234,7 +290,7 @@ export default function TugasKumpul() {
               <div>
                 <label className={labelStyle}>
                   File Tugas *{" "}
-                  {existingSubmission
+                  {currentSubmission
                     ? "(Upload file baru untuk mengganti)"
                     : ""}
                 </label>
@@ -333,7 +389,7 @@ export default function TugasKumpul() {
               >
                 {submitting
                   ? "Mengumpulkan..."
-                  : existingSubmission
+                  : currentSubmission
                     ? "Kumpul Ulang"
                     : "Submit"}
               </button>

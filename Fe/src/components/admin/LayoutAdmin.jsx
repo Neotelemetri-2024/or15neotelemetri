@@ -21,6 +21,8 @@ import {
   PlusSquare,
   History,
   Layers,
+  Users,
+  GraduationCap,
 } from "lucide-react";
 import { NotifProvider, useNotif } from "./NotifContext";
 
@@ -32,6 +34,8 @@ const menuItems = [
     children: [
       { to: "/admin/division", icon: <Layers size={16} />, label: "Division" },
       { to: "/admin/timeline", icon: <History size={16} />, label: "Timeline" },
+      { to: "/admin/mentor", icon: <GraduationCap size={16} />, label: "Mentor" },
+      { to: "/admin/users", icon: <Users size={16} />, label: "User" }
     ],
   },
   { to: "/admin/verifikasi", icon: <ShieldCheck size={18} />, label: "Verifikasi" },

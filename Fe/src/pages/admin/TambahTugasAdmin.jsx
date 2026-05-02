@@ -8,7 +8,7 @@ import {
   FileText,
   Trash2,
   ExternalLink,
-  Download
+  Download,
 } from "lucide-react";
 import AdminLayout from "../../components/admin/LayoutAdmin";
 import DivisionTabs from "../../components/admin/DivisionsTab";
@@ -117,8 +117,16 @@ export default function AddTugasAdmin() {
   };
 
   // ── FILE HANDLER ─────────────────────────────────────────────
+  const MAX_FILE_SIZE = 8 * 1024 * 1024;
+
   const handleFile = (file) => {
-    if (file) setForm((p) => ({ ...p, file }));
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      setErrorMsg("Ukuran file terlalu besar. Maksimal 10MB.");
+      return;
+    }
+    setErrorMsg("");
+    setForm((p) => ({ ...p, file }));
   };
   const handleDrop = (e) => {
     e.preventDefault();
@@ -179,7 +187,7 @@ export default function AddTugasAdmin() {
   };
 
   const handlePreview = (id) => previewFile(id, "assignments");
-const handleDownload = (id) => downloadFile(id, "assignments");
+  const handleDownload = (id) => downloadFile(id, "assignments");
 
   // Filter assignments berdasarkan tab divisi aktif
   const activeDivision = divisions[activeTabIndex];

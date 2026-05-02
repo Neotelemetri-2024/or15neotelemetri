@@ -359,6 +359,7 @@ function StatistikModal({ users, programStudiMap, onClose }) {
 // ── MAIN COMPONENT ────────────────────────────────────────────────
 export default function DashboardAdmin() {
   const [search, setSearch] = useState("");
+  const [filterSubDiv, setFilterSubDiv] = useState("all");
   const [users, setUsers] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [subDivisionMap, setSubDivisionMap] = useState({});
@@ -483,6 +484,8 @@ export default function DashboardAdmin() {
       const subIds = (subDivisionMap[activeDivision.id] || []).map((s) => s.id);
       if (!subIds.includes(u.profile.subDivisionId)) return false;
     }
+    if (filterSubDiv !== "all" && u.profile.subDivisionId !== filterSubDiv)
+      return false;
     if (search) {
       const q = search.toLowerCase();
       return (
@@ -517,6 +520,7 @@ export default function DashboardAdmin() {
     setActiveTabIndex(i);
     setCurrentPage(1);
     setSearch("");
+    setFilterSubDiv("all");
   };
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -709,7 +713,32 @@ export default function DashboardAdmin() {
                     <Search size={13} className="text-gray-400 shrink-0" />
                   </div>
 
-                  
+                  <select
+                    value={filterSubDiv}
+                    onChange={(e) => {
+                      setFilterSubDiv(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="text-xs rounded-full px-3 py-2 outline-none cursor-pointer shrink-0"
+                    style={{
+                      background:
+                        filterSubDiv !== "all"
+                          ? "rgba(123,47,190,0.1)"
+                          : "rgba(0,0,0,0.05)",
+                      border:
+                        filterSubDiv !== "all"
+                          ? "1px solid rgba(123,47,190,0.4)"
+                          : "1px solid rgba(0,0,0,0.10)",
+                      color: filterSubDiv !== "all" ? "#7B2FBE" : "#6b7280",
+                    }}
+                  >
+                    <option value="all">Semua Sub Divisi</option>
+                    {(subDivisionMap[activeDivision?.id] || []).map((sub) => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </option>
+                    ))}
+                  </select>
 
                   {/* ✅ FIX EXPORT MOBILE: tombol selalu tampil label + icon */}
                   <div className="relative shrink-0">

@@ -28,11 +28,12 @@ import Materi from "./pages/user/Materi";
 import Tugas from "./pages/user/Tugas";
 import TugasKumpul from "./pages/user/TugasKumpul";
 
-
 //admin
 import DashboardAdmin from "./pages/admin/DashboardAdmin";
 import TimelineAdmin from "./pages/admin/TimelineAdmin";
 import DivisionAdmin from "./pages/admin/DivisionAdmin";
+import MentorAdmin from "./pages/admin/MentorAdmin";
+import UserManagementAdmin from "./pages/admin/UserManagementAdmin";
 import VerifikasiAdmin from "./pages/admin/VerifikasiAdmin";
 import PembayaranAdmin from "./pages/admin/PembayaranAdmin";
 import UjianAdmin from "./pages/admin/UjianAdmin";
@@ -179,7 +180,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-      
 
       {/* ===== ADMIN ROUTES (hanya role ADMIN) ===== */}
       <Route path="/admin">
@@ -204,6 +204,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["ADMIN"]}>
               <DivisionAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/mentor"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <MentorAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <UserManagementAdmin />
             </ProtectedRoute>
           }
         />

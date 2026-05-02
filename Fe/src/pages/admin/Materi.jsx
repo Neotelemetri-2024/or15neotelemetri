@@ -19,6 +19,7 @@ const getAllModules = () =>
 const deleteModule = (id) => api.delete(`/learning-modules/${id}`);
 
 const columns = ["No", "Title", "Sub Divisi", "File", "Action"];
+const ROWS_PER_PAGE = 10;
 
 export default function MateriAdmin() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function MateriAdmin() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [deleteModuleId, setDeleteModuleId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // ── FETCH ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -83,7 +85,7 @@ export default function MateriAdmin() {
   };
 
   const handlePreview = (id) => previewFile(id, "learning-modules");
-const handleDownload = (id) => downloadFile(id, "learning-modules");
+  const handleDownload = (id) => downloadFile(id, "learning-modules");
 
   // Tambah setelah handleDelete
   // const handleDownload = async (id) => {
@@ -113,6 +115,12 @@ const handleDownload = (id) => downloadFile(id, "learning-modules");
     if (!activeDivision) return true;
     return subIdsInActive.includes(m.subDivisionId);
   });
+
+  const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ROWS_PER_PAGE,
+    currentPage * ROWS_PER_PAGE,
+  );
 
   // ── HELPER nama sub divisi ─────────────────────────────────────
   const getSubDivisionName = (subDivisionId) => {
@@ -157,7 +165,10 @@ const handleDownload = (id) => downloadFile(id, "learning-modules");
           <DivisionTabs
             divisions={divisions.map((d) => d.name)}
             bgColor="#1a0023"
-            onChange={(_, i) => setActiveTabIndex(i)}
+            onChange={(_, i) => {
+              setActiveTabIndex(i);
+              setCurrentPage(1);
+            }}
           >
             <div
               className="flex flex-col bg-white"
@@ -210,20 +221,20 @@ const handleDownload = (id) => downloadFile(id, "learning-modules");
                   </thead>
 
                   <tbody>
-                    {filtered.map((m, i) => (
+                    {paginated.map((m, i) => (
                       <tr
                         key={m.id}
                         className="transition-colors duration-150 hover:bg-purple-50"
                         style={{
                           borderBottom:
-                            i < filtered.length - 1
+                            i < paginated.length - 1
                               ? "1px solid rgba(0,0,0,0.05)"
                               : "none",
                         }}
                       >
                         {/* No */}
                         <td className="p-5 text-gray-500 text-xs text-center">
-                          {i + 1}
+                          {(currentPage - 1) * ROWS_PER_PAGE + i + 1}
                         </td>
 
                         {/* Title */}
@@ -306,6 +317,91 @@ const handleDownload = (id) => downloadFile(id, "learning-modules");
                   </tbody>
                 </table>
               </div>
+              {totalPages > 1 && (
+                <div
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                  style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                >
+                  <span className="text-xs text-gray-500">
+                    {(currentPage - 1) * ROWS_PER_PAGE + 1}–
+                    {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
+                    dari {filtered.length}
+                  </span>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
+                    >
+                      ← Prev
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          Math.abs(p - currentPage) <= 1,
+                      )
+                      .reduce((acc, p, idx, arr) => {
+                        if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, idx) =>
+                        p === "..." ? (
+                          <span
+                            key={`dot-${idx}`}
+                            className="px-2 text-xs text-gray-400 select-none"
+                          >
+                            •••
+                          </span>
+                        ) : (
+                          <button
+                            key={p}
+                            onClick={() => setCurrentPage(p)}
+                            className="w-8 h-8 text-xs rounded-lg font-semibold transition-all"
+                            style={{
+                              background:
+                                currentPage === p
+                                  ? "#7B2FBE"
+                                  : "rgba(0,0,0,0.04)",
+                              color: currentPage === p ? "white" : "#374151",
+                              border:
+                                currentPage === p
+                                  ? "1px solid #7B2FBE"
+                                  : "1px solid rgba(0,0,0,0.10)",
+                              boxShadow:
+                                currentPage === p
+                                  ? "0 2px 8px rgba(123,47,190,0.3)"
+                                  : "none",
+                            }}
+                          >
+                            {p}
+                          </button>
+                        ),
+                      )}
+                    <button
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(p + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </DivisionTabs>
         </div>

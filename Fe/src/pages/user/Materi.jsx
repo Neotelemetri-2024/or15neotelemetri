@@ -39,8 +39,18 @@ export default function Materi() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handlePreview = (id) => previewFile(id, "learning-modules");
-  const handleDownload = (id) => downloadFile(id, "learning-modules");
+  const handlePreview = async (id) => {
+    setLoadingFile((prev) => ({ ...prev, [id]: "preview" }));
+    await previewFile(id, "learning-modules");
+    setLoadingFile((prev) => ({ ...prev, [id]: null }));
+  };
+
+  const handleDownload = async (id) => {
+    setLoadingFile((prev) => ({ ...prev, [id]: "download" }));
+    await downloadFile(id, "learning-modules");
+    setLoadingFile((prev) => ({ ...prev, [id]: null }));
+  };
+  const [loadingFile, setLoadingFile] = useState({});
 
   useEffect(() => {
     const init = async () => {
@@ -130,26 +140,78 @@ export default function Materi() {
                 Belum ada materi tersedia untuk sub divisimu.
               </p>
             ) : (
-              modules.map((materi) => (
-                <button
-                  key={materi.id}
-                  onClick={() => downloadFile(materi.id, "learning-modules")}
-                  className="flex items-center gap-4 px-5 py-4 rounded-full text-left text-white font-semibold text-sm transition-all duration-200 hover:scale-[1.02] hover:brightness-110"
+              <>
+                {/* HINT BANNER */}
+                <div
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-xs text-white/60"
                   style={{
-                    background:
-                      "linear-gradient(90deg, #FF00FF 0%, #CC00CC 50%, #990099 100%)",
-                    boxShadow: "0 4px 24px rgba(255,0,255,0.40)",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px dashed rgba(255,255,255,0.1)",
                   }}
                 >
+                  <span>💡</span>
+                  <span>
+                    Tekan materi untuk langsung{" "}
+                    <strong className="text-white/80">mengunduh</strong> file,
+                    atau tekan tombol{" "}
+                    <strong className="text-white/80">Buka</strong> untuk
+                    preview.
+                  </span>
+                </div>
+
+                {modules.map((materi) => (
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: "rgba(0,0,0,0.25)" }}
+                    key={materi.id}
+                    className="flex items-center gap-3 px-5 py-4 rounded-full"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, #FF00FF 0%, #CC00CC 50%, #990099 100%)",
+                      boxShadow: "0 4px 24px rgba(255,0,255,0.40)",
+                    }}
                   >
-                    <BookOpen size={15} className="text-white" />
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: "rgba(0,0,0,0.25)" }}
+                    >
+                      <BookOpen size={15} className="text-white" />
+                    </div>
+
+                    <span className="flex-1 truncate text-white font-semibold text-sm">
+                      {materi.title}
+                    </span>
+
+                    {/* TOMBOL BUKA */}
+                    <button
+                      onClick={() => handlePreview(materi.id)}
+                      disabled={!!loadingFile[materi.id]}
+                      className="shrink-0 px-3 py-1.5 rounded-full text-white text-xs font-semibold disabled:opacity-60 transition-all hover:brightness-110"
+                      style={{
+                        background: "rgba(0,0,0,0.30)",
+                        border: "1px solid rgba(255,255,255,0.25)",
+                      }}
+                    >
+                      {loadingFile[materi.id] === "preview"
+                        ? "Membuka..."
+                        : "Buka"}
+                    </button>
+
+                    {/* TOMBOL DOWNLOAD */}
+                    <button
+                      onClick={() => handleDownload(materi.id)}
+                      disabled={!!loadingFile[materi.id]}
+                      className="shrink-0 px-3 py-1.5 rounded-full text-white text-xs font-semibold disabled:opacity-60 transition-all hover:brightness-110"
+                      style={{
+                        background: "rgba(0,0,0,0.30)",
+                        border: "1px solid rgba(255,255,255,0.25)",
+                      }}
+                    >
+                      {loadingFile[materi.id] === "download"
+                        ? "Mengunduh..."
+                        : "Unduh"}
+                    </button>
                   </div>
-                  <span className="flex-1 truncate">{materi.title}</span>
-                </button>
-              ))
+                ))}
+              </>
             )}
           </div>
         )}

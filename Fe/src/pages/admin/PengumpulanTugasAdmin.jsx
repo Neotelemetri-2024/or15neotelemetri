@@ -43,6 +43,8 @@ export default function PengumpulanTugasAdmin() {
   const [subDivisionMap, setSubDivisionMap] = useState({});
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [search, setSearch] = useState("");
+  const [filterSubDiv, setFilterSubDiv] = useState("all");
+  const [filterAssignment, setFilterAssignment] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
@@ -76,6 +78,8 @@ export default function PengumpulanTugasAdmin() {
 
         // Flatten semua submissions
         setRows(submissionResults.flat());
+        // Di dalam useEffect setelah setRows
+        console.log("Sample submission:", submissionResults.flat()[0]);
 
         // Fetch divisions
         const opDept = deptRes.data.find((d) =>
@@ -111,10 +115,18 @@ export default function PengumpulanTugasAdmin() {
     : [];
 
   const filtered = rows.filter((row) => {
-    // Filter per divisi
+    // Filter per divisi (tab)
     if (activeDivision) {
       const subDivId = row.assignment?.subDivisionId;
       if (subDivId && !subIdsInActive.includes(subDivId)) return false;
+    }
+    // Filter per sub divisi
+    if (filterSubDiv !== "all") {
+      if (row.assignment?.subDivisionId !== filterSubDiv) return false;
+    }
+    // Filter per tugas
+    if (filterAssignment !== "all") {
+      if (row.assignment?.id !== filterAssignment) return false;
     }
     // Filter search
     if (search) {
@@ -139,6 +151,8 @@ export default function PengumpulanTugasAdmin() {
     setActiveTabIndex(i);
     setCurrentPage(1);
     setSearch("");
+    setFilterSubDiv("all");
+    setFilterAssignment("all");
   };
 
   const handleSearch = (e) => {
@@ -248,12 +262,14 @@ export default function PengumpulanTugasAdmin() {
               }}
             >
               {/* FILTER + SEARCH */}
+              {/* FILTER + SEARCH */}
               <div
-                className="flex items-center gap-3 px-4 py-3 border-b"
+                className="flex flex-wrap items-center gap-2 px-4 py-3 border-b"
                 style={{ borderColor: "rgba(0,0,0,0.06)" }}
               >
+                {/* Search */}
                 <div
-                  className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1"
+                  className="flex items-center gap-2 px-3 py-[7px] rounded-full flex-1 min-w-[180px]"
                   style={{
                     background: "rgba(0,0,0,0.05)",
                     border: "1px solid rgba(0,0,0,0.10)",
@@ -268,6 +284,76 @@ export default function PengumpulanTugasAdmin() {
                   />
                   <Search size={13} className="text-gray-400 shrink-0" />
                 </div>
+
+                {/* Filter Sub Divisi */}
+                <select
+                  value={filterSubDiv}
+                  onChange={(e) => {
+                    setFilterSubDiv(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="text-xs text-gray-600 rounded-full px-3 py-[7px] outline-none cursor-pointer"
+                  style={{
+                    background:
+                      filterSubDiv !== "all"
+                        ? "rgba(123,47,190,0.1)"
+                        : "rgba(0,0,0,0.05)",
+                    border:
+                      filterSubDiv !== "all"
+                        ? "1px solid rgba(123,47,190,0.4)"
+                        : "1px solid rgba(0,0,0,0.10)",
+                    color: filterSubDiv !== "all" ? "#7B2FBE" : "#6b7280",
+                  }}
+                >
+                  <option value="all">Semua Sub Divisi</option>
+                  {(subDivisionMap[activeDivision?.id] || []).map((sub) => (
+                    <option key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Filter Tugas */}
+                <select
+                  value={filterAssignment}
+                  onChange={(e) => {
+                    setFilterAssignment(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="text-xs text-gray-600 rounded-full px-3 py-[7px] outline-none cursor-pointer"
+                  style={{
+                    background:
+                      filterAssignment !== "all"
+                        ? "rgba(123,47,190,0.1)"
+                        : "rgba(0,0,0,0.05)",
+                    border:
+                      filterAssignment !== "all"
+                        ? "1px solid rgba(123,47,190,0.4)"
+                        : "1px solid rgba(0,0,0,0.10)",
+                    color: filterAssignment !== "all" ? "#7B2FBE" : "#6b7280",
+                    maxWidth: "180px",
+                  }}
+                >
+                  <option value="all">Semua Tugas</option>
+                  {/* Unik per assignment berdasarkan divisi aktif */}
+                  {[
+                    ...new Map(
+                      rows
+                        .filter(
+                          (r) =>
+                            !activeDivision ||
+                            subIdsInActive.includes(
+                              r.assignment?.subDivisionId,
+                            ),
+                        )
+                        .map((r) => [r.assignment?.id, r.assignment]),
+                    ).values(),
+                  ].map((a) => (
+                    <option key={a?.id} value={a?.id}>
+                      {a?.title}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* TABLE */}
@@ -324,11 +410,37 @@ export default function PengumpulanTugasAdmin() {
                         </td>
                         {/* File submission */}
                         <td className="p-4 text-center">
-                          {row.fileUrl ? (
+                          {/* Cek textContent dulu */}
+                          {row.textContent ? (
+                            /^https?:\/\//.test(row.textContent) ? (
+                              <a
+                                href={row.textContent}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg,#0077CC,#004499)",
+                                  boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
+                                }}
+                              >
+                                <ExternalLink size={10} />
+                                Buka Link
+                              </a>
+                            ) : (
+                              <span
+                                className="px-2 py-1 rounded-lg text-xs text-gray-600 max-w-[150px] truncate block mx-auto"
+                                title={row.textContent}
+                                style={{ background: "rgba(0,0,0,0.05)" }}
+                              >
+                                {row.textContent}
+                              </span>
+                            )
+                          ) : row.fileUrl ? (
                             <div className="flex items-center justify-center gap-1">
                               <button
                                 onClick={() =>
-                                  previewFile(row.id, "submissions")
+                                  previewFile(row.id, "assignments/submissions")
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
                                 style={{
@@ -338,11 +450,14 @@ export default function PengumpulanTugasAdmin() {
                                 }}
                               >
                                 <ExternalLink size={10} />
-                                Lihat
+                                Buka
                               </button>
                               <button
                                 onClick={() =>
-                                  downloadFile(row.id, "submissions")
+                                  downloadFile(
+                                    row.id,
+                                    "assignments/submissions",
+                                  )
                                 }
                                 className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
                                 style={{
@@ -352,25 +467,9 @@ export default function PengumpulanTugasAdmin() {
                                 }}
                               >
                                 <Download size={10} />
-                                Download
+                                Unduh
                               </button>
                             </div>
-                          ) : row.textContent &&
-                            /^https?:\/\//.test(row.textContent) ? (
-                            <a
-                              href={row.textContent}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
-                              style={{
-                                background:
-                                  "linear-gradient(135deg,#0077CC,#004499)",
-                                boxShadow: "0 2px 8px rgba(0,100,200,0.3)",
-                              }}
-                            >
-                              <ExternalLink size={10} />
-                              Buka Link
-                            </a>
                           ) : (
                             <span className="text-gray-300 text-xs">—</span>
                           )}
@@ -442,46 +541,84 @@ export default function PengumpulanTugasAdmin() {
 
               {/* PAGINATION */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-400">
+                <div
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+                  style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                >
+                  <span className="text-xs text-gray-500">
                     {(currentPage - 1) * ROWS_PER_PAGE + 1}–
                     {Math.min(currentPage * ROWS_PER_PAGE, filtered.length)}{" "}
                     dari {filtered.length}
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       ← Prev
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (p) => (
-                        <button
-                          key={p}
-                          onClick={() => setCurrentPage(p)}
-                          className="px-3 py-1 text-xs rounded-lg border transition"
-                          style={{
-                            borderColor:
-                              currentPage === p ? "#7B2FBE" : "rgba(0,0,0,0.1)",
-                            background:
-                              currentPage === p ? "#7B2FBE" : "transparent",
-                            color: currentPage === p ? "white" : "inherit",
-                          }}
-                        >
-                          {p}
-                        </button>
-                      ),
-                    )}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          Math.abs(p - currentPage) <= 1,
+                      )
+                      .reduce((acc, p, idx, arr) => {
+                        if (idx > 0 && p - arr[idx - 1] > 1) acc.push("...");
+                        acc.push(p);
+                        return acc;
+                      }, [])
+                      .map((p, idx) =>
+                        p === "..." ? (
+                          <span
+                            key={`dot-${idx}`}
+                            className="px-2 text-xs text-gray-400 select-none"
+                          >
+                            •••
+                          </span>
+                        ) : (
+                          <button
+                            key={p}
+                            onClick={() => setCurrentPage(p)}
+                            className="w-8 h-8 text-xs rounded-lg font-semibold transition-all"
+                            style={{
+                              background:
+                                currentPage === p
+                                  ? "#7B2FBE"
+                                  : "rgba(0,0,0,0.04)",
+                              color: currentPage === p ? "white" : "#374151",
+                              border:
+                                currentPage === p
+                                  ? "1px solid #7B2FBE"
+                                  : "1px solid rgba(0,0,0,0.10)",
+                              boxShadow:
+                                currentPage === p
+                                  ? "0 2px 8px rgba(123,47,190,0.3)"
+                                  : "none",
+                            }}
+                          >
+                            {p}
+                          </button>
+                        ),
+                      )}
                     <button
                       onClick={() =>
                         setCurrentPage((p) => Math.min(p + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 text-xs rounded-lg border transition disabled:opacity-30"
-                      style={{ borderColor: "rgba(0,0,0,0.1)" }}
+                      className="px-3 py-1.5 text-xs rounded-lg font-medium transition-all disabled:opacity-40"
+                      style={{
+                        background: "rgba(123,47,190,0.08)",
+                        color: "#7B2FBE",
+                        border: "1px solid rgba(123,47,190,0.2)",
+                      }}
                     >
                       Next →
                     </button>

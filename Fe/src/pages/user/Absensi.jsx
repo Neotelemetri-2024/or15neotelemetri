@@ -4,7 +4,7 @@ import { getMyProfile } from "../../services/userServices";
 import api from "../../components/api/axios";
 import QRCode from "qrcode";
 import logoORWarna from "../../assets/images/Logo_OR_Warna.png";
-import { ShieldAlert, ClipboardList } from "lucide-react";
+import { ShieldAlert, ClipboardList, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const getMyAttendances = () => api.get("/attendances/me");
@@ -168,8 +168,6 @@ export default function Absensi() {
     init();
   }, []);
 
-  
-
   // useEffect(() => {
   //   const init = async () => {
   //     try {
@@ -274,7 +272,22 @@ export default function Absensi() {
                 {profile?.subDivision?.name || "-"}
               </p>
             </div>
-
+            <button
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = qrDataUrl;
+                link.download = `QR_Absensi_${profile?.fullName?.replace(/\s+/g, "_") || "saya"}.png`;
+                link.click();
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-xs font-semibold transition-all hover:scale-105 hover:brightness-110"
+              style={{
+                background: "linear-gradient(135deg,#7B2FBE,#501A5E)",
+                boxShadow: "0 3px 14px rgba(120,0,200,0.35)",
+              }}
+            >
+              <Download size={14} />
+              Download QR Code
+            </button>
             <p className="text-xs text-white/50 text-center max-w-xs leading-relaxed">
               *Tunjukkan QR Code ini kepada panitia untuk dipindai sebagai bukti
               kehadiran.
